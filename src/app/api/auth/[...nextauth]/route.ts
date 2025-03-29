@@ -1,8 +1,10 @@
-import NextAuth from "next-auth";
+import { NextAuthOptions } from "next-auth";
+import { NextResponse } from "next/server";
+import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { supabase } from "@/lib/supabase/client";
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -24,22 +26,27 @@ const handler = NextAuth({
           return null;
         }
 
-        // Получаем дополнительную информацию о пользователе из базы данных
+        // Получаем дополнительные данные пользователя из таблицы users
         const { data: userData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
+          .from("users")
+          .select("*")
+          .eq("id", data.user.id)
           .single();
 
         return {
           id: data.user.id,
           email: data.user.email,
-          name: userData?.name || data.user.email,
-          role: userData?.role || 'student',
+          name: userData?.name || data.user.email?.split("@")[0],
+          role: userData?.role || "user",
         };
       }
     })
   ],
+  pages: {
+    signIn: "/auth/login",
+    signOut: "/auth/logout",
+    error: "/auth/error",
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -54,16 +61,23 @@ const handler = NextAuth({
         session.user.role = token.role as string;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // Исправляем редирект после авторизации
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      } else if (url.startsWith("http")) {
+        return url;
+      }
+      return baseUrl + "/dashboard";
     }
-  },
-  pages: {
-    signIn: '/auth/login',
-    signOut: '/auth/logout',
-    error: '/auth/error',
   },
   session: {
     strategy: "jwt",
   },
-});
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

@@ -70,7 +70,7 @@ async function getProject(id: string): Promise<Project | null> {
       .from("projects")
       .select(`
         *,
-        owner:users!projects_owner_id_fkey(name, email),
+        owner:users(name, email),
         members:project_members(
           user:users(id, name, email)
         )
