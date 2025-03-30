@@ -1,10 +1,10 @@
+import NextAuth from "next-auth";
 import { NextAuthOptions } from "next-auth";
-import { NextResponse } from "next/server";
-import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { supabase } from "@/lib/supabase/client";
 
 export const authOptions: NextAuthOptions = {
+  debug: true,
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -14,34 +14,48 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          console.log("No credentials");
           return null;
         }
 
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: credentials.email,
-          password: credentials.password,
-        });
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: credentials.email,
+            password: credentials.password,
+          });
 
-        if (error || !data.user) {
+          console.log("Supabase auth response:", { data, error });
+
+          if (error || !data.user) {
+            console.log("Auth error:", error);
+            return null;
+          }
+
+          // Получаем дополнительные данные пользователя
+          const { data: userData, error: userError } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", data.user.id)
+            .single();
+
+          console.log("User data:", { userData, userError });
+
+          return {
+            id: data.user.id,
+            email: data.user.email,
+            name: userData?.name || data.user.email?.split("@")[0],
+            role: userData?.role || "user",
+          };
+        } catch (e) {
+          console.error("Authorization error:", e);
           return null;
         }
-
-        // Получаем дополнительные данные пользователя из таблицы users
-        const { data: userData } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", data.user.id)
-          .single();
-
-        return {
-          id: data.user.id,
-          email: data.user.email,
-          name: userData?.name || data.user.email?.split("@")[0],
-          role: userData?.role || "user",
-        };
       }
     })
   ],
+  session: {
+    strategy: "jwt",
+  },
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/logout",
@@ -56,28 +70,14 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
+      if (session?.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
       }
       return session;
     },
-    async redirect({ url, baseUrl }) {
-      // Исправляем редирект после авторизации
-      if (url.startsWith("/")) {
-        return `${baseUrl}${url}`;
-      } else if (url.startsWith("http")) {
-        return url;
-      }
-      return baseUrl + "/dashboard";
-    }
   },
-  session: {
-    strategy: "jwt",
-  },
-  secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST };

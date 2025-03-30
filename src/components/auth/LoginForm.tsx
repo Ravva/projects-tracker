@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,13 +13,22 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams?.get("registered") === "true") {
+      setSuccess("Регистрация успешно завершена. Пожалуйста, войдите в систему.");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setSuccess("");
 
     try {
       const result = await signIn("credentials", {
@@ -46,7 +55,7 @@ export function LoginForm() {
       <CardHeader>
         <CardTitle>Вход в систему</CardTitle>
         <CardDescription>
-          Введите свои данные для входа в Digital Projects Tracker
+          Войдите в свой аккаунт Digital Projects Tracker
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -54,6 +63,11 @@ export function LoginForm() {
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          {success && (
+            <Alert variant="default" className="border-green-500 bg-green-500/10 text-green-500">
+              <AlertDescription>{success}</AlertDescription>
             </Alert>
           )}
           <div className="space-y-2">

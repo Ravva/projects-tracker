@@ -8,7 +8,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { CalendarIcon, RocketIcon, FileIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase/client";
@@ -18,6 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { marked } from 'marked';
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ru } from 'date-fns/locale';
 
 // Обновляем схему формы, добавляя поля для исполнителей и этапов
 const formSchema = z.object({
@@ -39,10 +40,12 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+// Определяем тип для члена команды на основе схемы Zod
+type TeamMember = FormValues['team_members'][number];
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [isImporting, setIsImporting] = useState(false);
@@ -70,34 +73,92 @@ export default function NewProjectPage() {
     setIsSubmitting(true);
     setError("");
 
+    console.log("Session status:", status);
+    console.log("Session data:", session);
+    console.log("Attempting insert with owner_id:", session?.user?.id);
+
+    if (status !== 'authenticated' || !session?.user?.id) {
+      setError("Ошибка: Сессия пользователя не аутентифицирована или ID недоступен.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      // Подготавливаем данные для отправки
+      // 1. Создаем запись в таблице 'projects'
       const { data: project, error: projectError } = await supabase
-        .from("projects")
-        .insert({
+          .from("projects")
+          .insert({
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           title: data.title,
           description: data.description,
           github_url: data.github_url || null,
           demo_url: data.demo_url || null,
           prd_url: data.prd_url || null,
-          owner_id: session.user.id,
+          owner_id: session.user.id, // Используем проверенный ID
           status: "pending",
           progress: 0,
-          team_members: data.team_members,
-          stages: data.stages
+          stages: data.stages,
         })
-        .select()
-        .single();
+        
+          .select()
+          .single();
 
       if (projectError) {
-        throw projectError;
+        // Проверяем специфичную ошибку для stages, если она возникнет
+        if (projectError.message.includes('type "jsonb[]"')) { // Пример проверки, текст ошибки может отличаться
+             setError(`Ошибка при сохранении этапов. Возможно, тип колонки 'stages' в таблице 'projects' должен быть 'jsonb' или 'jsonb[]'. Ошибка: ${projectError.message}`);
+        } else {
+            setError(`Ошибка при создании проекта: ${projectError.message}`);
+        }
+        throw projectError; // Прерываем выполнение
       }
 
-      router.push(`/projects/${project.id}`);
+      // 2. Получаем ID созданного проекта
+      const projectId = project.id;
+
+      // 3. Подготавливаем данные для 'project_members'
+      if (data.team_members && data.team_members.length > 0) {
+        const membersToInsert = data.team_members.map(member => {
+          // Определяем роль
+          const role = member.isLeader ? 'Лидер' : 'Участник'; // Новый вариант (если 'Участник' разрешен)
+
+          // !!! ВАЖНО: Заглушка для user_id !!!
+          const memberUserId = session.user.id; // ЗАМЕНИТЬ НА РЕАЛЬНЫЙ user_id
+
+          return {
+            project_id: projectId,
+            user_id: memberUserId, // <-- ЗАГЛУШКА!
+            role: role, // Роль теперь только "Лидер" или "Участник"
+            class: member.class || null, // Сохраняем класс в отдельное поле
+          };
+        });
+
+        // 4. Вставляем записи в 'project_members'
+        const { error: membersError } = await supabase
+          .from("project_members")
+          .insert(membersToInsert);
+
+        if (membersError) {
+          // Если произошла ошибка при добавлении участников, проект уже создан.
+          // Можно либо попытаться удалить проект, либо просто сообщить об ошибке.
+          setError(`Проект создан (ID: ${projectId}), но произошла ошибка при добавлении участников: ${membersError.message}. Возможно, указан неверный user_id или отсутствует колонка 'class'.`);
+          // Не прерываем выполнение, чтобы пользователь мог перейти к проекту, но с ошибкой.
+          console.error("Error inserting project members:", membersError);
+           // throw membersError; // Раскомментируйте, если хотите прервать переход к проекту
+        }
+      }
+
+      // 5. Перенаправляем на страницу проекта
+      router.push(`/projects/${projectId}`);
       router.refresh();
+
     } catch (err: any) {
-      console.error("Error creating project:", err);
-      setError(err.message || "Произошла ошибка при создании проекта");
+      console.error("Error creating project process:", err);
+      // Ошибка уже должна быть установлена внутри try, но на всякий случай
+      if (!error) {
+          setError(err.message || "Произошла неизвестная ошибка при создании проекта");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -207,14 +268,17 @@ export default function NewProjectPage() {
             const stageText = line.substring(2).trim();
             const completed = stageText.startsWith('[x]');
             
-            // Извлекаем название этапа и дедлайн
             let stageName = stageText.replace(/\[\s*x?\s*\]/, '').trim();
             let deadline = "";
             
-            // Ищем дату в формате (DD.MM.YY)
-            const dateMatch = stageName.match(/\((\d{2}\.\d{2}\.\d{2})\)/);
+            const dateMatch = stageName.match(/\((\d{2})\.(\d{2})\.(\d{2})\)/);
             if (dateMatch) {
-              deadline = dateMatch[1];
+              // Конвертируем DD.MM.YY в dd.MM.yy (оставляем как есть)
+              const day = dateMatch[1];
+              const month = dateMatch[2];
+              const yearSuffix = dateMatch[3]; // гг
+              // Сохраняем в формате dd.MM.yy
+              deadline = `${day}.${month}.${yearSuffix}`;
               stageName = stageName.replace(/\(.*?\)/, '').trim();
             }
             
@@ -260,6 +324,41 @@ export default function NewProjectPage() {
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleAddPerformer = () => {
+    // Logic to add a new performer structure to the state
+    form.setValue('team_members', [...form.getValues('team_members'), { name: '', class: '', isLeader: false }]);
+  };
+
+  const handleRemovePerformer = (index: number) => {
+    const currentMembers = [...form.getValues('team_members')];
+    currentMembers.splice(index, 1);
+    form.setValue('team_members', currentMembers);
+  };
+
+  const handlePerformerChange = (index: number, field: keyof TeamMember, value: string | boolean) => {
+    const currentMembers = [...form.getValues('team_members')];
+    const memberToUpdate = currentMembers[index];
+
+    // Проверяем тип значения в зависимости от поля
+    if (field === 'isLeader') {
+      if (typeof value === 'boolean') {
+        memberToUpdate[field] = value;
+      } else {
+        console.error(`Invalid value type for field ${field}: expected boolean, got ${typeof value}`);
+        return; // Прерываем выполнение, если тип неверный
+      }
+    } else { // Поля 'name' или 'class'
+      if (typeof value === 'string') {
+        memberToUpdate[field] = value;
+      } else {
+        console.error(`Invalid value type for field ${field}: expected string, got ${typeof value}`);
+        return; // Прерываем выполнение, если тип неверный
+      }
+    }
+
+    form.setValue('team_members', currentMembers);
   };
 
   return (
@@ -355,6 +454,68 @@ export default function NewProjectPage() {
                     )}
                   />
                   
+                  {/* Исполнители (перенесено сюда) */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <FormLabel className="text-white">Исполнители</FormLabel>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        className="h-8 border-[#1E3A29] bg-[#0A0A0A]/50 text-white hover:bg-[#1E3A29]/20"
+                        onClick={handleAddPerformer}
+                      >
+                        Добавить
+                      </Button>
+                    </div>
+                    
+                    {form.watch('team_members').map((_, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          placeholder="Иванов Иван"
+                          className="bg-[#0A0A0A] border-[#1E3A29] text-white focus:border-[#00BD74] focus:ring-[#00BD74]/20 flex-grow"
+                          value={form.watch(`team_members.${index}.name`)}
+                          onChange={(e) => {
+                            handlePerformerChange(index, 'name', e.target.value);
+                          }}
+                        />
+                        <Input
+                          placeholder="7Ю"
+                          className="bg-[#0A0A0A] border-[#1E3A29] text-white focus:border-[#00BD74] focus:ring-[#00BD74]/20 w-20"
+                          value={form.watch(`team_members.${index}.class`)}
+                          onChange={(e) => {
+                            handlePerformerChange(index, 'class', e.target.value);
+                          }}
+                        />
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={`leader-${index}`}
+                            className="mr-2 h-4 w-4 accent-[#00BD74]"
+                            checked={form.watch(`team_members.${index}.isLeader`)}
+                            onChange={(e) => {
+                              handlePerformerChange(index, 'isLeader', e.target.checked);
+                            }}
+                          />
+                          <label htmlFor={`leader-${index}`} className="text-white text-sm">Лидер</label>
+                        </div>
+                        {index > 0 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-500/10"
+                            onClick={() => {
+                              handleRemovePerformer(index);
+                            }}
+                          >
+                            Удалить
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
                   <FormField
                     control={form.control}
                     name="description"
@@ -373,147 +534,7 @@ export default function NewProjectPage() {
                     )}
                   />
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="github_url"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-white">GitHub репозиторий</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="https://github.com/username/repo" 
-                              {...field} 
-                              className="bg-[#0A0A0A] border-[#1E3A29] text-white focus:border-[#00BD74] focus:ring-[#00BD74]/20"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="demo_url"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-white">Демо-версия</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="https://your-demo.com" 
-                              {...field} 
-                              className="bg-[#0A0A0A] border-[#1E3A29] text-white focus:border-[#00BD74] focus:ring-[#00BD74]/20"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="prd_url"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-white">Документация (PRD)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="https://docs.google.com/..." 
-                              {...field} 
-                              className="bg-[#0A0A0A] border-[#1E3A29] text-white focus:border-[#00BD74] focus:ring-[#00BD74]/20"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                   
-                  </div>
-                  
-                  {/* Добавляем поле для исполнителей */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <FormLabel className="text-white">Исполнители</FormLabel>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="sm"
-                        className="h-8 border-[#1E3A29] bg-[#0A0A0A]/50 text-white hover:bg-[#1E3A29]/20"
-                        onClick={() => {
-                          const currentMembers = form.getValues('team_members');
-                          if (currentMembers.length < 3) {
-                            form.setValue('team_members', [...currentMembers, { name: '', class: '', isLeader: false }]);
-                          }
-                        }}
-                      >
-                        Добавить
-                      </Button>
-                    </div>
-                    
-                    {form.watch('team_members').map((_, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Input
-                          placeholder="Иванов Иван"
-                          className="bg-[#0A0A0A] border-[#1E3A29] text-white focus:border-[#00BD74] focus:ring-[#00BD74]/20 flex-grow"
-                          value={form.watch(`team_members.${index}.name`)}
-                          onChange={(e) => {
-                            const currentMembers = [...form.getValues('team_members')];
-                            currentMembers[index].name = e.target.value;
-                            form.setValue('team_members', currentMembers);
-                          }}
-                        />
-                        <Input
-                          placeholder="7Ю"
-                          className="bg-[#0A0A0A] border-[#1E3A29] text-white focus:border-[#00BD74] focus:ring-[#00BD74]/20 w-20"
-                          value={form.watch(`team_members.${index}.class`)}
-                          onChange={(e) => {
-                            const currentMembers = [...form.getValues('team_members')];
-                            currentMembers[index].class = e.target.value;
-                            form.setValue('team_members', currentMembers);
-                          }}
-                        />
-                        <div className="flex items-center">
-                          <input
-                            type="checkbox"
-                            id={`leader-${index}`}
-                            className="mr-2 h-4 w-4 accent-[#00BD74]"
-                            checked={form.watch(`team_members.${index}.isLeader`)}
-                            onChange={(e) => {
-                              const currentMembers = [...form.getValues('team_members')];
-                              // Если отмечаем нового лидера, снимаем отметку с предыдущего
-                              if (e.target.checked) {
-                                currentMembers.forEach((member, i) => {
-                                  member.isLeader = i === index;
-                                });
-                              } else {
-                                currentMembers[index].isLeader = false;
-                              }
-                              form.setValue('team_members', currentMembers);
-                            }}
-                          />
-                          <label htmlFor={`leader-${index}`} className="text-white text-sm">Лидер</label>
-                        </div>
-                        {index > 0 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-500/10"
-                            onClick={() => {
-                              const currentMembers = form.getValues('team_members').filter((_, i) => i !== index);
-                              form.setValue('team_members', currentMembers);
-                            }}
-                          >
-                            Удалить
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Добавляем поле для этапов */}
+                  {/* Блок Этапы проекта (перемещен сюда) */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-white">Этапы проекта</FormLabel>
@@ -569,22 +590,48 @@ export default function NewProjectPage() {
                                 )}
                               >
                                 <CalendarIcon className="mr-2 h-4 w-4 text-[#00BD74]" />
-                                {form.watch(`stages.${index}.deadline`) ? (
-                                  format(new Date(form.watch(`stages.${index}.deadline`) as string), "PPP")
-                                ) : (
-                                  <span>Выберите дату</span>
-                                )}
+                                {(() => {
+                                  const deadlineValue = form.watch(`stages.${index}.deadline`);
+                                  if (deadlineValue) {
+                                    try {
+                                      // Парсим строку dd.MM.yy
+                                      const date = parse(deadlineValue as string, "dd.MM.yy", new Date());
+                                      if (!isNaN(date.getTime())) {
+                                        // Форматируем в dd.MM.yy с русской локалью
+                                        return format(date, "dd.MM.yy", { locale: ru });
+                                      }
+                                    } catch (e) {
+                                      console.error("Error formatting date:", e);
+                                    }
+                                  }
+                                  return <span>Выберите дату</span>;
+                                })()}
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0 bg-[#0A0A0A] border-[#1E3A29]">
                               <Calendar
                                 mode="single"
-                                selected={form.watch(`stages.${index}.deadline`) ? 
-                                  new Date(form.watch(`stages.${index}.deadline`) as string) : 
-                                  undefined}
+                                // Передаем русскую локаль в календарь
+                                locale={ru}
+                                selected={(() => {
+                                  const deadlineValue = form.watch(`stages.${index}.deadline`);
+                                  if (deadlineValue) {
+                                    try {
+                                      // Парсим строку dd.MM.yy для выбора даты в календаре
+                                      const date = parse(deadlineValue as string, "dd.MM.yy", new Date());
+                                      if (!isNaN(date.getTime())) {
+                                        return date;
+                                      }
+                                    } catch (e) {
+                                      console.error("Error parsing date for calendar:", e);
+                                    }
+                                  }
+                                  return undefined;
+                                })()}
                                 onSelect={(date) => {
                                   const currentStages = [...form.getValues('stages')];
-                                  currentStages[index].deadline = date ? format(date, "yyyy-MM-dd") : '';
+                                  // Сохраняем дату в формате dd.MM.yy
+                                  currentStages[index].deadline = date ? format(date, "dd.MM.yy", { locale: ru }) : '';
                                   form.setValue('stages', currentStages);
                                 }}
                                 initialFocus
@@ -600,7 +647,7 @@ export default function NewProjectPage() {
                                   nav_button: "text-[#00BD74] hover:bg-[#1E3A29]",
                                   nav_button_previous: "text-[#00BD74]",
                                   nav_button_next: "text-[#00BD74]",
-                                  caption: "text-white"
+                                  caption: "text-white capitalize" // Добавим capitalize для месяца
                                 }}
                               />
                             </PopoverContent>
@@ -624,6 +671,45 @@ export default function NewProjectPage() {
                     ))}
                   </div>
                   
+                  {/* Блок Ссылки (GitHub и Демо) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="github_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">GitHub репозиторий</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="https://github.com/username/repo" 
+                              {...field} 
+                              className="bg-[#0A0A0A] border-[#1E3A29] text-white focus:border-[#00BD74] focus:ring-[#00BD74]/20"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="demo_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">Демо-версия</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="https://your-demo.vercel.app" 
+                              {...field} 
+                              className="bg-[#0A0A0A] border-[#1E3A29] text-white focus:border-[#00BD74] focus:ring-[#00BD74]/20"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
                   <div className="flex justify-center pt-4">
                     <Button 
                       type="submit" 
@@ -641,4 +727,4 @@ export default function NewProjectPage() {
       </section>
     </div>
   );
-} // Add this closing curly brace to close the NewProjectPage function
+}

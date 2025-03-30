@@ -23,33 +23,44 @@ export function RegisterForm() {
     setError("");
 
     try {
-      // Регистрация пользователя в Supabase Auth
-      const { data, error: authError } = await supabase.auth.signUp({
+      // 1. Создаем пользователя в Auth
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
 
-      if (authError) throw authError;
-
-      if (data.user) {
-        // Создание записи в таблице users с дополнительной информацией
-        const { error: profileError } = await supabase
-          .from("users")
-          .insert([
-            {
-              id: data.user.id,
-              name,
-              email,
-              role: "student", // По умолчанию роль - ученик
-            },
-          ]);
-
-        if (profileError) throw profileError;
-
-        router.push("/auth/login?registered=true");
+      if (error) {
+        throw error;
       }
+
+      if (!data?.user?.id) {
+        throw new Error("Не удалось создать пользователя");
+      }
+
+      // 2. Создаем запись в таблице users
+      const { error: profileError } = await supabase
+        .from('users')
+        .insert({
+          id: data.user.id,
+          email: email,
+          name: name,
+          role: 'user'
+        });
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // 3. Если все успешно, перенаправляем на страницу входа
+      router.push("/auth/login?registered=true");
+
     } catch (error: any) {
-      setError(error.message || "Ошибка при регистрации");
+      console.error("Registration error:", error);
+      if (error.message === "User already registered") {
+        setError("Пользователь с таким email уже существует");
+      } else {
+        setError(error.message || "Ошибка при регистрации");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -74,9 +85,11 @@ export function RegisterForm() {
             <Label htmlFor="name">Имя</Label>
             <Input
               id="name"
+              type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              placeholder="Введите ваше имя"
             />
           </div>
           <div className="space-y-2">
@@ -87,6 +100,7 @@ export function RegisterForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              placeholder="example@email.com"
             />
           </div>
           <div className="space-y-2">
@@ -97,21 +111,18 @@ export function RegisterForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              placeholder="Минимум 6 символов"
               minLength={6}
             />
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Регистрация..." : "Зарегистрироваться"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => router.push("/auth/login")}
+        <CardFooter>
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isLoading}
           >
-            Уже есть аккаунт? Войти
+            {isLoading ? "Регистрация..." : "Зарегистрироваться"}
           </Button>
         </CardFooter>
       </form>
