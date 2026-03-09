@@ -12,6 +12,7 @@
 ## Целевой стек
 
 - frontend: `Next.js 16`, `React 19`, `Tailwind CSS v4`;
+- библиотеки: `xlsx` (импорт данных);
 - UI kit: `shadcn/ui` preset `a1F9UU9Q`, `radix-ui`, `hugeicons`;
 - package manager: `bun`;
 - code quality: `Biome`;

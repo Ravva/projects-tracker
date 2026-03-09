@@ -24,7 +24,8 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - маршрут `/` уже занят teacher dashboard с app shell;
 - реализованы маршруты `/students` и `/students/[studentId]`;
 - реализованы первые teacher-only маршруты `/attendance` и `/projects`;
-- реализован teacher-only маршрут `/projects/[projectId]`;
+- реализованы маршруты `/projects/[projectId]`;
+- реализован импорт студентов из XLSX через библиотеку `xlsx` и Server Actions;
 - страницы читают данные через `src/lib/server/repositories/*`;
 - `.env.example` задает минимальный набор Appwrite переменных;
 - GitHub OAuth реализован через `next-auth`, защита маршрутов перенесена из `src/proxy.ts` в `src/middleware.ts`;

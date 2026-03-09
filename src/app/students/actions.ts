@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import * as XLSX from "xlsx";
+
 import { requireTeacherSession } from "@/lib/server/auth";
 import {
   createStudent,
@@ -12,6 +14,53 @@ import {
 
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
+}
+
+export async function importStudentsAction(formData: FormData) {
+  await requireTeacherSession();
+
+  const file = formData.get("file") as File;
+  if (!file || file.size === 0) {
+    throw new Error("Файл не выбран или пуст");
+  }
+
+  const buffer = await file.arrayBuffer();
+  const workbook = XLSX.read(buffer);
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  // Use header: 1 to get rows as arrays for more flexible parsing
+  const rows = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
+
+  for (const row of rows) {
+    // Маппинг полей (поддержка разных вариантов названий колонок)
+    const fullName = String(
+      row["ФИО"] || row["Имя"] || row["Name"] || "",
+    ).trim();
+    if (!fullName) continue;
+
+    const parts = fullName.split(/\s+/);
+    const lastName = parts[0] || "Не указано";
+    const firstName = parts.slice(1).join(" ") || "Ученик";
+
+    const githubUsername = String(
+      row["GitHub"] || row["github"] || row["github_username"] || "",
+    ).trim();
+    const telegramUsername = String(
+      row["Telegram"] || row["telegram"] || row["telegram_username"] || "",
+    ).trim();
+
+    await createStudent({
+      firstName,
+      lastName,
+      githubUsername,
+      githubUserId: "", // Будет заполнено позже при синхронизации
+      telegramUsername,
+      telegramChatId: "", // Будет заполнено вручную или через бота
+      notes: "Импортировано из XLSX",
+    });
+  }
+
+  revalidatePath("/students");
+  revalidatePath("/");
 }
 
 export async function createStudentAction(formData: FormData) {

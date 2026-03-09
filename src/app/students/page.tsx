@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { listStudents } from "@/lib/server/repositories/students";
+import { ImportStudentsButton } from "./import-button";
 
 export default async function StudentsPage() {
   const teacher = await requireTeacherSession();
@@ -39,9 +40,7 @@ export default async function StudentsPage() {
       teacherEmail={teacher.email}
       actions={
         <>
-          <Button variant="outline" className="rounded-xl bg-background/90">
-            Импорт XLSX
-          </Button>
+          <ImportStudentsButton />
           <Button asChild className="rounded-xl">
             <Link href="#create-student">Добавить ученика</Link>
           </Button>
@@ -75,6 +74,7 @@ export default async function StudentsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Ученик</TableHead>
+                  <TableHead>GitHub</TableHead>
                   <TableHead>Telegram</TableHead>
                   <TableHead>Проекты</TableHead>
                   <TableHead>Посещаемость</TableHead>
@@ -85,7 +85,7 @@ export default async function StudentsPage() {
                 {students.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       className="py-10 text-center text-muted-foreground"
                     >
                       Appwrite не настроен или коллекция `students` пока пуста.
@@ -98,18 +98,30 @@ export default async function StudentsPage() {
                         <div className="flex items-center gap-3">
                           <Avatar>
                             <AvatarFallback className="bg-secondary font-medium text-secondary-foreground">
-                              {student.firstName[0]}
                               {student.lastName[0]}
+                              {student.firstName[0]}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <div className="font-medium">
-                              {student.firstName} {student.lastName}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              github.com/{student.githubUsername}
+                              {student.lastName} {student.firstName}
                             </div>
                           </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {student.githubUsername ? (
+                            <Link
+                              href={`https://github.com/${student.githubUsername}`}
+                              target="_blank"
+                              className="text-primary hover:underline"
+                            >
+                              {student.githubUsername}
+                            </Link>
+                          ) : (
+                            "—"
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
