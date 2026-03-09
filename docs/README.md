@@ -57,6 +57,27 @@ MVP включает:
 - Telegram username хранится как вспомогательное поле и не используется как ключ доставки;
 - допустимы персональные упоминания учеников в общем чате.
 
+## Frontend Stack
+
+- `Next.js 16` с `App Router`;
+- `React 19`;
+- `Tailwind CSS v4`;
+- `Biome`;
+- `shadcn/ui` c preset `a1F9UU9Q` (`radix-mira`, `taupe`, `hugeicons`);
+- visual direction: `Academic Control Room`.
+
+## Current Routes
+
+- `/` - teacher dashboard с app shell, weekly focus, KPI, risk table и AI summaries.
+- `/students` - teacher-only список учеников.
+- `/students/[studentId]` - teacher-only страница редактирования ученика.
+- `/attendance` - teacher-only weekly attendance workspace.
+- `/projects` - teacher-only project control workspace.
+
+## Local Development
+
+- dev server должен использовать `localhost:3100`.
+
 ## Risk Rules
 
 - единый риск `invalid_github_repo` покрывает:

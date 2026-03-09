@@ -12,6 +12,11 @@
 
 ## Целевой стек
 
+- frontend: `Next.js 16`, `React 19`, `Tailwind CSS v4`;
+- UI kit: `shadcn/ui` preset `a1F9UU9Q`, `radix-ui`, `hugeicons`;
+- package manager: `bun`;
+- code quality: `Biome`;
+- local dev URL: `http://localhost:3100`;
 - frontend/backend платформа: Appwrite;
 - аутентификация: GitHub OAuth;
 - интеграция репозиториев: GitHub API;
@@ -24,4 +29,4 @@
 - не запускать и не останавливать dev-сервер;
 - не использовать Telegram username как ключ доставки;
 - не проектировать student-access как активную возможность MVP;
-- изменения архитектуры должны отражаться в `local/README.md`.
+- изменения архитектуры должны отражаться в `docs/README.md`.

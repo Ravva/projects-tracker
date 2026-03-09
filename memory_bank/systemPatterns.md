@@ -8,6 +8,7 @@
 - `students` - карточки учеников, контактные данные, teacher-only редактирование;
 - `attendance` - недельные занятия и отметки посещаемости;
 - `projects` - GitHub-репозитории, ТЗ, план, AI-отчеты и override.
+- `frontend-shell` - teacher-only app shell, dashboard и продуктовые UI-компоненты.
 
 ## Базовые паттерны
 
@@ -32,9 +33,18 @@
 - в MVP карточка ученика управляется только преподавателем;
 - `telegram_chat_id` вводится вручную преподавателем;
 - student-access в будущем должен маппиться через `github_user_id`.
+- teacher-only маршруты модуля: `/students` и `/students/[studentId]`;
+- до подключения Appwrite модуль использует локальные mock-данные.
 
 ### Projects
 
 - AI-анализ блокируется при отсутствии `spec_markdown` или `plan_markdown`;
 - ручной override действует до следующего AI-анализа и затем отключается автоматически;
 - риск `invalid_github_repo` покрывает невалидный URL, несуществующий репозиторий, приватный репозиторий без доступа и временные ошибки интеграции.
+
+### Frontend Shell
+
+- приложение построено на `Next.js App Router`;
+- UI-слой основан на `shadcn/ui` с preset `a1F9UU9Q`;
+- основной визуальный паттерн - `Academic Control Room`;
+- глобальный shell включает sidebar, sticky header, metric cards и data panels.
