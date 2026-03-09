@@ -8,6 +8,9 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 
 - удерживать teacher-only UI и документацию синхронизированными;
 - стабилизировать CRUD-потоки `students`, `attendance` и `projects` на реальных данных;
+- устранено локальное предупреждение Codex CLI: корень проекта добавлен в trusted projects глобального `~/.codex/config.toml`;
+- в `AGENTS.md` зафиксировано правило: Markdown-файлы не прогоняются через Biome;
+- локальный `appwrite_api` MCP server переведен на WSL-совместимый bash launcher с чтением Appwrite-переменных из `.env`;
 - следующим этапом перейти к XLSX-импорту, Telegram-уведомлениям и валидации форм под лимиты Appwrite.
 
 ## Текущие решения

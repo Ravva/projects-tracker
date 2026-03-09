@@ -68,7 +68,21 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ account, profile }) {
+      // Принудительный flush логов
+      console.log(
+        "[GitHub OAuth] Full account:",
+        JSON.stringify(account, null, 2),
+      );
+      process.stdout.write("\n");
+      console.log(
+        "[GitHub OAuth] Full profile:",
+        JSON.stringify(profile, null, 2),
+      );
+      process.stdout.write("\n");
+
       if (account?.provider !== "github" || !profile) {
+        console.log("[GitHub OAuth] Rejected: provider or profile missing");
+        process.stdout.write("\n");
         return false;
       }
 
@@ -76,12 +90,23 @@ export const authOptions: NextAuthOptions = {
       const login = String(githubProfile.login ?? "").toLowerCase();
       const teacherGithubUserId = getTeacherGithubUserId();
       const githubId = String(githubProfile.id ?? "");
+      const expectedLogin = getTeacherGithubLogin();
+
+      // Логирование для отладки
+      console.log("[GitHub OAuth] Login from GitHub:", login);
+      console.log("[GitHub OAuth] Expected login:", expectedLogin);
+      console.log("[GitHub OAuth] GitHub ID:", githubId);
+      console.log("[GitHub OAuth] Teacher User ID:", teacherGithubUserId);
 
       if (teacherGithubUserId) {
-        return githubId === teacherGithubUserId;
+        const result = githubId === teacherGithubUserId;
+        console.log("[GitHub OAuth] Result (by ID):", result);
+        return result;
       }
 
-      return login === getTeacherGithubLogin();
+      const result = login === expectedLogin;
+      console.log("[GitHub OAuth] Result (by login):", result);
+      return result;
     },
     async jwt({ token, account, profile }) {
       if (account?.provider === "github" && profile) {
@@ -103,7 +128,14 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  debug: true, // Включить debug логи
 };
+
+// Логирование при инициализации
+console.log("[Auth] GITHUB_ID set:", !!process.env.GITHUB_ID);
+console.log("[Auth] GITHUB_SECRET set:", !!process.env.GITHUB_SECRET);
+console.log("[Auth] NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+console.log("[Auth] TEACHER_GITHUB_LOGIN:", process.env.TEACHER_GITHUB_LOGIN);
 
 export async function getAuthSession() {
   return getServerSession(authOptions);

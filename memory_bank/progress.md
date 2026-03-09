@@ -13,6 +13,9 @@
 
 ## Changelog
 
+- 2026-03-09: починен локальный `appwrite_api` MCP server: `.codex/config.toml` переведен с отсутствующего PowerShell launcher на WSL-совместимый `scripts/run-appwrite-mcp.sh`, который читает Appwrite env-переменные из локального `.env`.
+- 2026-03-09: в `AGENTS.md` добавлено правило не проверять Markdown-файлы (`*.md`) через Biome.
+- 2026-03-09: корень проекта `/mnt/c/Users/Ravva/projects-tracker` добавлен в trusted projects глобального `~/.codex/config.toml`, чтобы Codex начал применять локальный `.codex/config.toml`.
 - 2026-03-09: создан базовый `memory_bank`;
 - 2026-03-09: добавлен `docs/README.md` как источник архитектурной правды;
 - 2026-03-09: завершена синхронизация `docs/PRD.md` с подтвержденными правилами MVP.
@@ -36,4 +39,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `4d1beb844b06a506fd7ff2da76ea0f9a3f615f00`
+- `last_checked_commit`: `2a3d753957de018f825e212026cb0df6d2673b99`
