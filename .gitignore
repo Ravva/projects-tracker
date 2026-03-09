@@ -1,0 +1,20 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local agent/app state
+.codex/
+
+# Dependencies and runtime artifacts
+node_modules/
+dist/
+build/
+.cache/
+
+# Logs
+*.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db
