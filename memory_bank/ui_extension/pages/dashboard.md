@@ -28,4 +28,4 @@
 
 ## Потоки данных
 
-Страница читает агрегаты через server-side repositories `students`, `projects` и `attendance`. При отсутствии Appwrite-конфигурации или записей показывает пустые состояния без локального mock-слоя.
+Страница читает агрегаты через server-side repositories `students`, `projects` и `attendance`, а доступ к ней закрыт teacher-only GitHub OAuth. При отсутствии Appwrite-конфигурации или записей показывает пустые состояния без локального mock-слоя.

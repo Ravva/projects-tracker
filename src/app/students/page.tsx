@@ -6,6 +6,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 
+import { createStudentAction } from "@/app/students/actions";
 import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -20,21 +21,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { requireTeacherSession } from "@/lib/server/auth";
 import { listStudents } from "@/lib/server/repositories/students";
 
 export default async function StudentsPage() {
+  const teacher = await requireTeacherSession();
   const students = await listStudents();
+  const studentsWithoutChatId = students.filter(
+    (student) => !student.telegramChatId,
+  ).length;
 
   return (
     <TeacherShell
       eyebrow="Teacher-only module"
       title="Students"
+      teacherName={teacher.name}
+      teacherEmail={teacher.email}
       actions={
         <>
           <Button variant="outline" className="rounded-xl bg-background/90">
             Импорт XLSX
           </Button>
-          <Button className="rounded-xl">Добавить ученика</Button>
+          <Button asChild className="rounded-xl">
+            <Link href="#create-student">Добавить ученика</Link>
+          </Button>
         </>
       }
     >
@@ -157,6 +167,55 @@ export default async function StudentsPage() {
             <CardTitle className="text-base">Сводка модуля</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
+            <form
+              id="create-student"
+              action={createStudentAction}
+              className="space-y-3 rounded-2xl border border-border/70 bg-background/70 p-4"
+            >
+              <div className="font-medium">Новый ученик</div>
+              <Input
+                name="firstName"
+                placeholder="Имя"
+                className="rounded-xl bg-background/80"
+                required
+              />
+              <Input
+                name="lastName"
+                placeholder="Фамилия"
+                className="rounded-xl bg-background/80"
+                required
+              />
+              <Input
+                name="githubUsername"
+                placeholder="GitHub username"
+                className="rounded-xl bg-background/80"
+                required
+              />
+              <Input
+                name="githubUserId"
+                placeholder="GitHub user id"
+                className="rounded-xl bg-background/80"
+              />
+              <Input
+                name="telegramUsername"
+                placeholder="Telegram username"
+                className="rounded-xl bg-background/80"
+              />
+              <Input
+                name="telegramChatId"
+                placeholder="Telegram chat id"
+                className="rounded-xl bg-background/80"
+              />
+              <textarea
+                name="notes"
+                className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none"
+                placeholder="Заметка преподавателя"
+              />
+              <Button type="submit" className="w-full rounded-xl">
+                Сохранить карточку
+              </Button>
+            </form>
+
             <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
               <div className="flex items-center gap-3 font-medium">
                 <HugeiconsIcon icon={User02Icon} size={18} strokeWidth={1.8} />
@@ -178,8 +237,9 @@ export default async function StudentsPage() {
                 Telegram readiness
               </div>
               <p className="mt-2 leading-6 text-muted-foreground">
-                Один ученик пока без `chat_id`, значит персональные уведомления
-                не готовы.
+                {studentsWithoutChatId > 0
+                  ? `${studentsWithoutChatId} учеников пока без chat id, персональные уведомления не готовы.`
+                  : "Все карточки с chat id готовы к персональным уведомлениям."}
               </p>
             </div>
           </CardContent>

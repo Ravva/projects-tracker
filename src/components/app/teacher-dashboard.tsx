@@ -9,6 +9,7 @@ import {
   User02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Link from "next/link";
 
 import { MetricBadge, MetricCard } from "@/components/app/metric-card";
 import { StatusPill } from "@/components/app/status-pill";
@@ -32,16 +33,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { listAttendanceLessons } from "@/lib/server/repositories/attendance";
+import { getCurrentAttendanceWeek } from "@/lib/server/repositories/attendance";
 import { listProjects } from "@/lib/server/repositories/projects";
 import { listStudents } from "@/lib/server/repositories/students";
+import type { TeacherSessionUser } from "@/lib/types";
 
-export async function TeacherDashboard() {
-  const [students, projects, attendanceLessons] = await Promise.all([
+export async function TeacherDashboard({
+  teacher,
+}: {
+  teacher: TeacherSessionUser;
+}) {
+  const [students, projects, attendanceWeek] = await Promise.all([
     listStudents(),
     listProjects(),
-    listAttendanceLessons(),
+    getCurrentAttendanceWeek(),
   ]);
+  const attendanceLessons = attendanceWeek.lessons;
 
   const studentsNeedingAttention = students.filter(
     (student) => student.weeklyState !== "success",
@@ -61,10 +68,16 @@ export async function TeacherDashboard() {
     <TeacherShell
       eyebrow="Academic Control Room"
       title="Teacher Dashboard"
+      teacherName={teacher.name}
+      teacherEmail={teacher.email}
       actions={
         <>
-          <Button variant="outline" className="rounded-xl bg-background/90">
-            Weekly digest
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-xl bg-background/90"
+          >
+            <Link href="/attendance">Weekly digest</Link>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -267,8 +280,12 @@ export async function TeacherDashboard() {
                 Teacher-only список для быстрого weekly контроля.
               </p>
             </div>
-            <Button variant="outline" className="rounded-xl bg-background/90">
-              Открыть журнал посещаемости
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-xl bg-background/90"
+            >
+              <Link href="/attendance">Открыть журнал посещаемости</Link>
             </Button>
           </CardHeader>
           <CardContent className="grid gap-3">
@@ -384,7 +401,14 @@ export async function TeacherDashboard() {
                       <TableCell className="font-medium">
                         {project.studentName}
                       </TableCell>
-                      <TableCell>{project.name}</TableCell>
+                      <TableCell>
+                        <Link
+                          href={`/projects/${project.id}`}
+                          className="transition-colors hover:text-primary"
+                        >
+                          {project.name}
+                        </Link>
+                      </TableCell>
                       <TableCell>
                         <StatusPill
                           tone={project.progress < 25 ? "critical" : "warning"}

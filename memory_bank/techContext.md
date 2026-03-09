@@ -18,7 +18,7 @@
 - local dev URL: `http://localhost:3100`;
 - backend SDK: `node-appwrite`;
 - frontend/backend платформа: Appwrite;
-- аутентификация: GitHub OAuth;
+- аутентификация: GitHub OAuth через `next-auth`;
 - интеграция репозиториев: GitHub API;
 - AI-анализ: OpenAI API;
 - уведомления: Telegram Bot API;
@@ -30,4 +30,5 @@
 - не использовать Telegram username как ключ доставки;
 - не проектировать student-access как активную возможность MVP;
 - изменения архитектуры должны отражаться в `docs/README.md`.
+- Appwrite имеет жесткие лимиты на суммарный размер строковых атрибутов, поэтому проектные состояния упакованы в JSON;
 - до выдачи реальных Appwrite env-переменных приложение должно оставаться работоспособным на empty states.

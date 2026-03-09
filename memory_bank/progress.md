@@ -2,13 +2,14 @@
 
 ## Current Status
 
-Документация и архитектурный контур инициализированы. Локальный Git настроен и синхронизирован с удаленным репозиторием. UI-каркас приложения собран, а экраны переведены на Appwrite-ready data layer без mock-данных.
+Документация и архитектурный контур инициализированы. Локальный Git настроен и синхронизирован с удаленным репозиторием. Реализованы teacher-only GitHub OAuth, Appwrite schema provisioning, CRUD для `students` и `projects`, запись посещаемости и project detail actions.
 
 ## Known Issues
 
 - в рабочем дереве присутствует локальный `.env`, поэтому он должен оставаться вне версии;
 - в [src/components/ui/sidebar.tsx](C:\Users\Ravva\projects-tracker\src\components\ui\sidebar.tsx) остается предупреждение Biome про `document.cookie` внутри сгенерированного shadcn-компонента;
-- до создания Appwrite-коллекций интерфейс будет работать на пустых состояниях без живых данных.
+- лимиты Appwrite на размер строковых атрибутов требуют держать `projects` и `project_ai_reports` в компактной JSON-state схеме;
+- формы пока не ограничивают длину `spec_markdown` и `plan_markdown` под фактический размер атрибутов Appwrite.
 
 ## Changelog
 
@@ -27,7 +28,12 @@
 - 2026-03-09: реализован teacher-only project detail route `/projects/[projectId]`.
 - 2026-03-09: добавлен Appwrite-ready data layer, server repositories и `.env.example`.
 - 2026-03-09: удален `src/lib/mock-data.ts`, UI переведен на server-side repositories и пустые состояния без mock fallback.
+- 2026-03-09: реализованы `next-auth` GitHub OAuth, teacher-only guard и страница `/login`.
+- 2026-03-09: добавлены server actions и CRUD-потоки для `students`, `attendance` и `projects`.
+- 2026-03-09: создан идемпотентный скрипт `bun run db:provision`, подняты Appwrite-коллекции и индексы.
+- 2026-03-09: схема `projects` и `project_ai_reports` переведена на компактные JSON-state поля из-за лимитов Appwrite.
+- 2026-03-09: `/login` дополнен явной диагностикой отсутствующих OAuth env-переменных.
 
 ## Контроль изменений
 
-- `last_checked_commit`: `343ec96851cac3d026ce3d65833ab6218be3b0d7`
+- `last_checked_commit`: `c0bb4cb12c15cffd31132372f2fff6e59c4f43af`

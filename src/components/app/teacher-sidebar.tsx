@@ -45,8 +45,20 @@ const supportNavigation = [
   { title: "Контроль недели", href: "/", icon: Task01Icon },
 ];
 
-export function TeacherSidebar() {
+export function TeacherSidebar({
+  teacherName,
+  teacherEmail,
+}: {
+  teacherName: string;
+  teacherEmail: string;
+}) {
   const pathname = usePathname();
+  const initials = teacherName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((item) => item[0]?.toUpperCase() ?? "")
+    .join("");
 
   return (
     <Sidebar
@@ -143,18 +155,24 @@ export function TeacherSidebar() {
         <div className="flex items-center gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3">
           <Avatar size="lg">
             <AvatarFallback className="bg-[hsl(var(--status-warning)/0.18)] font-semibold text-[hsl(var(--status-warning))]">
-              RV
+              {initials || "TC"}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
             <div className="truncate text-sm font-medium text-sidebar-foreground">
-              Ravva
+              {teacherName}
             </div>
             <div className="truncate text-xs text-sidebar-foreground/70">
-              GitHub OAuth teacher
+              {teacherEmail || "GitHub OAuth teacher"}
             </div>
           </div>
         </div>
+        <a
+          href="/api/auth/signout"
+          className="mt-3 inline-flex items-center justify-center rounded-xl border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent/50"
+        >
+          Выйти
+        </a>
       </SidebarFooter>
     </Sidebar>
   );

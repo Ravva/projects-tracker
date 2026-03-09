@@ -13,11 +13,15 @@ export function TeacherShell({
   eyebrow,
   title,
   actions,
+  teacherName,
+  teacherEmail,
   children,
 }: {
   eyebrow: string;
   title: string;
   actions?: ReactNode;
+  teacherName: string;
+  teacherEmail: string;
   children: ReactNode;
 }) {
   return (
@@ -30,7 +34,7 @@ export function TeacherShell({
           } as CSSProperties
         }
       >
-        <TeacherSidebar />
+        <TeacherSidebar teacherName={teacherName} teacherEmail={teacherEmail} />
         <SidebarInset className="bg-transparent">
           <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--status-calm)/0.12),transparent_28%),radial-gradient(circle_at_top_right,hsl(var(--status-warning)/0.12),transparent_22%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--background-secondary)))]">
             <header className="sticky top-0 z-20 border-b border-border/70 bg-background/80 backdrop-blur-xl">

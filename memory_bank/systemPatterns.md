@@ -34,13 +34,14 @@
 - `telegram_chat_id` вводится вручную преподавателем;
 - student-access в будущем должен маппиться через `github_user_id`.
 - teacher-only маршруты модуля: `/students` и `/students/[studentId]`;
-- чтение данных идет через server-side repository и пустые состояния при отсутствии записей.
+- чтение и запись идут через server-side repository и server actions.
 
 ### Projects
 
 - AI-анализ блокируется при отсутствии `spec_markdown` или `plan_markdown`;
 - ручной override действует до следующего AI-анализа и затем отключается автоматически;
 - риск `invalid_github_repo` покрывает невалидный URL, несуществующий репозиторий, приватный репозиторий без доступа и временные ошибки интеграции.
+- состояние проекта и AI-отчетов частично хранится в JSON-полях Appwrite для обхода лимита суммарного размера строковых атрибутов.
 
 ### Frontend Shell
 
@@ -53,5 +54,7 @@
 
 - UI-страницы не содержат локального mock-слоя;
 - чтение идет через server-side repositories в `src/lib/server/repositories/*`;
+- запись идет через `server actions` в `src/app/**/actions.ts`;
 - при наличии Appwrite env-конфигурации источником данных становится Appwrite;
+- схема Appwrite и индексы поднимаются через `scripts/provision-appwrite.ts`;
 - при отсутствии конфигурации или данных репозитории возвращают пустые результаты, а UI показывает empty states.

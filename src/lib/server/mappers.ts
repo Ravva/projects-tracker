@@ -1,11 +1,19 @@
 import type { Models } from "node-appwrite";
 
+import { formatDateLabel } from "@/lib/server/date-utils";
 import type {
   AttendanceLessonRecord,
+  ProjectAiReportRecord,
   ProjectRecord,
+  ProjectRisk,
+  StudentInput,
   StudentRecord,
   WeeklyState,
 } from "@/lib/types";
+
+function getField(document: Models.Document, key: string) {
+  return (document as Record<string, unknown>)[key];
+}
 
 function coerceWeeklyState(value: unknown): WeeklyState {
   if (value === "critical" || value === "warning" || value === "success") {
@@ -15,13 +23,84 @@ function coerceWeeklyState(value: unknown): WeeklyState {
   return "warning";
 }
 
-function getField(document: Models.Document, key: string) {
-  return (document as Record<string, unknown>)[key];
+function normalizeRiskFlags(value: unknown): ProjectRisk[] {
+  if (!value) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.filter(
+      (item): item is ProjectRisk => typeof item === "string",
+    );
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      return Array.isArray(parsed)
+        ? parsed.filter((item): item is ProjectRisk => typeof item === "string")
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+}
+
+function parseStringList(value: unknown) {
+  if (!value) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item));
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      return Array.isArray(parsed) ? parsed.map((item) => String(item)) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+}
+
+function parseObject(value: unknown) {
+  if (!value) {
+    return {};
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  return value && typeof value === "object" ? value : {};
+}
+
+export function toStudentDocument(input: StudentInput) {
+  return {
+    first_name: input.firstName,
+    last_name: input.lastName,
+    github_username: input.githubUsername,
+    github_user_id: input.githubUserId,
+    telegram_username: input.telegramUsername,
+    telegram_chat_id: input.telegramChatId,
+    notes: input.notes,
+  };
 }
 
 export function mapStudentDocument(
   document: Models.Document,
-  projectsCount = 0,
+  summary?: Partial<StudentRecord>,
 ): StudentRecord {
   return {
     id: document.$id,
@@ -31,62 +110,136 @@ export function mapStudentDocument(
     githubUserId: String(getField(document, "github_user_id") ?? ""),
     telegramUsername: String(getField(document, "telegram_username") ?? ""),
     telegramChatId: String(getField(document, "telegram_chat_id") ?? ""),
-    attendanceRate: Number(getField(document, "attendance_rate") ?? 0),
-    weeklyState: coerceWeeklyState(getField(document, "weekly_state")),
-    projectsCount,
-    lastActivity: String(getField(document, "last_activity") ?? "Нет данных"),
-    aiSummary: String(
-      getField(document, "ai_summary") ?? "AI summary пока не рассчитан.",
-    ),
+    attendanceRate: summary?.attendanceRate ?? 0,
+    weeklyState: coerceWeeklyState(summary?.weeklyState),
+    projectsCount: summary?.projectsCount ?? 0,
+    lastActivity: summary?.lastActivity ?? "Нет активности",
+    aiSummary: summary?.aiSummary ?? "AI summary пока не рассчитан.",
     notes: String(getField(document, "notes") ?? ""),
-  };
-}
-
-export function mapProjectDocument(document: Models.Document): ProjectRecord {
-  const nextStepsRaw = getField(document, "next_steps_json");
-  const nextSteps = Array.isArray(nextStepsRaw)
-    ? nextStepsRaw.map((item) => String(item))
-    : [];
-
-  return {
-    id: document.$id,
-    studentName: String(getField(document, "student_name") ?? ""),
-    name: String(getField(document, "name") ?? ""),
-    status: String(getField(document, "status") ?? "planning"),
-    risk: String(getField(document, "primary_risk") ?? "Нет данных"),
-    progress: Number(
-      getField(document, "final_completion_percent") ??
-        getField(document, "ai_completion_percent") ??
-        0,
-    ),
-    lastCommit: String(getField(document, "last_commit_at") ?? "Нет данных"),
-    githubUrl: String(getField(document, "github_url") ?? ""),
-    githubOwner: String(getField(document, "github_owner") ?? ""),
-    githubRepo: String(getField(document, "github_repo") ?? ""),
-    defaultBranch: String(getField(document, "default_branch") ?? "main"),
-    specMarkdown: String(getField(document, "spec_markdown") ?? ""),
-    planMarkdown: String(getField(document, "plan_markdown") ?? ""),
-    aiSummary: String(getField(document, "ai_summary") ?? ""),
-    nextSteps,
   };
 }
 
 export function mapAttendanceLessonDocument(
   document: Models.Document,
+  attendanceMarked = 0,
+  missingMarks = 0,
 ): AttendanceLessonRecord {
+  const lessonDate = String(getField(document, "lesson_date") ?? "");
+  const weekdayCode = String(getField(document, "weekday_code") ?? "tue");
+
   return {
     id: document.$id,
-    title: String(
-      getField(document, "title") ??
-        getField(document, "weekday_code") ??
-        "Занятие",
-    ),
-    dateLabel: String(
-      getField(document, "date_label") ??
-        getField(document, "lesson_date") ??
-        "",
-    ),
-    attendanceMarked: Number(getField(document, "attendance_marked") ?? 0),
-    missingMarks: Number(getField(document, "missing_marks") ?? 0),
+    title: String(getField(document, "title") ?? "Занятие"),
+    dateLabel: formatDateLabel(lessonDate),
+    lessonDate,
+    weekStart: String(getField(document, "lesson_week_start") ?? ""),
+    weekdayCode:
+      weekdayCode === "tue" || weekdayCode === "thu" || weekdayCode === "fri"
+        ? weekdayCode
+        : "tue",
+    attendanceMarked,
+    missingMarks,
+    isGenerated: Boolean(getField(document, "is_generated") ?? true),
+    isClosed: Boolean(getField(document, "is_closed") ?? false),
+  };
+}
+
+export function mapProjectDocument(
+  document: Models.Document,
+  studentName: string,
+): ProjectRecord {
+  const githubState = parseObject(getField(document, "github_state_json")) as {
+    owner?: string;
+    repo?: string;
+    defaultBranch?: string;
+    lastCommitAt?: string;
+    lastCommitSha?: string;
+    lastSyncAt?: string;
+  };
+  const projectState = parseObject(
+    getField(document, "project_state_json"),
+  ) as {
+    primaryRisk?: string;
+    riskFlags?: unknown;
+    aiCompletionPercent?: number;
+    manualCompletionPercent?: number | null;
+    manualOverrideEnabled?: boolean;
+    manualOverrideNote?: string;
+    lastAiAnalysisAt?: string;
+    aiSummary?: string;
+    nextSteps?: unknown;
+  };
+  const riskFlags = normalizeRiskFlags(projectState.riskFlags);
+  const manualOverrideEnabled = Boolean(
+    projectState.manualOverrideEnabled ?? false,
+  );
+  const aiCompletionPercent = Number(projectState.aiCompletionPercent ?? 0);
+  const manualCompletionPercentRaw = projectState.manualCompletionPercent;
+  const manualCompletionPercent =
+    manualCompletionPercentRaw === null ||
+    manualCompletionPercentRaw === undefined
+      ? null
+      : Number(manualCompletionPercentRaw);
+  const progress =
+    manualOverrideEnabled && manualCompletionPercent !== null
+      ? manualCompletionPercent
+      : aiCompletionPercent;
+
+  return {
+    id: document.$id,
+    studentId: String(getField(document, "student_id") ?? ""),
+    studentName,
+    name: String(getField(document, "name") ?? ""),
+    summary: String(getField(document, "summary") ?? ""),
+    status: String(getField(document, "status") ?? "draft"),
+    risk: String(projectState.primaryRisk ?? "healthy"),
+    riskFlags,
+    progress,
+    aiCompletionPercent,
+    manualCompletionPercent,
+    manualOverrideEnabled,
+    manualOverrideNote: String(projectState.manualOverrideNote ?? ""),
+    lastCommit: String(githubState.lastCommitAt ?? "Нет данных"),
+    lastCommitSha: String(githubState.lastCommitSha ?? ""),
+    lastSyncAt: String(githubState.lastSyncAt ?? "Нет данных"),
+    lastAiAnalysisAt: String(projectState.lastAiAnalysisAt ?? "Нет данных"),
+    githubUrl: String(getField(document, "github_url") ?? ""),
+    githubOwner: String(githubState.owner ?? ""),
+    githubRepo: String(githubState.repo ?? ""),
+    defaultBranch: String(githubState.defaultBranch ?? "main"),
+    specMarkdown: String(getField(document, "spec_markdown") ?? ""),
+    planMarkdown: String(getField(document, "plan_markdown") ?? ""),
+    aiSummary: String(projectState.aiSummary ?? ""),
+    nextSteps: parseStringList(projectState.nextSteps),
+  };
+}
+
+export function mapProjectAiReportDocument(
+  document: Models.Document,
+): ProjectAiReportRecord {
+  const payload = parseObject(getField(document, "report_payload_json")) as {
+    inputSnapshotJson?: string;
+    implementedItems?: unknown;
+    partialItems?: unknown;
+    missingItems?: unknown;
+    risks?: unknown;
+    nextSteps?: unknown;
+  };
+
+  return {
+    id: document.$id,
+    projectId: String(getField(document, "project_id") ?? ""),
+    sourceCommitSha: String(getField(document, "source_commit_sha") ?? ""),
+    analysisVersion: String(getField(document, "analysis_version") ?? ""),
+    modelName: String(getField(document, "model_name") ?? ""),
+    inputSnapshotJson: String(payload.inputSnapshotJson ?? "{}"),
+    summary: String(getField(document, "summary") ?? ""),
+    completionPercent: Number(getField(document, "completion_percent") ?? 0),
+    implementedItems: parseStringList(payload.implementedItems),
+    partialItems: parseStringList(payload.partialItems),
+    missingItems: parseStringList(payload.missingItems),
+    risks: parseStringList(payload.risks),
+    nextSteps: parseStringList(payload.nextSteps),
+    createdAt: document.$createdAt,
   };
 }

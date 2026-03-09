@@ -27,7 +27,9 @@ MVP включает:
 ### Auth
 
 - GitHub OAuth как единственный способ входа;
-- teacher-only guard для всех экранов MVP.
+- реализация на `next-auth`;
+- teacher-only guard для всех экранов MVP через `src/proxy.ts`;
+- допуск учителя по `TEACHER_GITHUB_USER_ID` или fallback `TEACHER_GITHUB_LOGIN`.
 
 ### Students
 
@@ -70,6 +72,8 @@ MVP включает:
 
 - server-side repositories для `students`, `projects`, `attendance`;
 - Appwrite используется через server-only adapter;
+- схема Appwrite поднимается идемпотентным скриптом `bun run db:provision`;
+- `projects` и `project_ai_reports` используют компактные JSON-state поля, чтобы укладываться в лимиты Appwrite;
 - при отсутствии Appwrite env-конфигурации репозитории возвращают пустые состояния;
 - пример переменных окружения хранится в `.env.example`.
 
