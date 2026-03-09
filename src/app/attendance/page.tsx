@@ -13,9 +13,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { attendanceLessons, students } from "@/lib/mock-data";
+import { listAttendanceLessons } from "@/lib/server/repositories/attendance";
+import { listStudents } from "@/lib/server/repositories/students";
 
-export default function AttendancePage() {
+export default async function AttendancePage() {
+  const [attendanceLessons, students] = await Promise.all([
+    listAttendanceLessons(),
+    listStudents(),
+  ]);
+
   return (
     <TeacherShell
       eyebrow="Weekly attendance"
@@ -30,43 +36,51 @@ export default function AttendancePage() {
       }
     >
       <section className="grid gap-4 xl:grid-cols-3">
-        {attendanceLessons.map((lesson) => (
-          <Card
-            key={lesson.id}
-            className="border-border/70 bg-card/88 shadow-none"
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-base">
-                <span className="flex items-center gap-3">
-                  <HugeiconsIcon
-                    icon={Calendar03Icon}
-                    size={18}
-                    strokeWidth={1.8}
-                  />
-                  {lesson.title}
-                </span>
-                <StatusPill
-                  tone={lesson.missingMarks > 0 ? "warning" : "success"}
-                  label={lesson.dateLabel}
-                />
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex items-center justify-between">
-                <span>Отметки проставлены</span>
-                <span className="font-medium text-foreground">
-                  {lesson.attendanceMarked}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Без отметки</span>
-                <span className="font-medium text-foreground">
-                  {lesson.missingMarks}
-                </span>
-              </div>
+        {attendanceLessons.length === 0 ? (
+          <Card className="xl:col-span-3 border-border/70 bg-card/88 shadow-none">
+            <CardContent className="py-10 text-center text-muted-foreground">
+              Appwrite не настроен или коллекция `lessons` пока пуста.
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          attendanceLessons.map((lesson) => (
+            <Card
+              key={lesson.id}
+              className="border-border/70 bg-card/88 shadow-none"
+            >
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between text-base">
+                  <span className="flex items-center gap-3">
+                    <HugeiconsIcon
+                      icon={Calendar03Icon}
+                      size={18}
+                      strokeWidth={1.8}
+                    />
+                    {lesson.title}
+                  </span>
+                  <StatusPill
+                    tone={lesson.missingMarks > 0 ? "warning" : "success"}
+                    label={lesson.dateLabel}
+                  />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center justify-between">
+                  <span>Отметки проставлены</span>
+                  <span className="font-medium text-foreground">
+                    {lesson.attendanceMarked}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Без отметки</span>
+                  <span className="font-medium text-foreground">
+                    {lesson.missingMarks}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
@@ -86,28 +100,42 @@ export default function AttendancePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {students.map((student, index) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-medium">
-                      {student.firstName} {student.lastName}
-                    </TableCell>
-                    <TableCell>{index % 2 === 0 ? "Был" : "Не был"}</TableCell>
-                    <TableCell>Нет отметки</TableCell>
-                    <TableCell>Нет отметки</TableCell>
-                    <TableCell className="text-right">
-                      <StatusPill
-                        tone={student.weeklyState}
-                        label={
-                          student.weeklyState === "critical"
-                            ? "риск"
-                            : student.weeklyState === "warning"
-                              ? "в работе"
-                              : "норма"
-                        }
-                      />
+                {students.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="py-10 text-center text-muted-foreground"
+                    >
+                      Сначала подключите коллекции `students` и `lessons` в
+                      Appwrite.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  students.map((student, index) => (
+                    <TableRow key={student.id}>
+                      <TableCell className="font-medium">
+                        {student.firstName} {student.lastName}
+                      </TableCell>
+                      <TableCell>
+                        {index % 2 === 0 ? "Был" : "Не был"}
+                      </TableCell>
+                      <TableCell>Нет отметки</TableCell>
+                      <TableCell>Нет отметки</TableCell>
+                      <TableCell className="text-right">
+                        <StatusPill
+                          tone={student.weeklyState}
+                          label={
+                            student.weeklyState === "critical"
+                              ? "риск"
+                              : student.weeklyState === "warning"
+                                ? "в работе"
+                                : "норма"
+                          }
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -144,6 +172,11 @@ export default function AttendancePage() {
                   </div>
                 </div>
               ))}
+            {students.length === 0 ? (
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
+                Нет данных для weekly monitoring.
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </section>

@@ -34,7 +34,7 @@
 - `telegram_chat_id` вводится вручную преподавателем;
 - student-access в будущем должен маппиться через `github_user_id`.
 - teacher-only маршруты модуля: `/students` и `/students/[studentId]`;
-- до подключения Appwrite модуль использует локальные mock-данные.
+- чтение данных идет через server-side repository и пустые состояния при отсутствии записей.
 
 ### Projects
 
@@ -48,3 +48,10 @@
 - UI-слой основан на `shadcn/ui` с preset `a1F9UU9Q`;
 - основной визуальный паттерн - `Academic Control Room`;
 - глобальный shell включает sidebar, sticky header, metric cards и data panels.
+
+### Data Access
+
+- UI-страницы не содержат локального mock-слоя;
+- чтение идет через server-side repositories в `src/lib/server/repositories/*`;
+- при наличии Appwrite env-конфигурации источником данных становится Appwrite;
+- при отсутствии конфигурации или данных репозитории возвращают пустые результаты, а UI показывает empty states.

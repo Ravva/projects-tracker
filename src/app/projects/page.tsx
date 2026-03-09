@@ -1,5 +1,6 @@
 import { Github01Icon, Note01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import Link from "next/link";
 
 import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
@@ -13,9 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { projects } from "@/lib/mock-data";
+import { listProjects } from "@/lib/server/repositories/projects";
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const projects = await listProjects();
+
   return (
     <TeacherShell
       eyebrow="Project control"
@@ -46,31 +49,47 @@ export default function ProjectsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projects.map((project) => (
-                  <TableRow key={project.id}>
-                    <TableCell className="font-medium">
-                      {project.studentName}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div>{project.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          Последний коммит: {project.lastCommit}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{project.status}</TableCell>
-                    <TableCell>
-                      <StatusPill
-                        tone={project.progress < 25 ? "critical" : "warning"}
-                        label={project.risk}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {project.progress}%
+                {projects.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="py-10 text-center text-muted-foreground"
+                    >
+                      Appwrite не настроен или коллекция `projects` пока пуста.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  projects.map((project) => (
+                    <TableRow key={project.id}>
+                      <TableCell className="font-medium">
+                        {project.studentName}
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <Link
+                            href={`/projects/${project.id}`}
+                            className="font-medium transition-colors hover:text-primary"
+                          >
+                            {project.name}
+                          </Link>
+                          <div className="text-sm text-muted-foreground">
+                            Последний коммит: {project.lastCommit}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{project.status}</TableCell>
+                      <TableCell>
+                        <StatusPill
+                          tone={project.progress < 25 ? "critical" : "warning"}
+                          label={project.risk}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {project.progress}%
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>

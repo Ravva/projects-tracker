@@ -16,4 +16,4 @@ Teacher-only weekly workspace для контроля посещаемости.
 
 ## Потоки данных
 
-Сейчас страница использует mock-данные из `src/lib/mock-data.ts`. Следующий этап - реальные weekly snapshots и массовые действия записи attendance.
+Страница читает weekly lessons и student records через server-side repositories. При отсутствии Appwrite-конфигурации или записей показывает empty states; следующий этап - реальные weekly snapshots и массовые действия записи attendance.

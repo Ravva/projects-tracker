@@ -66,6 +66,13 @@ MVP включает:
 - `shadcn/ui` c preset `a1F9UU9Q` (`radix-mira`, `taupe`, `hugeicons`);
 - visual direction: `Academic Control Room`.
 
+## Data Layer
+
+- server-side repositories для `students`, `projects`, `attendance`;
+- Appwrite используется через server-only adapter;
+- при отсутствии Appwrite env-конфигурации репозитории возвращают пустые состояния;
+- пример переменных окружения хранится в `.env.example`.
+
 ## Current Routes
 
 - `/` - teacher dashboard с app shell, weekly focus, KPI, risk table и AI summaries.
@@ -73,6 +80,7 @@ MVP включает:
 - `/students/[studentId]` - teacher-only страница редактирования ученика.
 - `/attendance` - teacher-only weekly attendance workspace.
 - `/projects` - teacher-only project control workspace.
+- `/projects/[projectId]` - teacher-only страница review проекта.
 
 ## Local Development
 

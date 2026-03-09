@@ -32,87 +32,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { listAttendanceLessons } from "@/lib/server/repositories/attendance";
+import { listProjects } from "@/lib/server/repositories/projects";
+import { listStudents } from "@/lib/server/repositories/students";
 
-const attendanceQueue = [
-  {
-    name: "Алиса Волкова",
-    initials: "АВ",
-    state: "Нет отметки",
-    tone: "warning",
-  },
-  {
-    name: "Егор Кузнецов",
-    initials: "ЕК",
-    state: "Нулевая посещаемость",
-    tone: "critical",
-  },
-  {
-    name: "Мира Соколова",
-    initials: "МС",
-    state: "1 из 2 занятий",
-    tone: "warning",
-  },
-  {
-    name: "Олег Титов",
-    initials: "ОТ",
-    state: "Норма закрыта",
-    tone: "success",
-  },
-];
+export async function TeacherDashboard() {
+  const [students, projects, attendanceLessons] = await Promise.all([
+    listStudents(),
+    listProjects(),
+    listAttendanceLessons(),
+  ]);
 
-const projectRisks = [
-  {
-    student: "Алина Миронова",
-    project: "AI Notes Assistant",
-    risk: "Нет плана разработки",
-    progress: "22%",
-    status: "critical",
-  },
-  {
-    student: "Роман Беляев",
-    project: "Prompt Builder",
-    risk: "7+ дней без коммитов",
-    progress: "41%",
-    status: "warning",
-  },
-  {
-    student: "Денис Орлов",
-    project: "Study Buddy Bot",
-    risk: "Некорректный GitHub repo",
-    progress: "0%",
-    status: "critical",
-  },
-  {
-    student: "Лия Карпова",
-    project: "Course Planner",
-    risk: "AI-отчет устарел",
-    progress: "68%",
-    status: "calm",
-  },
-];
+  const studentsNeedingAttention = students.filter(
+    (student) => student.weeklyState !== "success",
+  );
+  const riskyProjects = projects.filter((project) => project.progress < 50);
+  const filledChatIds = students.filter(
+    (student) => student.telegramChatId,
+  ).length;
+  const averageAttendance = students.length
+    ? Math.round(
+        students.reduce((total, student) => total + student.attendanceRate, 0) /
+          students.length,
+      )
+    : 0;
 
-const recentReports = [
-  {
-    title: "Study Buddy Bot",
-    summary:
-      "AI отмечает хороший прогресс по UI, но backend-часть почти не отражена в репозитории.",
-    time: "12 минут назад",
-  },
-  {
-    title: "Prompt Builder",
-    summary:
-      "План и фактическая структура начали расходиться: есть реализация фильтров, но нет user flows.",
-    time: "45 минут назад",
-  },
-  {
-    title: "AI Notes Assistant",
-    summary:
-      "ТЗ покрыто частично, отсутствуют признаки GitHub OAuth и storage слоя.",
-    time: "2 часа назад",
-  },
-];
-
-export function TeacherDashboard() {
   return (
     <TeacherShell
       eyebrow="Academic Control Room"
@@ -143,16 +87,16 @@ export function TeacherDashboard() {
                 variant="outline"
                 className="border-transparent bg-[hsl(var(--status-calm)/0.14)] text-[hsl(var(--status-calm))]"
               >
-                Сегодня вторник, 9 марта
+                Teacher-only обзор системы
               </Badge>
               <div className="space-y-2">
                 <h2 className="max-w-2xl text-3xl font-semibold leading-tight tracking-tight">
                   Один экран для посещаемости, project health и AI-контроля.
                 </h2>
                 <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
-                  В фокусе текущей недели: 4 ученика без полной отметки, 3
-                  проекта в зоне риска и 1 GitHub-репозиторий, требующий ручной
-                  проверки.
+                  Дашборд теперь работает только через Appwrite-ready data
+                  layer. Если коллекции еще не настроены, интерфейс покажет
+                  пустые состояния до подключения реальных записей.
                 </p>
               </div>
             </div>
@@ -164,7 +108,7 @@ export function TeacherDashboard() {
                     Ближайшее занятие
                   </div>
                   <div className="mt-2 text-2xl font-semibold">
-                    Четверг, 11 марта
+                    {attendanceLessons[0]?.dateLabel ?? "Нет данных"}
                   </div>
                 </div>
                 <div className="rounded-2xl bg-[hsl(var(--status-warning)/0.16)] p-3 text-[hsl(var(--status-warning))]">
@@ -181,19 +125,21 @@ export function TeacherDashboard() {
                   <span className="text-muted-foreground">
                     Активных учеников
                   </span>
-                  <span className="font-medium">18</span>
+                  <span className="font-medium">{students.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">
                     Проектов в работе
                   </span>
-                  <span className="font-medium">24</span>
+                  <span className="font-medium">{projects.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">
                     Telegram chat id заполнен
                   </span>
-                  <span className="font-medium">15/18</span>
+                  <span className="font-medium">
+                    {filledChatIds}/{students.length}
+                  </span>
                 </div>
               </div>
             </div>
@@ -204,22 +150,34 @@ export function TeacherDashboard() {
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center justify-between text-base">
               Фокус недели
-              <StatusPill label="3 риска" tone="warning" />
+              <StatusPill
+                label={`${studentsNeedingAttention.length} риска`}
+                tone={
+                  studentsNeedingAttention.length > 0 ? "warning" : "success"
+                }
+              />
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {[
-              "Проверить отсутствующие chat id у трех учеников.",
-              "Уточнить GitHub repo у проекта Study Buddy Bot.",
-              "Перезапустить AI-анализ после обновления плана у AI Notes Assistant.",
-            ].map((item) => (
-              <div
-                key={item}
-                className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm leading-6"
-              >
-                {item}
+            {studentsNeedingAttention.length === 0 ? (
+              <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm leading-6 text-muted-foreground">
+                Нет активных weekly alerts. Подключите Appwrite или добавьте
+                данные в коллекции.
               </div>
-            ))}
+            ) : (
+              studentsNeedingAttention.slice(0, 3).map((student) => (
+                <div
+                  key={student.id}
+                  className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm leading-6"
+                >
+                  {student.firstName} {student.lastName}: посещаемость{" "}
+                  {student.attendanceRate}%,
+                  {student.telegramChatId
+                    ? " chat id заполнен."
+                    : " chat id отсутствует."}
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
@@ -227,39 +185,74 @@ export function TeacherDashboard() {
       <section className="mt-6 grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
         <MetricCard
           title="Нарушители недели"
-          value="4"
+          value={String(studentsNeedingAttention.length)}
           description="Ученики, которые еще не закрыли недельную норму посещаемости."
-          tone="critical"
+          tone={studentsNeedingAttention.length > 0 ? "critical" : "success"}
           icon={Alert01Icon}
-          progress={22}
-          badge={<MetricBadge label="критично" tone="critical" />}
+          progress={students.length ? Math.max(0, 100 - averageAttendance) : 0}
+          badge={
+            <MetricBadge
+              label={studentsNeedingAttention.length > 0 ? "критично" : "чисто"}
+              tone={
+                studentsNeedingAttention.length > 0 ? "critical" : "success"
+              }
+            />
+          }
         />
         <MetricCard
           title="Проекты в review-зоне"
-          value="7"
-          description="Требуют ручной проверки: stale commits, missing plan или GitHub mismatch."
-          tone="warning"
+          value={String(riskyProjects.length)}
+          description="Требуют ручной проверки: низкий progress, stale state или mismatch."
+          tone={riskyProjects.length > 0 ? "warning" : "success"}
           icon={Github01Icon}
-          progress={46}
-          badge={<MetricBadge label="внимание" tone="warning" />}
+          progress={
+            projects.length
+              ? Math.round((riskyProjects.length / projects.length) * 100)
+              : 0
+          }
+          badge={
+            <MetricBadge
+              label={riskyProjects.length > 0 ? "внимание" : "стабильно"}
+              tone={riskyProjects.length > 0 ? "warning" : "success"}
+            />
+          }
         />
         <MetricCard
-          title="AI-отчеты сегодня"
-          value="12"
-          description="Сводки, пересчитанные с учетом ТЗ, плана и актуального дерева репозитория."
+          title="AI-отчеты доступны"
+          value={String(projects.filter((project) => project.aiSummary).length)}
+          description="Количество проектов, у которых уже есть AI summary в текущем слое данных."
           tone="calm"
           icon={AiBrain03Icon}
-          progress={74}
-          badge={<MetricBadge label="в норме" tone="calm" />}
+          progress={
+            projects.length
+              ? Math.round(
+                  (projects.filter((project) => project.aiSummary).length /
+                    projects.length) *
+                    100,
+                )
+              : 0
+          }
+          badge={<MetricBadge label="данные" tone="calm" />}
         />
         <MetricCard
           title="Посещаемость недели"
-          value="81%"
-          description="Средний уровень выполнения нормы по активным ученикам в текущем окне недели."
-          tone="success"
+          value={`${averageAttendance}%`}
+          description="Средний уровень выполнения нормы по доступным student records."
+          tone={
+            averageAttendance >= 75
+              ? "success"
+              : averageAttendance >= 25
+                ? "warning"
+                : "critical"
+          }
           icon={ChartUpIcon}
-          progress={81}
-          badge={<MetricBadge label="стабильно" tone="success" />}
+          progress={averageAttendance}
+          badge={
+            <MetricBadge
+              label={averageAttendance >= 75 ? "стабильно" : "контроль"}
+              tone={averageAttendance >= 75 ? "success" : "warning"}
+            />
+          }
         />
       </section>
 
@@ -279,38 +272,39 @@ export function TeacherDashboard() {
             </Button>
           </CardHeader>
           <CardContent className="grid gap-3">
-            {attendanceQueue.map((student) => (
-              <div
-                key={student.name}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-background/70 px-4 py-3"
-              >
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarFallback className="bg-secondary font-medium text-secondary-foreground">
-                      {student.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">{student.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {student.state}
+            {studentsNeedingAttention.length === 0 ? (
+              <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-6 text-sm text-muted-foreground">
+                Нет записей для teacher review.
+              </div>
+            ) : (
+              studentsNeedingAttention.map((student) => (
+                <div
+                  key={student.id}
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-background/70 px-4 py-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback className="bg-secondary font-medium text-secondary-foreground">
+                        {student.firstName[0]}
+                        {student.lastName[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium">
+                        {student.firstName} {student.lastName}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {student.attendanceRate}% нормы
+                      </div>
                     </div>
                   </div>
+                  <StatusPill
+                    tone={student.weeklyState}
+                    label="требует внимания"
+                  />
                 </div>
-                <StatusPill
-                  tone={
-                    student.tone as "critical" | "warning" | "success" | "calm"
-                  }
-                  label={
-                    student.tone === "critical"
-                      ? "риск"
-                      : student.tone === "warning"
-                        ? "в работе"
-                        : "норма"
-                  }
-                />
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -319,22 +313,31 @@ export function TeacherDashboard() {
             <CardTitle className="text-base">Последние AI-отчеты</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentReports.map((report) => (
-              <div
-                key={report.title}
-                className="rounded-2xl border border-border/70 bg-background/70 p-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="font-medium">{report.title}</div>
-                  <Badge variant="outline" className="rounded-full">
-                    {report.time}
-                  </Badge>
-                </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {report.summary}
-                </p>
+            {projects.filter((project) => project.aiSummary).length === 0 ? (
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
+                AI summaries пока отсутствуют.
               </div>
-            ))}
+            ) : (
+              projects
+                .filter((project) => project.aiSummary)
+                .slice(0, 3)
+                .map((project) => (
+                  <div
+                    key={project.id}
+                    className="rounded-2xl border border-border/70 bg-background/70 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="font-medium">{project.name}</div>
+                      <Badge variant="outline" className="rounded-full">
+                        {project.status}
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {project.aiSummary}
+                    </p>
+                  </div>
+                ))
+            )}
           </CardContent>
         </Card>
       </section>
@@ -350,7 +353,10 @@ export function TeacherDashboard() {
                 Риски, требующие teacher review до следующего weekly digest.
               </p>
             </div>
-            <StatusPill label="4 проекта" tone="warning" />
+            <StatusPill
+              label={`${riskyProjects.length} проекта`}
+              tone="warning"
+            />
           </CardHeader>
           <CardContent>
             <Table>
@@ -363,29 +369,34 @@ export function TeacherDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projectRisks.map((item) => (
-                  <TableRow key={`${item.student}-${item.project}`}>
-                    <TableCell className="font-medium">
-                      {item.student}
-                    </TableCell>
-                    <TableCell>{item.project}</TableCell>
-                    <TableCell>
-                      <StatusPill
-                        tone={
-                          item.status as
-                            | "critical"
-                            | "warning"
-                            | "success"
-                            | "calm"
-                        }
-                        label={item.risk}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {item.progress}
+                {riskyProjects.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="py-10 text-center text-muted-foreground"
+                    >
+                      Нет проектов в зоне контроля.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  riskyProjects.map((project) => (
+                    <TableRow key={project.id}>
+                      <TableCell className="font-medium">
+                        {project.studentName}
+                      </TableCell>
+                      <TableCell>{project.name}</TableCell>
+                      <TableCell>
+                        <StatusPill
+                          tone={project.progress < 25 ? "critical" : "warning"}
+                          label={project.risk}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {project.progress}%
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -406,7 +417,8 @@ export function TeacherDashboard() {
                 Telegram
               </div>
               <p className="mt-2 leading-6 text-muted-foreground">
-                Персональные уведомления и общий чат учеников.
+                Персональные уведомления и общий чат учеников зависят от
+                `telegram_chat_id` в данных.
               </p>
             </div>
             <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
@@ -415,7 +427,7 @@ export function TeacherDashboard() {
                 Ученики
               </div>
               <p className="mt-2 leading-6 text-muted-foreground">
-                Teacher-only редактирование карточек и ручной ввод `chat_id`.
+                Сейчас в слое данных доступно {students.length} student records.
               </p>
             </div>
             <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
@@ -424,7 +436,8 @@ export function TeacherDashboard() {
                 Weekly контроль
               </div>
               <p className="mt-2 leading-6 text-muted-foreground">
-                Фокус на пропусках, stale repos и низком completion percent.
+                Фокус на пропусках, stale repos и низком completion percent в
+                едином server-side data layer.
               </p>
             </div>
           </CardContent>

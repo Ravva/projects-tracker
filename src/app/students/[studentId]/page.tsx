@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getStudentById } from "@/lib/mock-data";
+import { getStudent } from "@/lib/server/repositories/students";
 
 export default async function StudentDetailsPage({
   params,
@@ -21,7 +21,7 @@ export default async function StudentDetailsPage({
   params: Promise<{ studentId: string }>;
 }) {
   const { studentId } = await params;
-  const student = getStudentById(studentId);
+  const student = await getStudent(studentId);
 
   if (!student) {
     notFound();
