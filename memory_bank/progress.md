@@ -13,6 +13,7 @@
 
 ## Changelog
 
+- 2026-03-09: реализована интеграция с Telegram: создан серверный сервис, Server Action и UI-карточка для отправки уведомлений из профиля студента.
 - 2026-03-09: реализован импорт студентов из XLSX: добавлен клиентский компонент `ImportStudentsButton` и Server Action для парсинга файлов.
 - 2026-03-09: рефакторинг авторизации: `src/proxy.ts` удален, добавлен стандартный `src/middleware.ts`. В `/login` добавлена кнопка `LoginButton` на базе `next-auth/react`.
 - 2026-03-09: починен локальный `appwrite_api` MCP server: `.codex/config.toml` переведен с отсутствующего PowerShell launcher на WSL-совместимый `scripts/run-appwrite-mcp.sh`, который читает Appwrite env-переменные из локального `.env`.
@@ -41,4 +42,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `eadfbc1c012d7082a8c4c32cbe743ce7371120d2`
+- `last_checked_commit`: `00fc4e1cfe58b42e72e80599fe5cf02ce89cd925`

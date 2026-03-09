@@ -11,6 +11,7 @@ import {
   deleteStudentAction,
   updateStudentAction,
 } from "@/app/students/actions";
+import { NotificationCard } from "./notification-card";
 import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -182,6 +183,11 @@ export default async function StudentDetailsPage({
         </Card>
 
         <div className="grid gap-6">
+          <NotificationCard
+            studentId={student.id}
+            telegramChatId={student.telegramChatId}
+          />
+
           <Card className="border-border/70 bg-card/88 shadow-none">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Статус недели</CardTitle>

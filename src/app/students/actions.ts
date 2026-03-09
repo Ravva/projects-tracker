@@ -9,11 +9,37 @@ import { requireTeacherSession } from "@/lib/server/auth";
 import {
   createStudent,
   deleteStudent,
+  getStudent,
   updateStudent,
 } from "@/lib/server/repositories/students";
+import { sendTelegramMessage } from "@/lib/server/telegram";
 
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
+}
+
+export async function sendStudentNotificationAction(formData: FormData) {
+  await requireTeacherSession();
+
+  const studentId = readString(formData, "studentId");
+  const message = readString(formData, "message");
+
+  if (!message) {
+    throw new Error("Сообщение не может быть пустым");
+  }
+
+  const student = await getStudent(studentId);
+  if (!student || !student.telegramChatId) {
+    throw new Error("Chat ID студента не найден");
+  }
+
+  const success = await sendTelegramMessage(student.telegramChatId, message);
+
+  if (!success) {
+    throw new Error("Не удалось отправить сообщение в Telegram");
+  }
+
+  revalidatePath(`/students/${studentId}`);
 }
 
 export async function importStudentsAction(formData: FormData) {
