@@ -27,8 +27,8 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - реализован teacher-only маршрут `/projects/[projectId]`;
 - страницы читают данные через `src/lib/server/repositories/*`;
 - `.env.example` задает минимальный набор Appwrite переменных;
-- GitHub OAuth реализован через `next-auth`, защита маршрутов вынесена в `src/proxy.ts`;
-- `/login` показывает отсутствующие OAuth env-переменные и не ведет в сломанный signin-flow при неполной конфигурации;
+- GitHub OAuth реализован через `next-auth`, защита маршрутов перенесена из `src/proxy.ts` в `src/middleware.ts`;
+- `/login` использует клиентский компонент `LoginButton` для инициации входа через GitHub;
 - Appwrite schema создается через `bun run db:provision`;
 - `projects` и `project_ai_reports` хранят часть состояния в компактных JSON-полях из-за лимитов Appwrite;
 - при отсутствии Appwrite-конфигурации страницы показывают пустые состояния вместо локального mock-слоя;

@@ -13,6 +13,7 @@
 
 ## Changelog
 
+- 2026-03-09: рефакторинг авторизации: `src/proxy.ts` удален, добавлен стандартный `src/middleware.ts`. В `/login` добавлена кнопка `LoginButton` на базе `next-auth/react`.
 - 2026-03-09: починен локальный `appwrite_api` MCP server: `.codex/config.toml` переведен с отсутствующего PowerShell launcher на WSL-совместимый `scripts/run-appwrite-mcp.sh`, который читает Appwrite env-переменные из локального `.env`.
 - 2026-03-09: в `AGENTS.md` добавлено правило не проверять Markdown-файлы (`*.md`) через Biome.
 - 2026-03-09: корень проекта `/mnt/c/Users/Ravva/projects-tracker` добавлен в trusted projects глобального `~/.codex/config.toml`, чтобы Codex начал применять локальный `.codex/config.toml`.
@@ -39,4 +40,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `2a3d753957de018f825e212026cb0df6d2673b99`
+- `last_checked_commit`: `eadfbc1c012d7082a8c4c32cbe743ce7371120d2`

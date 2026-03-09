@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getAuthConfigurationStatus, getAuthSession } from "@/lib/server/auth";
+import { LoginButton } from "./login-button";
 
 export default async function LoginPage({
   searchParams,
@@ -34,12 +35,7 @@ export default async function LoginPage({
 
           <div className="mt-8 flex flex-wrap gap-3">
             {authConfiguration.isConfigured ? (
-              <a
-                href="/api/auth/signin/github"
-                className="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                Войти через GitHub
-              </a>
+              <LoginButton />
             ) : (
               <span className="inline-flex cursor-not-allowed items-center rounded-xl bg-muted px-4 py-2 text-sm font-medium text-muted-foreground">
                 OAuth не настроен
