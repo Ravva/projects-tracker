@@ -2,16 +2,27 @@
 
 import { FileUploadIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useRef, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+
 import { Button } from "@/components/ui/button";
+import { FeedbackModal } from "@/components/ui/feedback-modal";
 import { importStudentsAction } from "./actions";
+
+interface FeedbackState {
+  tone: "success" | "error";
+  title: string;
+  description: string;
+}
 
 export function ImportStudentsButton() {
   const [isPending, startTransition] = useTransition();
+  const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const formData = new FormData();
@@ -20,13 +31,24 @@ export function ImportStudentsButton() {
     startTransition(async () => {
       try {
         await importStudentsAction(formData);
-        // Очищаем инпут для возможности повторной загрузки того же файла
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        setFeedback({
+          tone: "success",
+          title: "Импорт завершён",
+          description:
+            "Файл обработан. Новые карточки студентов уже доступны в teacher-only списке.",
+        });
       } catch (error) {
-        console.error("Ошибка импорта:", error);
-        alert(
-          "Произошла ошибка при импорте студентов. Проверьте формат файла.",
-        );
+        setFeedback({
+          tone: "error",
+          title: "Импорт не выполнен",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Произошла ошибка при импорте студентов. Проверьте формат файла.",
+        });
       }
     });
   };
@@ -54,6 +76,14 @@ export function ImportStudentsButton() {
         />
         {isPending ? "Загрузка..." : "Импорт XLSX"}
       </Button>
+
+      <FeedbackModal
+        open={feedback !== null}
+        tone={feedback?.tone ?? "success"}
+        title={feedback?.title ?? ""}
+        description={feedback?.description ?? ""}
+        onClose={() => setFeedback(null)}
+      />
     </>
   );
 }
