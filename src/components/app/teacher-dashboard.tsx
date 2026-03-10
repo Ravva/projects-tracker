@@ -33,10 +33,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { parseIsoDate } from "@/lib/server/date-utils";
 import { getCurrentAttendanceWeek } from "@/lib/server/repositories/attendance";
 import { listProjects } from "@/lib/server/repositories/projects";
 import { listStudents } from "@/lib/server/repositories/students";
-import type { TeacherSessionUser } from "@/lib/types";
+import type { AttendanceLessonRecord, TeacherSessionUser } from "@/lib/types";
+
+function getNearestLesson(lessons: AttendanceLessonRecord[]) {
+  if (lessons.length === 0) {
+    return null;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return (
+    lessons.find((lesson) => parseIsoDate(lesson.lessonDate) >= today) ??
+    lessons[lessons.length - 1]
+  );
+}
 
 export async function TeacherDashboard({
   teacher,
@@ -49,6 +64,7 @@ export async function TeacherDashboard({
     getCurrentAttendanceWeek(),
   ]);
   const attendanceLessons = attendanceWeek.lessons;
+  const nearestLesson = getNearestLesson(attendanceLessons);
 
   const studentsNeedingAttention = students.filter(
     (student) => student.weeklyState !== "success",
@@ -121,7 +137,7 @@ export async function TeacherDashboard({
                     Ближайшее занятие
                   </div>
                   <div className="mt-2 text-2xl font-semibold">
-                    {attendanceLessons[0]?.dateLabel ?? "Нет данных"}
+                    {nearestLesson?.dateLabel ?? "Нет данных"}
                   </div>
                 </div>
                 <div className="rounded-2xl bg-[hsl(var(--status-warning)/0.16)] p-3 text-[hsl(var(--status-warning))]">

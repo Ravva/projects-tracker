@@ -52,4 +52,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `0e938a875d351f0fdfe2bba1df8205dd90f208c5`
+- `last_checked_commit`: `308b58ebfe6dd01968e211c21d4c2026489e179e`
