@@ -1,7 +1,10 @@
 import "server-only";
 
 import { ID, Query } from "node-appwrite";
-import { normalizeProjectInput } from "@/lib/project-limits";
+import {
+  normalizeProjectInput,
+  normalizeProjectState,
+} from "@/lib/project-limits";
 import { getAppwriteConfig, getAppwriteDatabases } from "@/lib/server/appwrite";
 import { daysSince } from "@/lib/server/date-utils";
 import {
@@ -78,17 +81,7 @@ function buildProjectState(
     nextSteps: string[];
   }> = {},
 ) {
-  return JSON.stringify({
-    primaryRisk: input.primaryRisk ?? "healthy",
-    riskFlags: input.riskFlags ?? [],
-    aiCompletionPercent: input.aiCompletionPercent ?? 0,
-    manualCompletionPercent: input.manualCompletionPercent ?? null,
-    manualOverrideEnabled: input.manualOverrideEnabled ?? false,
-    manualOverrideNote: input.manualOverrideNote ?? "",
-    lastAiAnalysisAt: input.lastAiAnalysisAt ?? "",
-    aiSummary: input.aiSummary ?? "",
-    nextSteps: input.nextSteps ?? [],
-  });
+  return JSON.stringify(normalizeProjectState(input));
 }
 
 function normalizeProjectRiskFlags(project: ProjectRecord) {

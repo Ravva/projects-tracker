@@ -8,10 +8,11 @@
 
 - в рабочем дереве присутствует локальный `.env`, поэтому он должен оставаться вне версии;
 - лимиты Appwrite на размер строковых атрибутов требуют держать `projects` и `project_ai_reports` в компактной JSON-state схеме;
-- ручной `manualOverrideNote` по-прежнему попадает в `project_state_json`, поэтому при дальнейшем расширении этого JSON нужно контролировать совокупный размер поля.
+- даже после нормализации `project_state_json` нужно контролировать суммарный размер JSON при дальнейшем расширении AI summary и списков шагов.
 
 ## Changelog
 
+- 2026-03-10: добавлена server-side нормализация `project_state_json`: ограничены `manualOverrideNote`, `aiSummary` и `nextSteps`, а форма override приведена к тем же лимитам.
 - 2026-03-10: устранено предупреждение Biome в `src/components/ui/sidebar.tsx`: состояние sidebar теперь пишется через `Cookie Store API` без прямого `document.cookie`.
 - 2026-03-10: project-формы синхронизированы с Appwrite-лимитами, добавлены `maxLength` в UI и server-side нормализация payload через `src/lib/project-limits.ts`.
 - 2026-03-10: документация и memory bank синхронизированы с маршрутом `src/middleware.ts`, Telegram-интеграцией и ограничениями полей проектов.
@@ -44,4 +45,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `0508c6da8d5b224379f32893e0491676b90c1f0f`
+- `last_checked_commit`: `0e938a875d351f0fdfe2bba1df8205dd90f208c5`

@@ -8,6 +8,15 @@ export const PROJECT_FIELD_LIMITS = {
   planMarkdown: 4000,
 } as const;
 
+export const PROJECT_STATE_LIMITS = {
+  primaryRisk: 64,
+  riskFlags: 6,
+  manualOverrideNote: 400,
+  aiSummary: 600,
+  nextSteps: 5,
+  nextStepItem: 120,
+} as const;
+
 function trimToLimit(value: string, limit: number) {
   return value.slice(0, limit);
 }
@@ -27,5 +36,40 @@ export function normalizeProjectInput(input: ProjectInput): ProjectInput {
       input.planMarkdown,
       PROJECT_FIELD_LIMITS.planMarkdown,
     ),
+  };
+}
+
+export function normalizeProjectState(input: {
+  primaryRisk?: string;
+  riskFlags?: string[];
+  aiCompletionPercent?: number;
+  manualCompletionPercent?: number | null;
+  manualOverrideEnabled?: boolean;
+  manualOverrideNote?: string;
+  lastAiAnalysisAt?: string;
+  aiSummary?: string;
+  nextSteps?: string[];
+}) {
+  return {
+    primaryRisk: trimToLimit(
+      input.primaryRisk ?? "healthy",
+      PROJECT_STATE_LIMITS.primaryRisk,
+    ),
+    riskFlags: (input.riskFlags ?? []).slice(0, PROJECT_STATE_LIMITS.riskFlags),
+    aiCompletionPercent: input.aiCompletionPercent ?? 0,
+    manualCompletionPercent: input.manualCompletionPercent ?? null,
+    manualOverrideEnabled: input.manualOverrideEnabled ?? false,
+    manualOverrideNote: trimToLimit(
+      input.manualOverrideNote ?? "",
+      PROJECT_STATE_LIMITS.manualOverrideNote,
+    ),
+    lastAiAnalysisAt: input.lastAiAnalysisAt ?? "",
+    aiSummary: trimToLimit(
+      input.aiSummary ?? "",
+      PROJECT_STATE_LIMITS.aiSummary,
+    ),
+    nextSteps: (input.nextSteps ?? [])
+      .slice(0, PROJECT_STATE_LIMITS.nextSteps)
+      .map((step) => trimToLimit(step, PROJECT_STATE_LIMITS.nextStepItem)),
   };
 }

@@ -9,6 +9,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - удерживать teacher-only UI и документацию синхронизированными;
 - стабилизировать CRUD-потоки `students`, `attendance` и `projects` на реальных данных;
 - закрыто в текущей сессии: предупреждение Biome в `sidebar.tsx` снято, project-формы ограничены под Appwrite, документация и memory bank синхронизированы;
+- закрыто в текущей сессии: содержимое `project_state_json` ограничено на сервере, а `manualOverrideNote` в UI приведен к тем же лимитам Appwrite;
 - устранено локальное предупреждение Codex CLI: корень проекта добавлен в trusted projects глобального `~/.codex/config.toml`;
 - в `AGENTS.md` зафиксировано правило: Markdown-файлы не прогоняются через Biome;
 - локальный `appwrite_api` MCP server переведен на WSL-совместимый bash launcher с чтением Appwrite-переменных из `.env`;

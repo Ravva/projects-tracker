@@ -51,6 +51,7 @@ MVP включает:
 - репозиторий нормализуется в `owner/repo/default_branch`;
 - AI-анализ запускается только если заполнены ТЗ и план разработки;
 - project-формы ограничивают `name`, `summary`, `github_url`, `spec_markdown` и `plan_markdown` по фактическим лимитам Appwrite;
+- содержимое `project_state_json` нормализуется перед записью: `manualOverrideNote`, `aiSummary` и `nextSteps` подрезаются до безопасных размеров;
 - `final_completion_percent` вычисляется на лету;
 - ручной override отключается после следующего AI-анализа.
 

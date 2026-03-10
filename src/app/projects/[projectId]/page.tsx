@@ -21,7 +21,10 @@ import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PROJECT_FIELD_LIMITS } from "@/lib/project-limits";
+import {
+  PROJECT_FIELD_LIMITS,
+  PROJECT_STATE_LIMITS,
+} from "@/lib/project-limits";
 import { requireTeacherSession } from "@/lib/server/auth";
 import {
   getProject,
@@ -249,7 +252,11 @@ export default async function ProjectDetailsPage({
                     className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none"
                     defaultValue={project.manualOverrideNote}
                     placeholder="Комментарий override"
+                    maxLength={PROJECT_STATE_LIMITS.manualOverrideNote}
                   />
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    До {PROJECT_STATE_LIMITS.manualOverrideNote} символов.
+                  </p>
                   <div className="flex gap-2">
                     <Button type="submit" className="rounded-xl">
                       Применить override
