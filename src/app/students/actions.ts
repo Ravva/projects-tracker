@@ -12,7 +12,10 @@ import {
   getStudent,
   updateStudent,
 } from "@/lib/server/repositories/students";
-import { sendTelegramMessage } from "@/lib/server/telegram";
+import {
+  sendTelegramMessage,
+  TELEGRAM_CHAT_ID_PATTERN,
+} from "@/lib/server/telegram";
 
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -33,10 +36,16 @@ export async function sendStudentNotificationAction(formData: FormData) {
     throw new Error("Chat ID студента не найден");
   }
 
-  const success = await sendTelegramMessage(student.telegramChatId, message);
+  if (!TELEGRAM_CHAT_ID_PATTERN.test(student.telegramChatId)) {
+    throw new Error(
+      "У студента сохранён некорректный chat id. Нужна строка из цифр, иногда с ведущим '-'.",
+    );
+  }
 
-  if (!success) {
-    throw new Error("Не удалось отправить сообщение в Telegram");
+  const result = await sendTelegramMessage(student.telegramChatId, message);
+
+  if (!result.ok) {
+    throw new Error(result.message);
   }
 
   revalidatePath(`/students/${studentId}`);
@@ -53,14 +62,10 @@ export async function importStudentsAction(formData: FormData) {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer);
   const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-  // Use header: 1 to get rows as arrays for more flexible parsing
-  const rows = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
+  const rows = XLSX.utils.sheet_to_json(worksheet) as Record<string, unknown>[];
 
   for (const row of rows) {
-    // Маппинг полей (поддержка разных вариантов названий колонок)
-    const fullName = String(
-      row["ФИО"] || row["Имя"] || row["Name"] || "",
-    ).trim();
+    const fullName = String(row.ФИО || row.Имя || row.Name || "").trim();
     if (!fullName) continue;
 
     const parts = fullName.split(/\s+/);
@@ -68,19 +73,19 @@ export async function importStudentsAction(formData: FormData) {
     const firstName = parts.slice(1).join(" ") || "Ученик";
 
     const githubUsername = String(
-      row["GitHub"] || row["github"] || row["github_username"] || "",
+      row.GitHub || row.github || row.github_username || "",
     ).trim();
     const telegramUsername = String(
-      row["Telegram"] || row["telegram"] || row["telegram_username"] || "",
+      row.Telegram || row.telegram || row.telegram_username || "",
     ).trim();
 
     await createStudent({
       firstName,
       lastName,
       githubUsername,
-      githubUserId: "", // Будет заполнено позже при синхронизации
+      githubUserId: "",
       telegramUsername,
-      telegramChatId: "", // Будет заполнено вручную или через бота
+      telegramChatId: "",
       notes: "Импортировано из XLSX",
     });
   }

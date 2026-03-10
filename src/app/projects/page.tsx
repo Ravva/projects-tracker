@@ -7,7 +7,10 @@ import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import {
+  InputWithCounter,
+  TextareaWithCounter,
+} from "@/components/ui/field-with-counter";
 import {
   Table,
   TableBody,
@@ -134,21 +137,21 @@ export default async function ProjectsPage() {
                   </option>
                 ))}
               </select>
-              <Input
+              <InputWithCounter
                 name="name"
                 placeholder="Название проекта"
                 className="rounded-xl bg-background/80"
                 maxLength={PROJECT_FIELD_LIMITS.name}
                 required
               />
-              <Input
+              <InputWithCounter
                 name="githubUrl"
                 placeholder="https://github.com/owner/repo"
                 className="rounded-xl bg-background/80"
                 maxLength={PROJECT_FIELD_LIMITS.githubUrl}
                 required
               />
-              <Input
+              <InputWithCounter
                 name="summary"
                 placeholder="Краткое описание"
                 className="rounded-xl bg-background/80"
@@ -164,13 +167,13 @@ export default async function ProjectsPage() {
                 <option value="review">review</option>
                 <option value="done">done</option>
               </select>
-              <textarea
+              <TextareaWithCounter
                 name="specMarkdown"
                 className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none"
                 placeholder="ТЗ"
                 maxLength={PROJECT_FIELD_LIMITS.specMarkdown}
               />
-              <textarea
+              <TextareaWithCounter
                 name="planMarkdown"
                 className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none"
                 placeholder="План разработки"

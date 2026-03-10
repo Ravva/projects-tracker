@@ -11,15 +11,19 @@ import {
   deleteStudentAction,
   updateStudentAction,
 } from "@/app/students/actions";
-import { NotificationCard } from "./notification-card";
 import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  InputWithCounter,
+  TextareaWithCounter,
+} from "@/components/ui/field-with-counter";
 import { Input } from "@/components/ui/input";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { getStudent } from "@/lib/server/repositories/students";
+import { NotificationCard } from "./notification-card";
 
 export default async function StudentDetailsPage({
   params,
@@ -153,25 +157,32 @@ export default async function StudentDetailsPage({
                   >
                     Telegram chat id
                   </label>
-                  <Input
+                  <InputWithCounter
                     id="telegramChatId"
                     name="telegramChatId"
                     defaultValue={student.telegramChatId}
-                    placeholder="Заполнить вручную"
+                    placeholder="Например: 123456789 или -1001234567890"
                     className="rounded-xl bg-background/80"
+                    maxLength={32}
+                    inputMode="numeric"
                   />
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    Храним только числовой chat id. Для групп и каналов он часто
+                    начинается с `-100`.
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="teacherNote" className="text-sm font-medium">
+                <label htmlFor="notes" className="text-sm font-medium">
                   Заметка преподавателя
                 </label>
-                <textarea
-                  id="teacherNote"
+                <TextareaWithCounter
+                  id="notes"
                   name="notes"
                   className="min-h-32 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none ring-0"
                   defaultValue={student.notes}
+                  maxLength={2000}
                 />
               </div>
 

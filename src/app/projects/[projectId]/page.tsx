@@ -20,6 +20,10 @@ import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  InputWithCounter,
+  TextareaWithCounter,
+} from "@/components/ui/field-with-counter";
 import { Input } from "@/components/ui/input";
 import {
   PROJECT_FIELD_LIMITS,
@@ -102,7 +106,7 @@ export default async function ProjectDetailsPage({
                     GitHub metadata
                   </div>
                   <div className="mt-3 space-y-3 text-sm text-muted-foreground">
-                    <Input
+                    <InputWithCounter
                       name="githubUrl"
                       defaultValue={project.githubUrl}
                       className="rounded-xl bg-background/80"
@@ -124,13 +128,13 @@ export default async function ProjectDetailsPage({
                     Review status
                   </div>
                   <div className="mt-3 space-y-3 text-sm text-muted-foreground">
-                    <Input
+                    <InputWithCounter
                       name="name"
                       defaultValue={project.name}
                       className="rounded-xl bg-background/80"
                       maxLength={PROJECT_FIELD_LIMITS.name}
                     />
-                    <Input
+                    <InputWithCounter
                       name="summary"
                       defaultValue={project.summary}
                       className="rounded-xl bg-background/80"
@@ -177,7 +181,7 @@ export default async function ProjectDetailsPage({
               <CardContent className="grid gap-4 xl:grid-cols-2">
                 <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                   <div className="mb-3 text-sm font-medium">spec_markdown</div>
-                  <textarea
+                  <TextareaWithCounter
                     name="specMarkdown"
                     className="min-h-64 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm leading-6 text-muted-foreground outline-none"
                     defaultValue={project.specMarkdown}
@@ -189,7 +193,7 @@ export default async function ProjectDetailsPage({
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                   <div className="mb-3 text-sm font-medium">plan_markdown</div>
-                  <textarea
+                  <TextareaWithCounter
                     name="planMarkdown"
                     className="min-h-64 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm leading-6 text-muted-foreground outline-none"
                     defaultValue={project.planMarkdown}
@@ -247,7 +251,7 @@ export default async function ProjectDetailsPage({
                     }
                     className="rounded-xl bg-background/80"
                   />
-                  <textarea
+                  <TextareaWithCounter
                     name="manualOverrideNote"
                     className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none"
                     defaultValue={project.manualOverrideNote}
