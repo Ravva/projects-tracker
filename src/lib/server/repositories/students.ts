@@ -3,11 +3,7 @@ import "server-only";
 import { ID, Query } from "node-appwrite";
 
 import { getAppwriteConfig, getAppwriteDatabases } from "@/lib/server/appwrite";
-import {
-  daysSince,
-  startOfCurrentWeek,
-  toIsoDate,
-} from "@/lib/server/date-utils";
+import { daysSince, normalizeWeekStart } from "@/lib/server/date-utils";
 import { mapStudentDocument, toStudentDocument } from "@/lib/server/mappers";
 import type { StudentInput, StudentRecord, WeeklyState } from "@/lib/types";
 
@@ -32,7 +28,10 @@ function buildWeeklyState(attendanceRate: number): WeeklyState {
   return "success";
 }
 
-async function buildStudentSummaries(studentIds: string[]) {
+async function buildStudentSummaries(
+  studentIds: string[],
+  inputWeekStart?: string,
+) {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
 
@@ -40,7 +39,7 @@ async function buildStudentSummaries(studentIds: string[]) {
     return new Map<string, StudentSummary>();
   }
 
-  const weekStart = toIsoDate(startOfCurrentWeek());
+  const weekStart = normalizeWeekStart(inputWeekStart);
   const [projectsResponse, lessonsResponse, attendanceResponse] =
     await Promise.all([
       appwrite.databases.listDocuments(
@@ -141,7 +140,9 @@ async function buildStudentSummaries(studentIds: string[]) {
   );
 }
 
-export async function listStudents(): Promise<StudentRecord[]> {
+export async function listStudents(
+  inputWeekStart?: string,
+): Promise<StudentRecord[]> {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
 
@@ -161,6 +162,7 @@ export async function listStudents(): Promise<StudentRecord[]> {
     );
     const summaries = await buildStudentSummaries(
       response.documents.map((doc) => doc.$id),
+      inputWeekStart,
     );
 
     return response.documents.map((document) =>
@@ -173,6 +175,7 @@ export async function listStudents(): Promise<StudentRecord[]> {
 
 export async function getStudent(
   studentId: string,
+  inputWeekStart?: string,
 ): Promise<StudentRecord | null> {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
@@ -188,7 +191,7 @@ export async function getStudent(
         config.collections.students,
         studentId,
       ),
-      buildStudentSummaries([studentId]),
+      buildStudentSummaries([studentId], inputWeekStart),
     ]);
 
     return mapStudentDocument(document, summaries.get(studentId));

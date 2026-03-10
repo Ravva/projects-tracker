@@ -17,8 +17,16 @@ export function startOfCurrentWeek(date = new Date()) {
   return current;
 }
 
+export function startOfWeek(date: Date) {
+  return startOfCurrentWeek(date);
+}
+
 export function toIsoDate(value: Date) {
-  return value.toISOString().slice(0, 10);
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 export function addDays(value: Date, days: number) {
@@ -59,6 +67,37 @@ export function formatDateLabel(isoDate: string) {
     day: "2-digit",
     month: "long",
   }).format(date);
+}
+
+export function parseIsoDate(isoDate: string) {
+  const [year, month, day] = isoDate.split("-").map(Number);
+
+  return new Date(year, month - 1, day);
+}
+
+export function normalizeWeekStart(isoDate?: string | null) {
+  if (!isoDate) {
+    return toIsoDate(startOfCurrentWeek());
+  }
+
+  const parsed = parseIsoDate(isoDate);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return toIsoDate(startOfCurrentWeek());
+  }
+
+  return toIsoDate(startOfWeek(parsed));
+}
+
+export function formatWeekRangeLabel(weekStartIso: string) {
+  const weekStart = parseIsoDate(weekStartIso);
+  const weekEnd = addDays(weekStart, 4);
+  const formatter = new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "long",
+  });
+
+  return `${formatter.format(weekStart)} - ${formatter.format(weekEnd)}`;
 }
 
 export function daysSince(isoDate: string | null | undefined) {

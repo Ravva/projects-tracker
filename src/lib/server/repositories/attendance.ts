@@ -4,7 +4,10 @@ import { ID, Query } from "node-appwrite";
 
 import { getAppwriteConfig, getAppwriteDatabases } from "@/lib/server/appwrite";
 import {
+  addDays,
   buildWeekTemplate,
+  normalizeWeekStart,
+  parseIsoDate,
   startOfCurrentWeek,
   toIsoDate,
 } from "@/lib/server/date-utils";
@@ -33,7 +36,7 @@ async function getWeekLessonDocuments(weekStart: string) {
   return response.documents;
 }
 
-export async function ensureCurrentWeekLessons() {
+async function syncGeneratedLessonsForWeek(weekStart: string) {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
 
@@ -41,14 +44,73 @@ export async function ensureCurrentWeekLessons() {
     return [];
   }
 
-  const weekStart = toIsoDate(startOfCurrentWeek());
   const existing = await getWeekLessonDocuments(weekStart);
 
-  if (existing.length > 0) {
+  if (existing.length === 0) {
     return existing;
   }
 
-  const template = buildWeekTemplate(startOfCurrentWeek());
+  const templateByWeekday = new Map(
+    buildWeekTemplate(parseIsoDate(weekStart)).map((item) => [
+      item.weekdayCode,
+      item,
+    ]),
+  );
+
+  await Promise.all(
+    existing.map(async (lesson) => {
+      const record = lesson as Record<string, unknown>;
+      const weekdayCode = String(record.weekday_code ?? "");
+      const isGenerated = Boolean(record.is_generated ?? false);
+      const template = templateByWeekday.get(
+        weekdayCode as "tue" | "thu" | "fri",
+      );
+
+      if (!isGenerated || !template) {
+        return;
+      }
+
+      const currentDate = String(record.lesson_date ?? "");
+      const currentTitle = String(record.title ?? "");
+
+      if (
+        currentDate === template.lessonDate &&
+        currentTitle === template.title
+      ) {
+        return;
+      }
+
+      await appwrite.databases.updateDocument(
+        appwrite.databaseId,
+        config.collections.lessons,
+        lesson.$id,
+        {
+          lesson_date: template.lessonDate,
+          title: template.title,
+        },
+      );
+    }),
+  );
+
+  return getWeekLessonDocuments(weekStart);
+}
+
+export async function ensureAttendanceWeekLessons(inputWeekStart?: string) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    return [];
+  }
+
+  const weekStart = normalizeWeekStart(inputWeekStart);
+  const existing = await getWeekLessonDocuments(weekStart);
+
+  if (existing.length > 0) {
+    return syncGeneratedLessonsForWeek(weekStart);
+  }
+
+  const template = buildWeekTemplate(parseIsoDate(weekStart));
 
   for (const item of template) {
     await appwrite.databases.createDocument(
@@ -69,11 +131,12 @@ export async function ensureCurrentWeekLessons() {
   return getWeekLessonDocuments(weekStart);
 }
 
-export async function getCurrentAttendanceWeek(): Promise<AttendanceWeekRecord> {
+export async function getAttendanceWeek(
+  inputWeekStart?: string,
+): Promise<AttendanceWeekRecord> {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
-  const students = await listStudents();
-  const weekStart = toIsoDate(startOfCurrentWeek());
+  const weekStart = normalizeWeekStart(inputWeekStart);
 
   if (!appwrite || !config) {
     return {
@@ -84,7 +147,8 @@ export async function getCurrentAttendanceWeek(): Promise<AttendanceWeekRecord> 
     };
   }
 
-  const lessonDocuments = await ensureCurrentWeekLessons();
+  const lessonDocuments = await ensureAttendanceWeekLessons(weekStart);
+  const students = await listStudents(weekStart);
   const lessonIds = lessonDocuments.map((lesson) => lesson.$id);
   const attendanceResponse =
     lessonIds.length > 0
@@ -142,6 +206,10 @@ export async function getCurrentAttendanceWeek(): Promise<AttendanceWeekRecord> 
       (student) => student.weeklyState !== "success",
     ),
   };
+}
+
+export async function getCurrentAttendanceWeek(): Promise<AttendanceWeekRecord> {
+  return getAttendanceWeek(toIsoDate(startOfCurrentWeek()));
 }
 
 export async function saveWeekAttendance(
@@ -303,5 +371,11 @@ export async function deleteLesson(lessonId: string) {
     appwrite.databaseId,
     config.collections.lessons,
     lessonId,
+  );
+}
+
+export function shiftWeekStart(weekStart: string, offsetWeeks: number) {
+  return toIsoDate(
+    addDays(parseIsoDate(normalizeWeekStart(weekStart)), offsetWeeks * 7),
   );
 }

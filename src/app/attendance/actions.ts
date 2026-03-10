@@ -37,6 +37,30 @@ export async function saveAttendanceAction(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function setAttendanceCellAction(formData: FormData) {
+  await requireTeacherSession();
+
+  const weekStart = readString(formData, "weekStart");
+  const studentId = readString(formData, "studentId");
+  const lessonId = readString(formData, "lessonId");
+  const state = readString(formData, "state") as
+    | "present"
+    | "absent"
+    | "unmarked";
+
+  await saveWeekAttendance(weekStart, [
+    {
+      lessonId,
+      studentId,
+      state,
+    },
+  ]);
+
+  revalidatePath("/attendance");
+  revalidatePath("/students");
+  revalidatePath("/");
+}
+
 export async function markAllPresentAction(formData: FormData) {
   await requireTeacherSession();
 

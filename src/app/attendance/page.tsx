@@ -1,11 +1,8 @@
-import { Calendar03Icon, User02Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import Link from "next/link";
 
 import {
   clearAttendanceAction,
-  deleteLessonAction,
-  markAllPresentAction,
-  saveAttendanceAction,
+  setAttendanceCellAction,
 } from "@/app/attendance/actions";
 import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
@@ -20,12 +17,65 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { requireTeacherSession } from "@/lib/server/auth";
-import { getCurrentAttendanceWeek } from "@/lib/server/repositories/attendance";
+import { formatWeekRangeLabel } from "@/lib/server/date-utils";
+import {
+  getAttendanceWeek,
+  shiftWeekStart,
+} from "@/lib/server/repositories/attendance";
+import type { AttendanceLessonRecord } from "@/lib/types";
 
-export default async function AttendancePage() {
+const WEEKDAY_COLUMNS: Array<{
+  code: AttendanceLessonRecord["weekdayCode"];
+  label: string;
+}> = [
+  { code: "tue", label: "Вторник" },
+  { code: "thu", label: "Четверг" },
+  { code: "fri", label: "Пятница" },
+];
+
+type AttendanceState = "present" | "absent" | "unmarked";
+
+const STATE_ORDER: AttendanceState[] = ["unmarked", "present", "absent"];
+
+const STATE_LABELS: Record<AttendanceState, string> = {
+  unmarked: "-",
+  present: "Был",
+  absent: "Не был",
+};
+
+const STATE_STYLES: Record<AttendanceState, string> = {
+  unmarked:
+    "border-border bg-background text-muted-foreground hover:bg-muted/50",
+  present:
+    "border-transparent bg-[hsl(var(--status-success)/0.16)] text-[hsl(var(--status-success))] hover:bg-[hsl(var(--status-success)/0.22)]",
+  absent:
+    "border-transparent bg-[hsl(var(--status-critical)/0.14)] text-[hsl(var(--status-critical))] hover:bg-[hsl(var(--status-critical)/0.2)]",
+};
+
+function getNextState(state: AttendanceState) {
+  const index = STATE_ORDER.indexOf(state);
+
+  return STATE_ORDER[(index + 1) % STATE_ORDER.length];
+}
+
+export default async function AttendancePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ weekStart?: string }>;
+}) {
   const teacher = await requireTeacherSession();
-  const attendanceWeek = await getCurrentAttendanceWeek();
-  const { lessons, rows, studentsNeedingAttention, weekStart } = attendanceWeek;
+  const { weekStart: requestedWeekStart } = await searchParams;
+  const attendanceWeek = await getAttendanceWeek(requestedWeekStart);
+  const { lessons, rows, weekStart } = attendanceWeek;
+  const previousWeekStart = shiftWeekStart(weekStart, -1);
+  const nextWeekStart = shiftWeekStart(weekStart, 1);
+  const weekRangeLabel = formatWeekRangeLabel(weekStart);
+  const lessonsByWeekday = new Map(
+    WEEKDAY_COLUMNS.map(({ code }) => [
+      code,
+      lessons.find((lesson) => lesson.weekdayCode === code) ?? null,
+    ]),
+  );
 
   return (
     <TeacherShell
@@ -34,193 +84,148 @@ export default async function AttendancePage() {
       teacherName={teacher.name}
       teacherEmail={teacher.email}
       actions={
-        <>
-          <form action={clearAttendanceAction}>
-            <input type="hidden" name="weekStart" value={weekStart} />
-            <Button variant="outline" className="rounded-xl bg-background/90">
-              Очистить отметки
-            </Button>
-          </form>
-          <Button asChild className="rounded-xl">
-            <a href="#attendance-grid">Сохранить неделю</a>
+        <form action={clearAttendanceAction}>
+          <input type="hidden" name="weekStart" value={weekStart} />
+          <Button variant="outline" className="rounded-xl bg-background/90">
+            Очистить отметки
           </Button>
-        </>
+        </form>
       }
     >
-      <section className="grid gap-4 xl:grid-cols-3">
-        {lessons.length === 0 ? (
-          <Card className="xl:col-span-3 border-border/70 bg-card/88 shadow-none">
-            <CardContent className="py-10 text-center text-muted-foreground">
-              Appwrite не настроен или коллекция `lessons` пока пуста.
-            </CardContent>
-          </Card>
-        ) : (
-          lessons.map((lesson) => (
-            <Card
-              key={lesson.id}
-              className="border-border/70 bg-card/88 shadow-none"
-            >
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between text-base">
-                  <span className="flex items-center gap-3">
-                    <HugeiconsIcon
-                      icon={Calendar03Icon}
-                      size={18}
-                      strokeWidth={1.8}
-                    />
-                    {lesson.title}
-                  </span>
-                  <StatusPill
-                    tone={lesson.missingMarks > 0 ? "warning" : "success"}
-                    label={lesson.dateLabel}
-                  />
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <div className="flex gap-2">
-                  <form action={markAllPresentAction}>
-                    <input type="hidden" name="lessonId" value={lesson.id} />
-                    <Button
-                      variant="outline"
-                      className="rounded-xl bg-background/90"
-                    >
-                      Все были
-                    </Button>
-                  </form>
-                  <form action={deleteLessonAction}>
-                    <input type="hidden" name="lessonId" value={lesson.id} />
-                    <Button
-                      variant="outline"
-                      className="rounded-xl bg-background/90"
-                    >
-                      Удалить
-                    </Button>
-                  </form>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Отметки проставлены</span>
-                  <span className="font-medium text-foreground">
-                    {lesson.attendanceMarked}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Без отметки</span>
-                  <span className="font-medium text-foreground">
-                    {lesson.missingMarks}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </section>
-
-      <section className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+      <section>
         <Card className="border-border/70 bg-card/88 shadow-none">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Weekly attendance grid</CardTitle>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-base">
+                  Weekly attendance grid
+                </CardTitle>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Неделя: {weekRangeLabel}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="rounded-xl bg-background/90"
+                >
+                  <Link href={`/attendance?weekStart=${previousWeekStart}`}>
+                    Предыдущая неделя
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="rounded-xl bg-background/90"
+                >
+                  <Link href={`/attendance?weekStart=${nextWeekStart}`}>
+                    Следующая неделя
+                  </Link>
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <form id="attendance-grid" action={saveAttendanceAction}>
-              <input type="hidden" name="weekStart" value={weekStart} />
-              <Table>
-                <TableHeader>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ученик</TableHead>
+                  {WEEKDAY_COLUMNS.map((column) => (
+                    <TableHead key={column.code} className="text-center">
+                      {column.label}
+                    </TableHead>
+                  ))}
+                  <TableHead className="text-center">Статус недели</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.length === 0 ? (
                   <TableRow>
-                    <TableHead>Ученик</TableHead>
-                    <TableHead>Вторник</TableHead>
-                    <TableHead>Четверг</TableHead>
-                    <TableHead>Пятница</TableHead>
-                    <TableHead className="text-right">Статус недели</TableHead>
+                    <TableCell
+                      colSpan={5}
+                      className="py-10 text-center text-muted-foreground"
+                    >
+                      Appwrite не настроен или данные занятий пока недоступны.
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rows.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="py-10 text-center text-muted-foreground"
-                      >
-                        Сначала подключите коллекции `students` и `lessons` в
-                        Appwrite.
+                ) : (
+                  rows.map((row) => (
+                    <TableRow key={row.student.id}>
+                      <TableCell className="font-medium">
+                        {row.student.firstName} {row.student.lastName}
+                      </TableCell>
+                      {WEEKDAY_COLUMNS.map((column) => {
+                        const lesson = lessonsByWeekday.get(column.code);
+
+                        if (!lesson) {
+                          return (
+                            <TableCell key={column.code}>
+                              <div className="text-center text-sm text-muted-foreground">
+                                -
+                              </div>
+                            </TableCell>
+                          );
+                        }
+
+                        const currentState =
+                          row.lessonStates[lesson.id] ?? "unmarked";
+                        const nextState = getNextState(currentState);
+
+                        return (
+                          <TableCell key={column.code}>
+                            <form
+                              action={setAttendanceCellAction}
+                              className="flex justify-center"
+                            >
+                              <input
+                                type="hidden"
+                                name="weekStart"
+                                value={weekStart}
+                              />
+                              <input
+                                type="hidden"
+                                name="studentId"
+                                value={row.student.id}
+                              />
+                              <input
+                                type="hidden"
+                                name="lessonId"
+                                value={lesson.id}
+                              />
+                              <input
+                                type="hidden"
+                                name="state"
+                                value={nextState}
+                              />
+                              <Button
+                                type="submit"
+                                variant="outline"
+                                className={`min-w-20 rounded-xl border text-xs font-medium ${STATE_STYLES[currentState]}`}
+                              >
+                                {STATE_LABELS[currentState]}
+                              </Button>
+                            </form>
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell className="text-center">
+                        <StatusPill
+                          tone={row.student.weeklyState}
+                          label={
+                            row.student.weeklyState === "critical"
+                              ? "риск"
+                              : row.student.weeklyState === "warning"
+                                ? "в работе"
+                                : "норма"
+                          }
+                        />
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    rows.map((row) => (
-                      <TableRow key={row.student.id}>
-                        <TableCell className="font-medium">
-                          {row.student.firstName} {row.student.lastName}
-                        </TableCell>
-                        {lessons.map((lesson) => (
-                          <TableCell key={lesson.id}>
-                            <select
-                              name={`attendance:${row.student.id}:${lesson.id}`}
-                              defaultValue={row.lessonStates[lesson.id]}
-                              className="rounded-xl border border-border bg-background px-3 py-2 text-sm"
-                            >
-                              <option value="unmarked">Нет отметки</option>
-                              <option value="present">Был</option>
-                              <option value="absent">Не был</option>
-                            </select>
-                          </TableCell>
-                        ))}
-                        <TableCell className="text-right">
-                          <StatusPill
-                            tone={row.student.weeklyState}
-                            label={
-                              row.student.weeklyState === "critical"
-                                ? "риск"
-                                : row.student.weeklyState === "warning"
-                                  ? "в работе"
-                                  : "норма"
-                            }
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-              <Button type="submit" className="mt-4 rounded-xl">
-                Сохранить attendance
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/70 bg-card/88 shadow-none">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Нарушители недели</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {studentsNeedingAttention.map((student) => (
-              <div
-                key={student.id}
-                className="rounded-2xl border border-border/70 bg-background/70 p-4"
-              >
-                <div className="flex items-center gap-3 font-medium">
-                  <HugeiconsIcon
-                    icon={User02Icon}
-                    size={18}
-                    strokeWidth={1.8}
-                  />
-                  {student.firstName} {student.lastName}
-                </div>
-                <div className="mt-2 flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {student.attendanceRate}% нормы
-                  </span>
-                  <StatusPill
-                    tone={student.weeklyState}
-                    label="требует внимания"
-                  />
-                </div>
-              </div>
-            ))}
-            {rows.length === 0 ? (
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
-                Нет данных для weekly monitoring.
-              </div>
-            ) : null}
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </section>
