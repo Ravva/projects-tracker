@@ -9,12 +9,13 @@
 - в рабочем дереве присутствует локальный `.env`, поэтому он должен оставаться вне версии;
 - лимиты Appwrite на размер строковых атрибутов требуют держать `projects` и `project_ai_reports` в компактной JSON-state схеме;
 - даже после нормализации `project_state_json` нужно контролировать суммарный размер JSON при дальнейшем расширении AI summary и списков шагов.
-- Telegram linking flow через `/api/telegram/webhook` требует публичного URL и настройки webhook у бота; без этого invite-ссылка не сможет автоматически сохранить `chat_id`.
-- production deployment на Vercel пока заблокирован отсутствием локальной авторизации `vercel` CLI; до входа через `vercel login` или `VERCEL_TOKEN` нельзя завершить выкладку.
+- для Telegram linking flow нужно сохранять синхронность `TELEGRAM_WEBHOOK_SECRET` между Vercel env и настройкой webhook у бота; при рассинхроне Telegram будет получать `401` от `/api/telegram/webhook`.
 
 ## Changelog
 
-- 2026-03-10: подготовка deployment-контура переведена с Cloudflare на Vercel; временные OpenNext/Wrangler-правки удалены, добавлен `bun run deploy` через `vercel deploy --prod`, но фактический деплой уперся в отсутствие Vercel credentials на машине.
+- 2026-03-10: `attendance` возвращен к batch-режиму: клики по ячейкам снова меняют только client-side draft, кнопка `Сохранить изменения` записывает неделю одним запросом, после чего страница обновляется и weekly status пересчитывается на свежих данных.
+- 2026-03-10: production rollout завершен: приложение развернуто на `https://projects-tracker-one.vercel.app`, GitHub OAuth на Vercel стабилизирован через корректный `NEXTAUTH_URL`, Telegram webhook привязан к production route с `TELEGRAM_WEBHOOK_SECRET`, а живая привязка ученика через invite-ссылку подтверждена.
+- 2026-03-10: подготовка deployment-контура переведена с Cloudflare на Vercel; временные OpenNext/Wrangler-правки удалены, добавлен `bun run deploy` через `vercel deploy --prod`.
 - 2026-03-10: реализован teacher-only Telegram linking flow: Appwrite хранит `telegram_link_token` и `telegram_linked_at`, student detail page умеет выпускать deep-link `t.me/<bot>?start=<token>`, а новый route `/api/telegram/webhook` автоматически сохраняет `telegram_chat_id` после `/start`.
 - 2026-03-10: teacher-only таблица `/students` получила отдельную колонку `№`, а `telegram_username` и `telegram_chat_id` вынесены в разные столбцы для более читаемого teacher view.
 - 2026-03-10: проведена живая Telegram-проверка на реальных `chat_id` — массовая student-рассылка успешно доставлена двум получателям, а weekly digest успешно отправлен на реальный `TEACHER_TELEGRAM_CHAT_ID`.
@@ -64,4 +65,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `f939afe4dfb1a1ff4b06c4f87d56635d2ef03cc4`
+- `last_checked_commit`: `1293ffecaf67a0472280be21f7123133c9eb6d17`

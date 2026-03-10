@@ -8,7 +8,12 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 
 - удерживать teacher-only UI и документацию синхронизированными;
 - стабилизировать CRUD-потоки `students`, `attendance` и `projects` на реальных данных;
-- в работе: подготовка production deployment на Vercel для вывода Telegram webhook на публичный URL;
+- в работе: откат `attendance` с мгновенной server-side записи на client-side draft с общей кнопкой сохранения, чтобы убрать задержку при проставлении посещаемости;
+- закрыто в текущей сессии: production deployment на Vercel завершен, рабочий URL приложения — `https://projects-tracker-one.vercel.app`;
+- закрыто в текущей сессии: GitHub OAuth на Vercel стабилизирован, критичным env оказался корректный `NEXTAUTH_URL`;
+- закрыто в текущей сессии: Telegram webhook привязан к production route `/api/telegram/webhook` с `TELEGRAM_WEBHOOK_SECRET`;
+- закрыто в текущей сессии: первая живая привязка ученика через invite-ссылку подтверждена в production, `telegram_chat_id` сохраняется автоматически после `/start`;
+- закрыто в текущей сессии: `attendance` возвращен к client-side draft-режиму с кнопкой «Сохранить изменения», а запись в Appwrite и итоговый weekly refresh происходят одним batch-сохранением;
 - закрыто в текущей сессии: teacher-only страница `/students` получила массовую Telegram-рассылку по выбранным ученикам с чекбоксами, выбором всех карточек и итоговой сводкой по отправке;
 - закрыто в текущей сессии: teacher dashboard получил teacher-only кнопку ручной отправки weekly digest в Telegram преподавателя, а сервер собирает сводку по текущей неделе, attendance и рисковым проектам через `TEACHER_TELEGRAM_CHAT_ID`;
 - закрыто в текущей сессии: проведена живая Telegram-проверка на реальных `chat_id` — массовая student-рассылка успешно доставлена двум получателям, а weekly digest успешно ушёл на реальный `TEACHER_TELEGRAM_CHAT_ID`;
@@ -29,7 +34,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - устранено локальное предупреждение Codex CLI: корень проекта добавлен в trusted projects глобального `~/.codex/config.toml`;
 - в `AGENTS.md` зафиксировано правило: Markdown-файлы не прогоняются через Biome;
 - локальный `appwrite_api` MCP server переведен на WSL-совместимый bash launcher с чтением Appwrite-переменных из `.env`;
-- следующим этапом после текущей правки остается завершить production deployment на Vercel, привязать публичный URL к Telegram webhook и провести первую живую привязку ученика через персональную invite-ссылку.
+- следующим этапом после текущей правки остается пройти полный production smoke test teacher-only сценариев `/students`, `/attendance`, `/projects` и Telegram-рассылок уже на Vercel.
 
 ## Текущие решения
 

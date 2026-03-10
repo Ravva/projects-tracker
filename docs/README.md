@@ -46,7 +46,7 @@ MVP включает:
 - внеплановые занятия не поддерживаются;
 - преподаватель может удалить плановое занятие, например из-за праздника;
 - календарные `lesson_date` формируются в локальной дате без UTC-сдвига; auto-generated уроки текущей недели при рассинхронизации пересобираются по шаблону `Вт/Чт/Пт`;
-- страница `/attendance` сведена к компактной weekly-таблице: отметка в ячейке сразу сохраняется одним кликом по циклу `- -> Был -> Не был`;
+- страница `/attendance` сведена к компактной weekly-таблице: отметки переключаются локально по циклу `- -> Был -> Не был`, а запись в базу и пересчет итогов происходят после кнопки `Сохранить изменения`;
 - `/attendance` поддерживает навигацию по неделям через `weekStart` в query-параметре и кнопки перехода на предыдущую/следующую неделю;
 - статус недели и attendance rate на `/attendance` считаются по выбранной неделе, а не всегда по текущей календарной неделе;
 - недельная норма: `min(2, count(lessons_in_week))`.
@@ -109,14 +109,16 @@ MVP включает:
 ## Deployment
 
 - production target: Vercel;
+- production URL: `https://projects-tracker-one.vercel.app`;
 - для production deployment требуется авторизованный `vercel` CLI или `VERCEL_TOKEN`;
-- после первого production deploy нужно обновить `NEXTAUTH_URL` на публичный Vercel URL и настроить Telegram webhook на `https://<vercel-domain>/api/telegram/webhook`.
+- production env должен включать корректный `NEXTAUTH_URL` для публичного Vercel URL;
+- Telegram webhook уже привязан к `https://projects-tracker-one.vercel.app/api/telegram/webhook`.
 
 ## Telegram Setup
 
 - для автоматической привязки ученика нужно настроить у бота webhook на публичный URL вида `https://<domain>/api/telegram/webhook`;
 - если задан `TELEGRAM_WEBHOOK_SECRET`, Telegram должен отправлять тот же secret в заголовке `x-telegram-bot-api-secret-token`;
-- после настройки teacher-only страница ученика может выпускать персональную `start`-ссылку, а webhook автоматически сохранит `telegram_chat_id` после нажатия `Start`.
+- в production teacher-only страница ученика уже выпускает персональную `start`-ссылку, а webhook автоматически сохраняет `telegram_chat_id` после нажатия `Start`.
 
 ## Risk Rules
 

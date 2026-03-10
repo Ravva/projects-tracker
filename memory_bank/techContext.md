@@ -20,6 +20,7 @@
 - backend SDK: `node-appwrite`;
 - frontend/backend платформа: Appwrite;
 - production deployment target: Vercel;
+- production URL: `https://projects-tracker-one.vercel.app`;
 - аутентификация: GitHub OAuth через `next-auth`;
 - интеграция репозиториев: GitHub API;
 - AI-анализ: OpenAI API;
@@ -32,6 +33,7 @@
 - не запускать и не останавливать dev-сервер;
 - не использовать Telegram username как ключ доставки;
 - для автоматической привязки Telegram нужен публичный webhook URL и секрет `TELEGRAM_WEBHOOK_SECRET`;
+- после смены `TELEGRAM_WEBHOOK_SECRET` нужно заново вызывать `setWebhook`, иначе Telegram начнет получать `401` от production webhook;
 - для production deployment через Vercel требуется авторизованный `vercel` CLI или `VERCEL_TOKEN`;
 - не проектировать student-access как активную возможность MVP;
 - изменения архитектуры должны отражаться в `docs/README.md`.
