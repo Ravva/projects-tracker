@@ -23,7 +23,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { getStudent } from "@/lib/server/repositories/students";
+import { getStudentTelegramInviteLink } from "@/lib/server/telegram-linking";
 import { NotificationCard } from "./notification-card";
+import { TelegramLinkCard } from "./telegram-link-card";
 
 export default async function StudentDetailsPage({
   params,
@@ -37,6 +39,11 @@ export default async function StudentDetailsPage({
   if (!student) {
     notFound();
   }
+
+  const telegramInviteLink =
+    student.telegramLinkStatus === "awaiting_start"
+      ? await getStudentTelegramInviteLink(student.id)
+      : null;
 
   return (
     <TeacherShell
@@ -194,6 +201,14 @@ export default async function StudentDetailsPage({
         </Card>
 
         <div className="grid gap-6">
+          <TelegramLinkCard
+            studentId={student.id}
+            status={student.telegramLinkStatus}
+            inviteLink={telegramInviteLink}
+            telegramChatId={student.telegramChatId}
+            linkedAt={student.telegramLinkedAt}
+          />
+
           <NotificationCard
             studentId={student.id}
             telegramChatId={student.telegramChatId}

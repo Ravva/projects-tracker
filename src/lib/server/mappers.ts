@@ -8,6 +8,7 @@ import type {
   ProjectRisk,
   StudentInput,
   StudentRecord,
+  TelegramLinkStatus,
   WeeklyState,
 } from "@/lib/types";
 
@@ -86,7 +87,24 @@ function parseObject(value: unknown) {
   return value && typeof value === "object" ? value : {};
 }
 
-export function toStudentDocument(input: StudentInput) {
+function getTelegramLinkStatus(input: {
+  telegramChatId: string;
+  telegramLinkToken: string;
+}): TelegramLinkStatus {
+  if (input.telegramChatId) {
+    return "linked";
+  }
+
+  if (input.telegramLinkToken) {
+    return "awaiting_start";
+  }
+
+  return "not_invited";
+}
+
+export function toStudentDocument(
+  input: StudentInput,
+): Record<string, string | boolean | number | null> {
   return {
     first_name: input.firstName,
     last_name: input.lastName,
@@ -102,6 +120,11 @@ export function mapStudentDocument(
   document: Models.Document,
   summary?: Partial<StudentRecord>,
 ): StudentRecord {
+  const telegramChatId = String(getField(document, "telegram_chat_id") ?? "");
+  const telegramLinkToken = String(
+    getField(document, "telegram_link_token") ?? "",
+  );
+
   return {
     id: document.$id,
     firstName: String(getField(document, "first_name") ?? ""),
@@ -109,7 +132,13 @@ export function mapStudentDocument(
     githubUsername: String(getField(document, "github_username") ?? ""),
     githubUserId: String(getField(document, "github_user_id") ?? ""),
     telegramUsername: String(getField(document, "telegram_username") ?? ""),
-    telegramChatId: String(getField(document, "telegram_chat_id") ?? ""),
+    telegramChatId,
+    telegramLinkToken,
+    telegramLinkStatus: getTelegramLinkStatus({
+      telegramChatId,
+      telegramLinkToken,
+    }),
+    telegramLinkedAt: String(getField(document, "telegram_linked_at") ?? ""),
     attendanceRate: summary?.attendanceRate ?? 0,
     weeklyState: coerceWeeklyState(summary?.weeklyState),
     projectsCount: summary?.projectsCount ?? 0,

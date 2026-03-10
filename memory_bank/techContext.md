@@ -23,12 +23,14 @@
 - интеграция репозиториев: GitHub API;
 - AI-анализ: OpenAI API;
 - уведомления: Telegram Bot API;
+- Telegram linking flow: deep-link `t.me/<bot>?start=<token>` + webhook `/api/telegram/webhook`;
 - документация продукта: Markdown в репозитории.
 
 ## Ограничения
 
 - не запускать и не останавливать dev-сервер;
 - не использовать Telegram username как ключ доставки;
+- для автоматической привязки Telegram нужен публичный webhook URL и секрет `TELEGRAM_WEBHOOK_SECRET`;
 - не проектировать student-access как активную возможность MVP;
 - изменения архитектуры должны отражаться в `docs/README.md`.
 - Appwrite имеет жесткие лимиты на суммарный размер строковых атрибутов, поэтому проектные состояния упакованы в JSON;

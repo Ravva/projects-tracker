@@ -9,9 +9,13 @@
 - в рабочем дереве присутствует локальный `.env`, поэтому он должен оставаться вне версии;
 - лимиты Appwrite на размер строковых атрибутов требуют держать `projects` и `project_ai_reports` в компактной JSON-state схеме;
 - даже после нормализации `project_state_json` нужно контролировать суммарный размер JSON при дальнейшем расширении AI summary и списков шагов.
+- Telegram linking flow через `/api/telegram/webhook` требует публичного URL и настройки webhook у бота; без этого invite-ссылка не сможет автоматически сохранить `chat_id`.
 
 ## Changelog
 
+- 2026-03-10: реализован teacher-only Telegram linking flow: Appwrite хранит `telegram_link_token` и `telegram_linked_at`, student detail page умеет выпускать deep-link `t.me/<bot>?start=<token>`, а новый route `/api/telegram/webhook` автоматически сохраняет `telegram_chat_id` после `/start`.
+- 2026-03-10: teacher-only таблица `/students` получила отдельную колонку `№`, а `telegram_username` и `telegram_chat_id` вынесены в разные столбцы для более читаемого teacher view.
+- 2026-03-10: проведена живая Telegram-проверка на реальных `chat_id` — массовая student-рассылка успешно доставлена двум получателям, а weekly digest успешно отправлен на реальный `TEACHER_TELEGRAM_CHAT_ID`.
 - 2026-03-10: teacher dashboard получил teacher-only кнопку ручной отправки weekly digest; добавлены `src/lib/server/teacher-weekly-digest.ts`, server action `src/app/dashboard-actions.ts` и env `TEACHER_TELEGRAM_CHAT_ID`, а итог отправки показывается через `FeedbackModal`.
 - 2026-03-10: teacher-only страница `students` получила массовую Telegram-рассылку: добавлен client-side блок выбора учеников, а server action возвращает сводку по `sent`, пропускам без `chat_id`, некорректным ID и ошибкам доставки.
 - 2026-03-10: teacher-only уведомления и ошибки переведены с браузерных `alert()` на общий `FeedbackModal`; Telegram-отправка и импорт XLSX теперь показывают стилизованные модальные окна с `success/error` состояниями.
@@ -58,4 +62,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `fc6a2259fddaf3598fce746776f37bc079bfaddb`
+- `last_checked_commit`: `e88e9fbb4f5db06d48206e607544a855103459c3`

@@ -8,7 +8,7 @@ MVP включает:
 
 - вход преподавателя через GitHub OAuth;
 - teacher-only управление учениками, включая страницу редактирования ученика;
-- ручное заполнение `telegram_chat_id` преподавателем;
+- ручное заполнение `telegram_chat_id` преподавателем и привязку через персональные Telegram `start`-ссылки;
 - недельные занятия по шаблону вторник/четверг/пятница;
 - CRUD проектов, GitHub sync и ручной AI-анализ;
 - Telegram-уведомления ученикам и weekly digest преподавателю.
@@ -37,6 +37,7 @@ MVP включает:
 - создание и редактирование ученика;
 - teacher-only страница редактирования ученика для ввода `telegram_chat_id`;
 - teacher-only страница `/students` поддерживает массовую Telegram-рассылку по выбранным ученикам с пропуском карточек без `chat_id` и итоговой сводкой по отправке;
+- teacher-only страница ученика умеет выпускать персональную invite-ссылку `t.me/<bot>?start=<token>` для автоматической привязки `telegram_chat_id`;
 - импорт из XLSX без дедупликации в MVP.
 
 ### Attendance
@@ -66,6 +67,7 @@ MVP включает:
 - личная доставка и доставка в общий ученический чат идут по явным `chat_id`;
 - Telegram username хранится как вспомогательное поле и не используется как ключ доставки;
 - teacher-only карточка ученика подсказывает ожидаемый формат `telegram_chat_id` и напоминает про `/start` в боте до тестовой отправки;
+- teacher-only deep-link flow использует одноразовый `telegram_link_token`: преподаватель выдаёт персональную `start`-ссылку, а webhook сохраняет реальный `chat_id` после нажатия `Start`;
 - server action и Telegram service валидируют формат `chat_id`, длину сообщения и возвращают диагностические ошибки вместо общего фейла отправки;
 - teacher-only массовая рассылка возвращает сводку по успешным отправкам, пропущенным карточкам и ошибкам доставки;
 - teacher dashboard поддерживает ручную отправку weekly digest в Telegram преподавателя через `TEACHER_TELEGRAM_CHAT_ID`, а результат отправки показывается в стилизованном modal-окне;
@@ -94,6 +96,7 @@ MVP включает:
 - `/` - teacher dashboard с app shell, weekly focus, KPI, risk table, AI summaries и кнопкой ручной отправки weekly digest в Telegram преподавателя.
 - `/students` - teacher-only список учеников.
 - `/students/[studentId]` - teacher-only страница редактирования ученика.
+- `/api/telegram/webhook` - публичный route для Telegram Bot API, который обрабатывает `/start <token>` и сохраняет `telegram_chat_id` в карточку ученика.
 - `/attendance` - teacher-only weekly attendance workspace.
 - `/projects` - teacher-only project control workspace.
 - `/projects/[projectId]` - teacher-only страница review проекта.
@@ -101,7 +104,13 @@ MVP включает:
 ## Local Development
 
 - dev server должен использовать `localhost:3100`.
-- `.env.example` включает `TELEGRAM_BOT_TOKEN` для ученических и teacher-only Telegram-уведомлений, а также `TEACHER_TELEGRAM_CHAT_ID` для weekly digest преподавателю.
+- `.env.example` включает `TELEGRAM_BOT_TOKEN` для ученических и teacher-only Telegram-уведомлений, `TELEGRAM_BOT_USERNAME` для генерации `start`-ссылок, `TELEGRAM_WEBHOOK_SECRET` для защиты webhook и `TEACHER_TELEGRAM_CHAT_ID` для weekly digest преподавателю.
+
+## Telegram Setup
+
+- для автоматической привязки ученика нужно настроить у бота webhook на публичный URL вида `https://<domain>/api/telegram/webhook`;
+- если задан `TELEGRAM_WEBHOOK_SECRET`, Telegram должен отправлять тот же secret в заголовке `x-telegram-bot-api-secret-token`;
+- после настройки teacher-only страница ученика может выпускать персональную `start`-ссылку, а webhook автоматически сохранит `telegram_chat_id` после нажатия `Start`.
 
 ## Risk Rules
 

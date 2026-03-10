@@ -1,0 +1,275 @@
+import "server-only";
+
+import crypto from "node:crypto";
+
+import { Query } from "node-appwrite";
+
+import { getAppwriteConfig, getAppwriteDatabases } from "@/lib/server/appwrite";
+import { getStudent } from "@/lib/server/repositories/students";
+import { sendTelegramMessage } from "@/lib/server/telegram";
+
+const TELEGRAM_BOT_USERNAME = (
+  process.env.TELEGRAM_BOT_USERNAME?.trim() ?? ""
+).replace(/^@/, "");
+const TELEGRAM_WEBHOOK_SECRET =
+  process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ?? "";
+
+export interface TelegramLinkSession {
+  studentId: string;
+  studentName: string;
+  chatId: string;
+  telegramUsername: string;
+}
+
+interface TelegramBotProfileResponse {
+  ok: boolean;
+  description?: string;
+  result?: {
+    username?: string;
+  };
+}
+
+interface TelegramWebhookMessage {
+  message?: {
+    text?: string;
+    chat?: {
+      id?: number;
+      type?: string;
+    };
+    from?: {
+      username?: string;
+    };
+  };
+}
+
+function getTelegramToken() {
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim() ?? "";
+
+  if (!token) {
+    throw new Error(
+      "TELEGRAM_BOT_TOKEN не настроен. Привязка через Telegram пока недоступна.",
+    );
+  }
+
+  return token;
+}
+
+function buildStudentName(firstName: string, lastName: string) {
+  return `${firstName} ${lastName}`.trim();
+}
+
+export function createTelegramLinkToken() {
+  return crypto.randomBytes(24).toString("base64url");
+}
+
+export function parseTelegramStartToken(text: string) {
+  const trimmed = text.trim();
+
+  if (!trimmed.startsWith("/start")) {
+    return "";
+  }
+
+  const token = trimmed
+    .replace(/^\/start(?:@\w+)?/i, "")
+    .trim()
+    .split(/\s+/)[0];
+
+  return token ?? "";
+}
+
+export function verifyTelegramWebhookRequest(request: Request) {
+  if (!TELEGRAM_WEBHOOK_SECRET) {
+    return true;
+  }
+
+  return (
+    request.headers.get("x-telegram-bot-api-secret-token") ===
+    TELEGRAM_WEBHOOK_SECRET
+  );
+}
+
+export async function getTelegramBotUsername() {
+  if (TELEGRAM_BOT_USERNAME) {
+    return TELEGRAM_BOT_USERNAME;
+  }
+
+  const token = getTelegramToken();
+  const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+  const data = (await response.json()) as TelegramBotProfileResponse;
+  const username = data.result?.username?.trim() ?? "";
+
+  if (!data.ok || !username) {
+    throw new Error(
+      data.description ??
+        "Не удалось получить username бота. Проверьте TELEGRAM_BOT_TOKEN.",
+    );
+  }
+
+  return username;
+}
+
+export async function buildTelegramInviteLink(token: string) {
+  if (!token) {
+    return "";
+  }
+
+  const username = await getTelegramBotUsername();
+  return `https://t.me/${username}?start=${token}`;
+}
+
+export async function issueStudentTelegramInvite(studentId: string) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+  const student = await getStudent(studentId);
+
+  if (!appwrite || !config || !student) {
+    throw new Error("Карточка ученика не найдена.");
+  }
+
+  if (student.telegramChatId) {
+    throw new Error(
+      "У ученика уже привязан Telegram chat id. Если нужна перепривязка, сначала очистите текущий chat id вручную.",
+    );
+  }
+
+  const token = createTelegramLinkToken();
+
+  await appwrite.databases.updateDocument(
+    appwrite.databaseId,
+    config.collections.students,
+    studentId,
+    {
+      telegram_link_token: token,
+      telegram_linked_at: "",
+    },
+  );
+
+  return {
+    link: await buildTelegramInviteLink(token),
+    token,
+    studentName: buildStudentName(student.firstName, student.lastName),
+  };
+}
+
+export async function getStudentTelegramInviteLink(studentId: string) {
+  const student = await getStudent(studentId);
+
+  if (!student || !student.telegramLinkToken) {
+    return null;
+  }
+
+  return buildTelegramInviteLink(student.telegramLinkToken);
+}
+
+export async function claimStudentTelegramLinkByToken(input: {
+  token: string;
+  chatId: string;
+  telegramUsername: string;
+}) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    throw new Error("Appwrite не настроен.");
+  }
+
+  const response = await appwrite.databases.listDocuments(
+    appwrite.databaseId,
+    config.collections.students,
+    [Query.equal("telegram_link_token", input.token), Query.limit(2)],
+  );
+  const student = response.documents[0];
+
+  if (!student) {
+    return null;
+  }
+
+  const studentId = student.$id;
+  const firstName = String(
+    (student as Record<string, unknown>).first_name ?? "",
+  );
+  const lastName = String((student as Record<string, unknown>).last_name ?? "");
+  const existingTelegramUsername = String(
+    (student as Record<string, unknown>).telegram_username ?? "",
+  );
+
+  await appwrite.databases.updateDocument(
+    appwrite.databaseId,
+    config.collections.students,
+    studentId,
+    {
+      telegram_chat_id: input.chatId,
+      telegram_username: input.telegramUsername || existingTelegramUsername,
+      telegram_link_token: "",
+      telegram_linked_at: new Date().toISOString(),
+    },
+  );
+
+  return {
+    studentId,
+    studentName: buildStudentName(firstName, lastName),
+  } satisfies Omit<TelegramLinkSession, "chatId" | "telegramUsername">;
+}
+
+export async function handleTelegramStartLinking(
+  update: TelegramWebhookMessage,
+) {
+  const message = update.message;
+  const text = message?.text?.trim() ?? "";
+  const chatId = String(message?.chat?.id ?? "").trim();
+  const chatType = message?.chat?.type ?? "";
+  const telegramUsername = message?.from?.username?.trim() ?? "";
+
+  if (!text.startsWith("/start")) {
+    return { handled: false as const };
+  }
+
+  if (!chatId) {
+    return { handled: true as const };
+  }
+
+  if (chatType && chatType !== "private") {
+    await sendTelegramMessage(
+      chatId,
+      "Откройте личную ссылку в приватном чате с ботом. Привязка chat id не выполняется из группы.",
+    );
+
+    return { handled: true as const };
+  }
+
+  const token = parseTelegramStartToken(text);
+
+  if (!token) {
+    await sendTelegramMessage(
+      chatId,
+      "Откройте персональную ссылку от преподавателя и нажмите Start ещё раз. В этой команде не найден токен привязки.",
+    );
+
+    return { handled: true as const };
+  }
+
+  const linked = await claimStudentTelegramLinkByToken({
+    token,
+    chatId,
+    telegramUsername,
+  });
+
+  if (!linked) {
+    await sendTelegramMessage(
+      chatId,
+      "Эта ссылка устарела или недействительна. Попросите преподавателя перевыпустить приглашение в Projects Tracker.",
+    );
+
+    return { handled: true as const };
+  }
+
+  await sendTelegramMessage(
+    chatId,
+    `Привязка выполнена. Теперь преподаватель может отправлять сообщения в этот чат для ученика ${linked.studentName}.`,
+  );
+
+  return {
+    handled: true as const,
+    studentName: linked.studentName,
+  };
+}

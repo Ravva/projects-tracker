@@ -208,11 +208,18 @@ export async function createStudent(input: StudentInput) {
     throw new Error("Appwrite не настроен.");
   }
 
+  const payload = toStudentDocument(input);
+
+  if (input.telegramChatId.trim()) {
+    payload.telegram_link_token = "";
+    payload.telegram_linked_at = new Date().toISOString();
+  }
+
   return appwrite.databases.createDocument(
     appwrite.databaseId,
     config.collections.students,
     ID.unique(),
-    toStudentDocument(input),
+    payload,
   );
 }
 
@@ -224,11 +231,32 @@ export async function updateStudent(studentId: string, input: StudentInput) {
     throw new Error("Appwrite не настроен.");
   }
 
+  const currentStudent = await getStudent(studentId);
+
+  if (!currentStudent) {
+    throw new Error("Карточка ученика не найдена.");
+  }
+
+  const payload = toStudentDocument(input);
+  const nextChatId = input.telegramChatId.trim();
+
+  if (nextChatId) {
+    payload.telegram_link_token = "";
+    payload.telegram_linked_at =
+      nextChatId === currentStudent.telegramChatId &&
+      currentStudent.telegramLinkedAt
+        ? currentStudent.telegramLinkedAt
+        : new Date().toISOString();
+  } else if (currentStudent.telegramChatId) {
+    payload.telegram_link_token = "";
+    payload.telegram_linked_at = "";
+  }
+
   return appwrite.databases.updateDocument(
     appwrite.databaseId,
     config.collections.students,
     studentId,
-    toStudentDocument(input),
+    payload,
   );
 }
 

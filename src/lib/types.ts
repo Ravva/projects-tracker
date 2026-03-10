@@ -1,4 +1,5 @@
 export type WeeklyState = "critical" | "warning" | "success";
+export type TelegramLinkStatus = "not_invited" | "awaiting_start" | "linked";
 
 export type TeacherSessionUser = {
   id: string;
@@ -16,6 +17,9 @@ export type StudentRecord = {
   githubUserId: string;
   telegramUsername: string;
   telegramChatId: string;
+  telegramLinkToken: string;
+  telegramLinkStatus: TelegramLinkStatus;
+  telegramLinkedAt: string;
   attendanceRate: number;
   weeklyState: WeeklyState;
   projectsCount: number;

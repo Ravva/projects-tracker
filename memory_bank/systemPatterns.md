@@ -36,7 +36,8 @@
 ### Students
 
 - в MVP карточка ученика управляется только преподавателем;
-- `telegram_chat_id` вводится вручную преподавателем;
+- `telegram_chat_id` может вводиться вручную преподавателем или автоматически привязываться через персональный `telegram_link_token` и deep-link `/start`;
+- Telegram Bot API webhook на `/api/telegram/webhook` принимает `/start <token>`, проверяет `TELEGRAM_WEBHOOK_SECRET` и записывает `telegram_chat_id` обратно в карточку ученика;
 - student-access в будущем должен маппиться через `github_user_id`.
 - teacher-only маршруты модуля: `/students` и `/students/[studentId]`;
 - чтение и запись идут через server-side repository и server actions.

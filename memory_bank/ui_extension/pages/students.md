@@ -14,7 +14,7 @@ Teacher-only модуль управления учениками.
 ### `/students`
 
 - toolbar с действиями `Импорт XLSX` и `Добавить ученика`;
-- teacher-only таблица с GitHub и Telegram данными;
+- teacher-only таблица с колонкой `№`, GitHub-данными и разнесёнными по отдельным столбцам `telegram_username` / `telegram_chat_id`;
 - teacher-only карточка массовой Telegram-рассылки с выбором учеников, одним текстом сообщения и итоговой сводкой по отправке;
 - статусы weekly attendance;
 - переход к редактированию карточки.
@@ -23,6 +23,7 @@ Teacher-only модуль управления учениками.
 
 - карточка профиля;
 - teacher-only редактирование заметки и `telegram_chat_id` с явными счетчиками символов;
+- teacher-only карточка Telegram link flow с выпуском персональной `start`-ссылки, копированием invite-link и статусом `не приглашён / ждёт Start / привязан`;
 - просмотр `github_user_id`, `github_username`, `telegram_username`, `telegram_chat_id`;
 - Telegram notification card показывает лимит 4096 символов, предупреждение про `/start` и более точные ошибки валидации при отправке;
 - успехи и ошибки отправки/импорта показываются через общий стилизованный feedback modal вместо браузерных `alert()`;

@@ -74,9 +74,11 @@ export default async function StudentsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-14">№</TableHead>
                   <TableHead>Ученик</TableHead>
                   <TableHead>GitHub</TableHead>
-                  <TableHead>Telegram</TableHead>
+                  <TableHead>Telegram name</TableHead>
+                  <TableHead>Telegram id</TableHead>
                   <TableHead>Проекты</TableHead>
                   <TableHead>Посещаемость</TableHead>
                   <TableHead className="text-right">Действие</TableHead>
@@ -86,15 +88,18 @@ export default async function StudentsPage() {
                 {students.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={8}
                       className="py-10 text-center text-muted-foreground"
                     >
                       Appwrite не настроен или коллекция `students` пока пуста.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  students.map((student) => (
+                  students.map((student, index) => (
                     <TableRow key={student.id}>
+                      <TableCell className="font-medium text-muted-foreground">
+                        {index + 1}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar>
@@ -126,11 +131,13 @@ export default async function StudentsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-1 text-sm">
-                          <div>{student.telegramUsername}</div>
-                          <div className="text-muted-foreground">
-                            {student.telegramChatId || "chat id не заполнен"}
-                          </div>
+                        <div className="text-sm">
+                          {student.telegramUsername || "-"}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">
+                          {student.telegramChatId || "chat id не заполнен"}
                         </div>
                       </TableCell>
                       <TableCell>{student.projectsCount}</TableCell>
