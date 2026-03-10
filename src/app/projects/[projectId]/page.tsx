@@ -21,6 +21,7 @@ import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PROJECT_FIELD_LIMITS } from "@/lib/project-limits";
 import { requireTeacherSession } from "@/lib/server/auth";
 import {
   getProject,
@@ -102,6 +103,7 @@ export default async function ProjectDetailsPage({
                       name="githubUrl"
                       defaultValue={project.githubUrl}
                       className="rounded-xl bg-background/80"
+                      maxLength={PROJECT_FIELD_LIMITS.githubUrl}
                     />
                     <div>Owner: {project.githubOwner || "не определен"}</div>
                     <div>Repo: {project.githubRepo || "не определен"}</div>
@@ -123,11 +125,13 @@ export default async function ProjectDetailsPage({
                       name="name"
                       defaultValue={project.name}
                       className="rounded-xl bg-background/80"
+                      maxLength={PROJECT_FIELD_LIMITS.name}
                     />
                     <Input
                       name="summary"
                       defaultValue={project.summary}
                       className="rounded-xl bg-background/80"
+                      maxLength={PROJECT_FIELD_LIMITS.summary}
                     />
                     <select
                       name="studentId"
@@ -174,7 +178,11 @@ export default async function ProjectDetailsPage({
                     name="specMarkdown"
                     className="min-h-64 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm leading-6 text-muted-foreground outline-none"
                     defaultValue={project.specMarkdown}
+                    maxLength={PROJECT_FIELD_LIMITS.specMarkdown}
                   />
+                  <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                    До {PROJECT_FIELD_LIMITS.specMarkdown} символов.
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                   <div className="mb-3 text-sm font-medium">plan_markdown</div>
@@ -182,7 +190,11 @@ export default async function ProjectDetailsPage({
                     name="planMarkdown"
                     className="min-h-64 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm leading-6 text-muted-foreground outline-none"
                     defaultValue={project.planMarkdown}
+                    maxLength={PROJECT_FIELD_LIMITS.planMarkdown}
                   />
+                  <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                    До {PROJECT_FIELD_LIMITS.planMarkdown} символов.
+                  </p>
                 </div>
               </CardContent>
             </Card>

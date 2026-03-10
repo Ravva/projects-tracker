@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PROJECT_FIELD_LIMITS } from "@/lib/project-limits";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { listProjects } from "@/lib/server/repositories/projects";
 import { listStudents } from "@/lib/server/repositories/students";
@@ -137,18 +138,21 @@ export default async function ProjectsPage() {
                 name="name"
                 placeholder="Название проекта"
                 className="rounded-xl bg-background/80"
+                maxLength={PROJECT_FIELD_LIMITS.name}
                 required
               />
               <Input
                 name="githubUrl"
                 placeholder="https://github.com/owner/repo"
                 className="rounded-xl bg-background/80"
+                maxLength={PROJECT_FIELD_LIMITS.githubUrl}
                 required
               />
               <Input
                 name="summary"
                 placeholder="Краткое описание"
                 className="rounded-xl bg-background/80"
+                maxLength={PROJECT_FIELD_LIMITS.summary}
               />
               <select
                 name="status"
@@ -164,12 +168,18 @@ export default async function ProjectsPage() {
                 name="specMarkdown"
                 className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none"
                 placeholder="ТЗ"
+                maxLength={PROJECT_FIELD_LIMITS.specMarkdown}
               />
               <textarea
                 name="planMarkdown"
                 className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none"
                 placeholder="План разработки"
+                maxLength={PROJECT_FIELD_LIMITS.planMarkdown}
               />
+              <p className="text-xs leading-5 text-muted-foreground">
+                Лимиты Appwrite: описание до {PROJECT_FIELD_LIMITS.summary}{" "}
+                символов, ТЗ и план до {PROJECT_FIELD_LIMITS.specMarkdown}.
+              </p>
               <Button type="submit" className="w-full rounded-xl">
                 Создать проект
               </Button>

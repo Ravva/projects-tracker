@@ -28,7 +28,7 @@ MVP включает:
 
 - GitHub OAuth как единственный способ входа;
 - реализация на `next-auth`;
-- teacher-only guard для всех экранов MVP через `src/proxy.ts`;
+- teacher-only guard для всех экранов MVP через `src/middleware.ts`;
 - допуск учителя по `TEACHER_GITHUB_USER_ID` или fallback `TEACHER_GITHUB_LOGIN`.
 
 ### Students
@@ -50,6 +50,7 @@ MVP включает:
 - проект принадлежит ученику;
 - репозиторий нормализуется в `owner/repo/default_branch`;
 - AI-анализ запускается только если заполнены ТЗ и план разработки;
+- project-формы ограничивают `name`, `summary`, `github_url`, `spec_markdown` и `plan_markdown` по фактическим лимитам Appwrite;
 - `final_completion_percent` вычисляется на лету;
 - ручной override отключается после следующего AI-анализа.
 

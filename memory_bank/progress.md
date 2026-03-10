@@ -7,12 +7,14 @@
 ## Known Issues
 
 - в рабочем дереве присутствует локальный `.env`, поэтому он должен оставаться вне версии;
-- в [src/components/ui/sidebar.tsx](C:\Users\Ravva\projects-tracker\src\components\ui\sidebar.tsx) остается предупреждение Biome про `document.cookie` внутри сгенерированного shadcn-компонента;
 - лимиты Appwrite на размер строковых атрибутов требуют держать `projects` и `project_ai_reports` в компактной JSON-state схеме;
-- формы пока не ограничивают длину `spec_markdown` и `plan_markdown` под фактический размер атрибутов Appwrite.
+- ручной `manualOverrideNote` по-прежнему попадает в `project_state_json`, поэтому при дальнейшем расширении этого JSON нужно контролировать совокупный размер поля.
 
 ## Changelog
 
+- 2026-03-10: устранено предупреждение Biome в `src/components/ui/sidebar.tsx`: состояние sidebar теперь пишется через `Cookie Store API` без прямого `document.cookie`.
+- 2026-03-10: project-формы синхронизированы с Appwrite-лимитами, добавлены `maxLength` в UI и server-side нормализация payload через `src/lib/project-limits.ts`.
+- 2026-03-10: документация и memory bank синхронизированы с маршрутом `src/middleware.ts`, Telegram-интеграцией и ограничениями полей проектов.
 - 2026-03-09: реализована интеграция с Telegram: создан серверный сервис, Server Action и UI-карточка для отправки уведомлений из профиля студента.
 - 2026-03-09: реализован импорт студентов из XLSX: добавлен клиентский компонент `ImportStudentsButton` и Server Action для парсинга файлов.
 - 2026-03-09: рефакторинг авторизации: `src/proxy.ts` удален, добавлен стандартный `src/middleware.ts`. В `/login` добавлена кнопка `LoginButton` на базе `next-auth/react`.
@@ -42,4 +44,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `00fc4e1cfe58b42e72e80599fe5cf02ce89cd925`
+- `last_checked_commit`: `0508c6da8d5b224379f32893e0491676b90c1f0f`

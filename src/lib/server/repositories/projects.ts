@@ -1,7 +1,7 @@
 import "server-only";
 
 import { ID, Query } from "node-appwrite";
-
+import { normalizeProjectInput } from "@/lib/project-limits";
 import { getAppwriteConfig, getAppwriteDatabases } from "@/lib/server/appwrite";
 import { daysSince } from "@/lib/server/date-utils";
 import {
@@ -32,14 +32,16 @@ function parseGithubUrl(githubUrl: string) {
 }
 
 function buildProjectPayload(input: ProjectInput) {
+  const normalizedInput = normalizeProjectInput(input);
+
   return {
-    student_id: input.studentId,
-    name: input.name,
-    summary: input.summary,
-    github_url: input.githubUrl,
-    status: input.status,
-    spec_markdown: input.specMarkdown,
-    plan_markdown: input.planMarkdown,
+    student_id: normalizedInput.studentId,
+    name: normalizedInput.name,
+    summary: normalizedInput.summary,
+    github_url: normalizedInput.githubUrl,
+    status: normalizedInput.status,
+    spec_markdown: normalizedInput.specMarkdown,
+    plan_markdown: normalizedInput.planMarkdown,
   };
 }
 
