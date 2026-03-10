@@ -12,6 +12,8 @@
 
 ## Changelog
 
+- 2026-03-10: teacher dashboard получил teacher-only кнопку ручной отправки weekly digest; добавлены `src/lib/server/teacher-weekly-digest.ts`, server action `src/app/dashboard-actions.ts` и env `TEACHER_TELEGRAM_CHAT_ID`, а итог отправки показывается через `FeedbackModal`.
+- 2026-03-10: teacher-only страница `students` получила массовую Telegram-рассылку: добавлен client-side блок выбора учеников, а server action возвращает сводку по `sent`, пропускам без `chat_id`, некорректным ID и ошибкам доставки.
 - 2026-03-10: teacher-only уведомления и ошибки переведены с браузерных `alert()` на общий `FeedbackModal`; Telegram-отправка и импорт XLSX теперь показывают стилизованные модальные окна с `success/error` состояниями.
 - 2026-03-10: исправлено падение `NotificationCard` после успешной отправки Telegram-сообщения: сброс формы больше не использует `event.currentTarget` внутри асинхронного `startTransition`.
 - 2026-03-10: Telegram-поток усилен под реальные `chat_id`: `src/lib/server/telegram.ts` валидирует формат ID и длину сообщения, отключен `parse_mode`, а teacher-only карточка отправки показывает лимит 4096 символов и более точные ошибки.
@@ -56,4 +58,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `88728b34ef73cefc03099ea57b6bd5c22f0758d8`
+- `last_checked_commit`: `fc6a2259fddaf3598fce746776f37bc079bfaddb`

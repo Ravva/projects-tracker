@@ -9,6 +9,7 @@
 - верхний app header с быстрыми действиями;
 - sidebar-навигация по основным teacher-only разделам;
 - hero-блок с ближайшим занятием и weekly focus;
+- teacher-only кнопка ручной отправки weekly digest в Telegram преподавателя и отдельная кнопка перехода в `/attendance`;
 - KPI-карточки по посещаемости, проектам и AI;
 - список учеников, требующих действия;
 - таблица проектов в зоне контроля;
@@ -18,6 +19,7 @@
 
 - `TeacherSidebar`
 - `MetricCard`
+- `SendWeeklyDigestButton`
 - `Badge`
 - `Button`
 - `Card`
@@ -28,4 +30,4 @@
 
 ## Потоки данных
 
-Страница читает агрегаты через server-side repositories `students`, `projects` и `attendance`, а доступ к ней закрыт teacher-only GitHub OAuth. При отсутствии Appwrite-конфигурации или записей показывает пустые состояния без локального mock-слоя.
+Страница читает агрегаты через server-side repositories `students`, `projects` и `attendance`, а доступ к ней закрыт teacher-only GitHub OAuth. Кнопка weekly digest вызывает server action, который собирает сводку по текущей неделе и отправляет её в Telegram преподавателя через `TEACHER_TELEGRAM_CHAT_ID`; успех и ошибки показываются в `FeedbackModal`. При отсутствии Appwrite-конфигурации или записей страница показывает пустые состояния без локального mock-слоя.

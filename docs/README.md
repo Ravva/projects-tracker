@@ -36,6 +36,7 @@ MVP включает:
 - список учеников;
 - создание и редактирование ученика;
 - teacher-only страница редактирования ученика для ввода `telegram_chat_id`;
+- teacher-only страница `/students` поддерживает массовую Telegram-рассылку по выбранным ученикам с пропуском карточек без `chat_id` и итоговой сводкой по отправке;
 - импорт из XLSX без дедупликации в MVP.
 
 ### Attendance
@@ -66,6 +67,8 @@ MVP включает:
 - Telegram username хранится как вспомогательное поле и не используется как ключ доставки;
 - teacher-only карточка ученика подсказывает ожидаемый формат `telegram_chat_id` и напоминает про `/start` в боте до тестовой отправки;
 - server action и Telegram service валидируют формат `chat_id`, длину сообщения и возвращают диагностические ошибки вместо общего фейла отправки;
+- teacher-only массовая рассылка возвращает сводку по успешным отправкам, пропущенным карточкам и ошибкам доставки;
+- teacher dashboard поддерживает ручную отправку weekly digest в Telegram преподавателя через `TEACHER_TELEGRAM_CHAT_ID`, а результат отправки показывается в стилизованном modal-окне;
 - допустимы персональные упоминания учеников в общем чате.
 
 ## Frontend Stack
@@ -88,7 +91,7 @@ MVP включает:
 
 ## Current Routes
 
-- `/` - teacher dashboard с app shell, weekly focus, KPI, risk table и AI summaries.
+- `/` - teacher dashboard с app shell, weekly focus, KPI, risk table, AI summaries и кнопкой ручной отправки weekly digest в Telegram преподавателя.
 - `/students` - teacher-only список учеников.
 - `/students/[studentId]` - teacher-only страница редактирования ученика.
 - `/attendance` - teacher-only weekly attendance workspace.
@@ -98,6 +101,7 @@ MVP включает:
 ## Local Development
 
 - dev server должен использовать `localhost:3100`.
+- `.env.example` включает `TELEGRAM_BOT_TOKEN` для ученических и teacher-only Telegram-уведомлений, а также `TEACHER_TELEGRAM_CHAT_ID` для weekly digest преподавателю.
 
 ## Risk Rules
 

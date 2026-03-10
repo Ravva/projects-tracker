@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { listStudents } from "@/lib/server/repositories/students";
+import { BulkNotificationCard } from "./bulk-notification-card";
 import { ImportStudentsButton } from "./import-button";
 
 export default async function StudentsPage() {
@@ -179,6 +180,16 @@ export default async function StudentsPage() {
             <CardTitle className="text-base">Сводка модуля</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
+            <BulkNotificationCard
+              students={students.map((student) => ({
+                id: student.id,
+                firstName: student.firstName,
+                lastName: student.lastName,
+                telegramChatId: student.telegramChatId,
+                telegramUsername: student.telegramUsername,
+              }))}
+            />
+
             <form
               id="create-student"
               action={createStudentAction}

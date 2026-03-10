@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import * as XLSX from "xlsx";
-
 import { requireTeacherSession } from "@/lib/server/auth";
 import {
   createStudent,
@@ -16,6 +15,7 @@ import {
   sendTelegramMessage,
   TELEGRAM_CHAT_ID_PATTERN,
 } from "@/lib/server/telegram";
+import type { BulkNotificationResult } from "@/lib/types";
 
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -49,6 +49,87 @@ export async function sendStudentNotificationAction(formData: FormData) {
   }
 
   revalidatePath(`/students/${studentId}`);
+}
+
+export async function sendBulkStudentNotificationAction(
+  formData: FormData,
+): Promise<BulkNotificationResult> {
+  await requireTeacherSession();
+
+  const message = readString(formData, "message");
+  const studentIds = formData
+    .getAll("studentIds")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+
+  if (!message) {
+    throw new Error("Сообщение не может быть пустым");
+  }
+
+  if (studentIds.length === 0) {
+    throw new Error("Нужно выбрать хотя бы одного ученика");
+  }
+
+  const result: BulkNotificationResult = {
+    requested: studentIds.length,
+    eligible: 0,
+    sent: 0,
+    skippedNoChatId: 0,
+    skippedInvalidChatId: 0,
+    failed: [],
+  };
+
+  const uniqueStudentIds = [...new Set(studentIds)];
+
+  for (const studentId of uniqueStudentIds) {
+    const student = await getStudent(studentId);
+
+    if (!student) {
+      result.failed.push({
+        studentName: `ID ${studentId}`,
+        reason: "Карточка ученика не найдена.",
+      });
+      continue;
+    }
+
+    const studentName = `${student.firstName} ${student.lastName}`;
+
+    if (!student.telegramChatId) {
+      result.skippedNoChatId += 1;
+      continue;
+    }
+
+    if (!TELEGRAM_CHAT_ID_PATTERN.test(student.telegramChatId)) {
+      result.skippedInvalidChatId += 1;
+      result.failed.push({
+        studentName,
+        reason:
+          "У карточки сохранён некорректный chat id. Нужна строка из цифр, иногда с ведущим '-'.",
+      });
+      continue;
+    }
+
+    result.eligible += 1;
+
+    const sendResult = await sendTelegramMessage(
+      student.telegramChatId,
+      message,
+    );
+
+    if (!sendResult.ok) {
+      result.failed.push({
+        studentName,
+        reason: sendResult.message,
+      });
+      continue;
+    }
+
+    result.sent += 1;
+  }
+
+  revalidatePath("/students");
+
+  return result;
 }
 
 export async function importStudentsAction(formData: FormData) {

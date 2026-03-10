@@ -34,6 +34,25 @@ export type StudentInput = {
   notes: string;
 };
 
+export type BulkNotificationStudent = Pick<
+  StudentRecord,
+  "id" | "firstName" | "lastName" | "telegramChatId" | "telegramUsername"
+>;
+
+export type BulkNotificationFailure = {
+  studentName: string;
+  reason: string;
+};
+
+export type BulkNotificationResult = {
+  requested: number;
+  eligible: number;
+  sent: number;
+  skippedNoChatId: number;
+  skippedInvalidChatId: number;
+  failed: BulkNotificationFailure[];
+};
+
 export type AttendanceLessonRecord = {
   id: string;
   title: string;

@@ -12,6 +12,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 
 import { MetricBadge, MetricCard } from "@/components/app/metric-card";
+import { SendWeeklyDigestButton } from "@/components/app/send-weekly-digest-button";
 import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -88,12 +89,13 @@ export async function TeacherDashboard({
       teacherEmail={teacher.email}
       actions={
         <>
+          <SendWeeklyDigestButton />
           <Button
             asChild
             variant="outline"
             className="rounded-xl bg-background/90"
           >
-            <Link href="/attendance">Weekly digest</Link>
+            <Link href="/attendance">Открыть attendance</Link>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
