@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --hostname localhost --port 3100",
     "build": "next build",
+    "deploy": "bunx vercel deploy --prod",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",

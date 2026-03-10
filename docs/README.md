@@ -106,6 +106,12 @@ MVP включает:
 - dev server должен использовать `localhost:3100`.
 - `.env.example` включает `TELEGRAM_BOT_TOKEN` для ученических и teacher-only Telegram-уведомлений, `TELEGRAM_BOT_USERNAME` для генерации `start`-ссылок, `TELEGRAM_WEBHOOK_SECRET` для защиты webhook и `TEACHER_TELEGRAM_CHAT_ID` для weekly digest преподавателю.
 
+## Deployment
+
+- production target: Vercel;
+- для production deployment требуется авторизованный `vercel` CLI или `VERCEL_TOKEN`;
+- после первого production deploy нужно обновить `NEXTAUTH_URL` на публичный Vercel URL и настроить Telegram webhook на `https://<vercel-domain>/api/telegram/webhook`.
+
 ## Telegram Setup
 
 - для автоматической привязки ученика нужно настроить у бота webhook на публичный URL вида `https://<domain>/api/telegram/webhook`;

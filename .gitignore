@@ -21,7 +21,9 @@
 
 # Next.js
 /.next/
+/.next-cloudflare/
 /out/
+/.open-next/
 
 # Runtime artifacts
 /dist

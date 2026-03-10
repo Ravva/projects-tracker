@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation";
-
-import { getAuthConfigurationStatus, getAuthSession } from "@/lib/server/auth";
+import { getAuthConfigurationStatus } from "@/lib/server/auth";
 import { LoginButton } from "./login-button";
 
 export default async function LoginPage({
@@ -8,12 +6,7 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
-  const session = await getAuthSession();
   const authConfiguration = getAuthConfigurationStatus();
-
-  if (session?.user) {
-    redirect("/");
-  }
 
   const { error } = await searchParams;
 

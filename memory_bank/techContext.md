@@ -19,6 +19,7 @@
 - local dev URL: `http://localhost:3100`;
 - backend SDK: `node-appwrite`;
 - frontend/backend платформа: Appwrite;
+- production deployment target: Vercel;
 - аутентификация: GitHub OAuth через `next-auth`;
 - интеграция репозиториев: GitHub API;
 - AI-анализ: OpenAI API;
@@ -31,6 +32,7 @@
 - не запускать и не останавливать dev-сервер;
 - не использовать Telegram username как ключ доставки;
 - для автоматической привязки Telegram нужен публичный webhook URL и секрет `TELEGRAM_WEBHOOK_SECRET`;
+- для production deployment через Vercel требуется авторизованный `vercel` CLI или `VERCEL_TOKEN`;
 - не проектировать student-access как активную возможность MVP;
 - изменения архитектуры должны отражаться в `docs/README.md`.
 - Appwrite имеет жесткие лимиты на суммарный размер строковых атрибутов, поэтому проектные состояния упакованы в JSON;
