@@ -114,7 +114,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 
 ## Local Development
 
-- dev server должен использовать `localhost:3100`.
+- dev server должен использовать `127.0.0.1:3300`; в локальной Windows-среде порт `3100` попадает в system excluded range, а `localhost` дополнительно может уводить bind в `::1`.
 - `.env.example` включает `TELEGRAM_BOT_TOKEN` для ученических и teacher-only Telegram-уведомлений, `TELEGRAM_BOT_USERNAME` для генерации `start`-ссылок, `TELEGRAM_WEBHOOK_SECRET` для защиты webhook и `TEACHER_TELEGRAM_CHAT_ID` для weekly digest преподавателю;
 - GitHub OAuth запрашивает scope, достаточный для чтения списка student repositories владельца.
 
@@ -125,7 +125,8 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - для production deployment требуется авторизованный `vercel` CLI или `VERCEL_TOKEN`;
 - production env должен включать корректный `NEXTAUTH_URL` для публичного Vercel URL;
 - production env должен включать `TEACHER_GITHUB_USER_ID`; без него teacher login считается не настроенным;
-- Telegram webhook уже привязан к `https://projects-tracker-one.vercel.app/api/telegram/webhook`.
+- Telegram webhook уже привязан к `https://projects-tracker-one.vercel.app/api/telegram/webhook`;
+- на 2026-03-11 production smoke test teacher-only сценариев `/students`, `/attendance`, `/projects`, массовой Telegram-рассылки и teacher weekly digest подтвержден вручную.
 
 ## Telegram Setup
 

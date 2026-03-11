@@ -7,17 +7,20 @@
 ## Known Issues
 
 - в рабочем дереве присутствует локальный `.env`, поэтому он должен оставаться вне версии;
+- в локальной Windows-среде порт `3100` входит в системный excluded TCP range `3068-3167`, поэтому `bun dev` на нем не стартует даже при bind на `127.0.0.1`;
 - лимиты Appwrite на размер строковых атрибутов требуют держать `projects` и `project_ai_reports` в компактной JSON-state схеме;
 - даже после нормализации `project_state_json` нужно контролировать суммарный размер JSON при дальнейшем расширении AI summary и списков шагов.
 - для Telegram linking flow нужно сохранять синхронность `TELEGRAM_WEBHOOK_SECRET` между Vercel env и настройкой webhook у бота; при рассинхроне Telegram будет получать `401` от `/api/telegram/webhook`.
-- полный production smoke test teacher-only маршрутов нельзя завершить только терминальными проверками: для прохода `/students`, `/attendance`, `/projects` после логина и реальной Telegram-отправки нужна ручная teacher-сессия в браузере.
 - локальный `.env` не содержит `TELEGRAM_WEBHOOK_SECRET`, поэтому валидный production webhook smoke test с корректным секретом из терминала в этой среде недоступен.
 - в production/Appwrite коллекция `projects` сейчас пуста, поэтому teacher-only сценарии `/projects`, GitHub sync и AI-analysis пока можно проверить только на пустом состоянии или после появления хотя бы одного боевого проекта; проблема не в отсутствии Appwrite-коллекций или схемы.
 - student-access bind flow теперь зависит от `NEXTAUTH_URL`: без корректного публичного URL Telegram-бот не сможет выдать рабочую GitHub login-ссылку после `Start`.
 - production teacher login теперь требует `TEACHER_GITHUB_USER_ID`; если переменная не задана, teacher-доступ считается не настроенным даже при наличии `TEACHER_GITHUB_LOGIN`.
+- полный production smoke test student-access сценария еще не пройден; он перенесен на 2026-03-12.
 
 ## Changelog
 
+- 2026-03-11: зафиксировано завершение ручного production smoke test teacher-only сценариев на Vercel. Подтверждены `/students`, `/attendance`, `/projects`, массовая Telegram-рассылка и teacher weekly digest; следующий шаг перенесен на 2026-03-12 для полного student-access smoke test.
+- 2026-03-11: локальный dev server переведен на `127.0.0.1:3300`. Диагностика показала, что в Windows порт `3100` входит в системный excluded TCP range `3068-3167`, поэтому bind на нем запрещен даже вне IPv6. Документация и memory bank синхронизированы.
 - 2026-03-11: ужесточена teacher-auth политика. В production роль `teacher` теперь определяется только по `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` оставлен fallback-механизмом только для non-production сред и локальной разработки. Обновлены `src/lib/server/auth.ts`, архитектурная документация и память проекта.
 - 2026-03-11: реализован первый student-access сценарий. Добавлены маршруты `/auth/complete`, `/student/link` и `/my-project`; auth расширен до teacher/student/guest модели, student определяется по `students.github_user_id`, а `/my-project` позволяет выбрать собственный GitHub-репозиторий и создать draft-проект.
 - 2026-03-11: Telegram linking flow расширен до GitHub bind flow. После `Start` webhook сохраняет `telegram_chat_id`, генерирует одноразовый `github_link_token`, бот отправляет student login-ссылку, а bind route связывает GitHub-аккаунт с карточкой по `github_user_id`.
@@ -79,4 +82,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `29c50bb94a88f3dedf877ec47b4e4a7c2260f1c6`
+- `last_checked_commit`: `9f7894669073b189ac9b50996ea77e8d4512cba9`

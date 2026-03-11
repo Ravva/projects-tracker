@@ -6,6 +6,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 
 ## Задача в работе
 
+- закрыто в текущей сессии: локальный dev startup на Windows стабилизирован переводом dev server на `127.0.0.1:3300`; `localhost` уводил bind в `::1`, а порт `3100` оказался запрещен системным excluded range;
 - удерживать teacher-only UI и документацию синхронизированными;
 - стабилизировать CRUD-потоки `students`, `attendance` и `projects` на реальных данных;
 - в работе: откат `attendance` с мгновенной server-side записи на client-side draft с общей кнопкой сохранения, чтобы убрать задержку при проставлении посещаемости;
@@ -34,13 +35,12 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - устранено локальное предупреждение Codex CLI: корень проекта добавлен в trusted projects глобального `~/.codex/config.toml`;
 - в `AGENTS.md` зафиксировано правило: Markdown-файлы не прогоняются через Biome;
 - локальный `appwrite_api` MCP server переведен на WSL-совместимый bash launcher с чтением Appwrite-переменных из `.env`;
-- следующим этапом после текущей правки остается пройти полный production smoke test teacher-only сценариев `/students`, `/attendance`, `/projects` и Telegram-рассылок уже на Vercel.
-- в работе: production smoke test на `https://projects-tracker-one.vercel.app` начат; подтверждены production build, редирект `/ -> /login`, доступность `/login` и защищенность `/api/telegram/webhook` ответом `401` без секрета, но teacher-only сценарии после входа и реальные Telegram-отправки все еще требуют ручного прохода под преподавательской сессией.
+- закрыто в текущей сессии: production smoke test teacher-only сценариев на `https://projects-tracker-one.vercel.app` завершен вручную; подтверждены `/students`, `/attendance`, `/projects`, массовая Telegram-рассылка и weekly digest преподавателя.
 - закрыто в текущей сессии: репозиторий приведен к чистому `biome check` без функциональных изменений; `bun run lint` и `bun run build` проходят, а шум в `git status` по кодовым файлам связан с Windows-конвертацией окончаний строк `LF/CRLF`.
 - закрыто в текущей сессии: шум `LF/CRLF` в рабочем дереве Windows снят; для локального репозитория выставлен `core.autocrlf=false`, ложные modified-метки по кодовым файлам очищены через безопасную пересинхронизацию индекса, и `git status` снова показывает только реальные изменения в `memory_bank`.
 - закрыто в текущей сессии: продолжен read-only smoke test production/Appwrite без браузера. Подтверждено, что в боевой базе читаются `25` студентов, на текущую неделю `2026-03-08` существуют `3` auto-generated урока (`Вторник`, `Четверг`, `Пятница`), но attendance-отметок на эту неделю пока `0`, а коллекция `projects` в production сейчас пуста. Также Telegram Bot API отвечает успешно (`getMe` для `@dsbdr_bot`), а GitHub API доступен без токена только в базовом лимите `60/60`.
 - закрыто в текущей сессии: Appwrite-схема для проектов перепроверена. Коллекции `projects` и `project_ai_reports` существуют, все ожидаемые атрибуты и индексы доступны, а `bun run db:provision` проходит идемпотентно без создания новых сущностей. Текущее ограничение `/projects` связано не с отсутствием коллекции, а с тем, что в production база проектов сейчас пуста.
-- в работе: активируется student-access через GitHub OAuth с безопасной привязкой по `github_user_id` после подтверждения личности через Telegram deep-link; целевой первый student-only сценарий — вход и выбор собственного GitHub-репозитория на странице `/my-project`.
+- следующий этап: 2026-03-12 пройти первый полный student-access smoke test: Telegram `Start` -> GitHub login -> bind -> выбор репозитория на `/my-project`.
 - закрыто в текущей сессии: активирован первый student-access flow. GitHub OAuth теперь допускает teacher и student login, post-login redirect идет через `/auth/complete`, Telegram webhook после `Start` выдает student GitHub login-ссылку, маршрут `/student/link` связывает карточку ученика по одноразовому token и `github_user_id`, а student-only страница `/my-project` показывает только собственные GitHub-репозитории и позволяет создать draft-проект из выбранного repo.
 - закрыто в текущей сессии: Appwrite schema для `students` расширена полями `github_link_token` и `github_link_expires_at`, создан индекс `students_by_github_link_token`; `bun run db:provision` успешно применил эти изменения.
 - закрыто в текущей сессии: teacher-auth ужесточен для production — роль преподавателя определяется только по `TEACHER_GITHUB_USER_ID`, а `TEACHER_GITHUB_LOGIN` сохранен лишь как fallback для локальной/non-production разработки.
@@ -70,3 +70,4 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - ручной override сбрасывается после следующего AI-анализа;
 - будущая привязка student-access должна строиться на `github_user_id`, а не на username.
 - production teacher-access должен опираться только на `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` допустим только как non-production fallback.
+- локальный dev server должен слушать `127.0.0.1:3300`, потому что `localhost` на Windows может уйти в IPv6 `::1`, а порт `3100` в текущей среде зарезервирован системой.
