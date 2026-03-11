@@ -10,9 +10,13 @@
 - лимиты Appwrite на размер строковых атрибутов требуют держать `projects` и `project_ai_reports` в компактной JSON-state схеме;
 - даже после нормализации `project_state_json` нужно контролировать суммарный размер JSON при дальнейшем расширении AI summary и списков шагов.
 - для Telegram linking flow нужно сохранять синхронность `TELEGRAM_WEBHOOK_SECRET` между Vercel env и настройкой webhook у бота; при рассинхроне Telegram будет получать `401` от `/api/telegram/webhook`.
+- полный production smoke test teacher-only маршрутов нельзя завершить только терминальными проверками: для прохода `/students`, `/attendance`, `/projects` после логина и реальной Telegram-отправки нужна ручная teacher-сессия в браузере.
 
 ## Changelog
 
+- 2026-03-11: устранен шум `LF/CRLF` в рабочем дереве Windows. Для локального репозитория выставлен `git config --local core.autocrlf false`, после чего ложные `modified` по кодовым файлам сняты безопасной пересинхронизацией индекса через `git add`/`git reset` без содержательных изменений. `git status` снова показывает только реальные правки, `bun run lint` остается зеленым.
+- 2026-03-11: репозиторий приведен к чистому `biome check` без проверки Markdown-файлов. Выполнено автоисправление `bunx biome check --write` по не-Markdown файлам, после чего успешно проходят `bun run lint` и `bun run build`. В `git status` по многим кодовым файлам остается шум из-за `LF/CRLF` в рабочем дереве Windows, но содержательных diff по коду `git diff` не показывает.
+- 2026-03-11: начат production smoke test на Vercel. Автоматически подтверждены успешный `bun run build`, редирект `https://projects-tracker-one.vercel.app/` на `/login`, доступность `https://projects-tracker-one.vercel.app/login` с `200 OK` и защита `POST /api/telegram/webhook` ответом `401` без секрета. Полный teacher-only проход после логина и реальные Telegram-рассылки остались на ручную браузерную проверку.
 - 2026-03-10: `attendance` возвращен к batch-режиму: клики по ячейкам снова меняют только client-side draft, кнопка `Сохранить изменения` записывает неделю одним запросом, после чего страница обновляется и weekly status пересчитывается на свежих данных.
 - 2026-03-10: production rollout завершен: приложение развернуто на `https://projects-tracker-one.vercel.app`, GitHub OAuth на Vercel стабилизирован через корректный `NEXTAUTH_URL`, Telegram webhook привязан к production route с `TELEGRAM_WEBHOOK_SECRET`, а живая привязка ученика через invite-ссылку подтверждена.
 - 2026-03-10: подготовка deployment-контура переведена с Cloudflare на Vercel; временные OpenNext/Wrangler-правки удалены, добавлен `bun run deploy` через `vercel deploy --prod`.
@@ -65,4 +69,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `1293ffecaf67a0472280be21f7123133c9eb6d17`
+- `last_checked_commit`: `c02a3bd`

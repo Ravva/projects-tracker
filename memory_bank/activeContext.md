@@ -35,6 +35,9 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - в `AGENTS.md` зафиксировано правило: Markdown-файлы не прогоняются через Biome;
 - локальный `appwrite_api` MCP server переведен на WSL-совместимый bash launcher с чтением Appwrite-переменных из `.env`;
 - следующим этапом после текущей правки остается пройти полный production smoke test teacher-only сценариев `/students`, `/attendance`, `/projects` и Telegram-рассылок уже на Vercel.
+- в работе: production smoke test на `https://projects-tracker-one.vercel.app` начат; подтверждены production build, редирект `/ -> /login`, доступность `/login` и защищенность `/api/telegram/webhook` ответом `401` без секрета, но teacher-only сценарии после входа и реальные Telegram-отправки все еще требуют ручного прохода под преподавательской сессией.
+- закрыто в текущей сессии: репозиторий приведен к чистому `biome check` без функциональных изменений; `bun run lint` и `bun run build` проходят, а шум в `git status` по кодовым файлам связан с Windows-конвертацией окончаний строк `LF/CRLF`.
+- закрыто в текущей сессии: шум `LF/CRLF` в рабочем дереве Windows снят; для локального репозитория выставлен `core.autocrlf=false`, ложные modified-метки по кодовым файлам очищены через безопасную пересинхронизацию индекса, и `git status` снова показывает только реальные изменения в `memory_bank`.
 
 ## Текущие решения
 
