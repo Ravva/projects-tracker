@@ -42,8 +42,18 @@ function getTeacherGithubUserId() {
   return process.env.TEACHER_GITHUB_USER_ID?.trim() ?? "";
 }
 
+function isProductionEnvironment() {
+  return process.env.NODE_ENV === "production";
+}
+
 function isTeacherIdentity(input: { githubLogin: string; githubId: string }) {
   const teacherGithubUserId = getTeacherGithubUserId();
+
+  if (isProductionEnvironment()) {
+    return (
+      Boolean(teacherGithubUserId) && input.githubId === teacherGithubUserId
+    );
+  }
 
   if (teacherGithubUserId) {
     return input.githubId === teacherGithubUserId;
@@ -78,12 +88,18 @@ export function getAuthConfigurationStatus() {
     return !value || !value.trim();
   });
 
-  const hasTeacherAllowlist =
-    Boolean(process.env.TEACHER_GITHUB_USER_ID?.trim()) ||
-    Boolean(process.env.TEACHER_GITHUB_LOGIN?.trim());
+  if (isProductionEnvironment()) {
+    if (!process.env.TEACHER_GITHUB_USER_ID?.trim()) {
+      missingKeys.push("TEACHER_GITHUB_USER_ID");
+    }
+  } else {
+    const hasTeacherAllowlist =
+      Boolean(process.env.TEACHER_GITHUB_USER_ID?.trim()) ||
+      Boolean(process.env.TEACHER_GITHUB_LOGIN?.trim());
 
-  if (!hasTeacherAllowlist) {
-    missingKeys.push("TEACHER_GITHUB_LOGIN or TEACHER_GITHUB_USER_ID");
+    if (!hasTeacherAllowlist) {
+      missingKeys.push("TEACHER_GITHUB_LOGIN or TEACHER_GITHUB_USER_ID");
+    }
   }
 
   return {

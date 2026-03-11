@@ -32,11 +32,11 @@ Student-access строится на GitHub OAuth и стабильном `githu
 
 - GitHub OAuth как единственный способ входа;
 - реализация на `next-auth`;
-- teacher определяется по `TEACHER_GITHUB_USER_ID` или fallback `TEACHER_GITHUB_LOGIN`;
+- teacher определяется только по `TEACHER_GITHUB_USER_ID` в production и по `TEACHER_GITHUB_USER_ID` либо fallback `TEACHER_GITHUB_LOGIN` вне production;
 - student определяется поиском по `students.github_user_id`;
 - post-login redirect идет через `/auth/complete`;
 - маршруты `/auth/complete`, `/student/link` и `/my-project` защищены через `src/middleware.ts`, а role-check выполняется на сервере;
-- допуск учителя по `TEACHER_GITHUB_USER_ID` или fallback `TEACHER_GITHUB_LOGIN`.
+- в production допуск учителя идет только по `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` остается fallback только для локальной разработки и других non-production сред.
 
 ### Students
 
@@ -124,6 +124,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - production URL: `https://projects-tracker-one.vercel.app`;
 - для production deployment требуется авторизованный `vercel` CLI или `VERCEL_TOKEN`;
 - production env должен включать корректный `NEXTAUTH_URL` для публичного Vercel URL;
+- production env должен включать `TEACHER_GITHUB_USER_ID`; без него teacher login считается не настроенным;
 - Telegram webhook уже привязан к `https://projects-tracker-one.vercel.app/api/telegram/webhook`.
 
 ## Telegram Setup

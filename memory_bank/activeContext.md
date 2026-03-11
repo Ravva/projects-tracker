@@ -43,6 +43,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - в работе: активируется student-access через GitHub OAuth с безопасной привязкой по `github_user_id` после подтверждения личности через Telegram deep-link; целевой первый student-only сценарий — вход и выбор собственного GitHub-репозитория на странице `/my-project`.
 - закрыто в текущей сессии: активирован первый student-access flow. GitHub OAuth теперь допускает teacher и student login, post-login redirect идет через `/auth/complete`, Telegram webhook после `Start` выдает student GitHub login-ссылку, маршрут `/student/link` связывает карточку ученика по одноразовому token и `github_user_id`, а student-only страница `/my-project` показывает только собственные GitHub-репозитории и позволяет создать draft-проект из выбранного repo.
 - закрыто в текущей сессии: Appwrite schema для `students` расширена полями `github_link_token` и `github_link_expires_at`, создан индекс `students_by_github_link_token`; `bun run db:provision` успешно применил эти изменения.
+- закрыто в текущей сессии: teacher-auth ужесточен для production — роль преподавателя определяется только по `TEACHER_GITHUB_USER_ID`, а `TEACHER_GITHUB_LOGIN` сохранен лишь как fallback для локальной/non-production разработки.
 
 ## Текущие решения
 
@@ -68,3 +69,4 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - итоговая степень реализации проекта вычисляется на лету;
 - ручной override сбрасывается после следующего AI-анализа;
 - будущая привязка student-access должна строиться на `github_user_id`, а не на username.
+- production teacher-access должен опираться только на `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` допустим только как non-production fallback.

@@ -14,9 +14,11 @@
 - локальный `.env` не содержит `TELEGRAM_WEBHOOK_SECRET`, поэтому валидный production webhook smoke test с корректным секретом из терминала в этой среде недоступен.
 - в production/Appwrite коллекция `projects` сейчас пуста, поэтому teacher-only сценарии `/projects`, GitHub sync и AI-analysis пока можно проверить только на пустом состоянии или после появления хотя бы одного боевого проекта; проблема не в отсутствии Appwrite-коллекций или схемы.
 - student-access bind flow теперь зависит от `NEXTAUTH_URL`: без корректного публичного URL Telegram-бот не сможет выдать рабочую GitHub login-ссылку после `Start`.
+- production teacher login теперь требует `TEACHER_GITHUB_USER_ID`; если переменная не задана, teacher-доступ считается не настроенным даже при наличии `TEACHER_GITHUB_LOGIN`.
 
 ## Changelog
 
+- 2026-03-11: ужесточена teacher-auth политика. В production роль `teacher` теперь определяется только по `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` оставлен fallback-механизмом только для non-production сред и локальной разработки. Обновлены `src/lib/server/auth.ts`, архитектурная документация и память проекта.
 - 2026-03-11: реализован первый student-access сценарий. Добавлены маршруты `/auth/complete`, `/student/link` и `/my-project`; auth расширен до teacher/student/guest модели, student определяется по `students.github_user_id`, а `/my-project` позволяет выбрать собственный GitHub-репозиторий и создать draft-проект.
 - 2026-03-11: Telegram linking flow расширен до GitHub bind flow. После `Start` webhook сохраняет `telegram_chat_id`, генерирует одноразовый `github_link_token`, бот отправляет student login-ссылку, а bind route связывает GitHub-аккаунт с карточкой по `github_user_id`.
 - 2026-03-11: Appwrite schema обновлена под student bind flow: в `students` добавлены поля `github_link_token` и `github_link_expires_at`, а также индекс `students_by_github_link_token`; `bun run db:provision` успешно применил изменения.
@@ -77,4 +79,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `ed86dd89af9515e723a8203e7e22583781c4f5ab`
+- `last_checked_commit`: `29c50bb94a88f3dedf877ec47b4e4a7c2260f1c6`
