@@ -1,12 +1,22 @@
 export type WeeklyState = "critical" | "warning" | "success";
 export type TelegramLinkStatus = "not_invited" | "awaiting_start" | "linked";
+export type AuthRole = "teacher" | "student" | "guest";
 
-export type TeacherSessionUser = {
+export type AuthenticatedSessionUser = {
   id: string;
   name: string;
   email: string;
   image?: string;
   githubLogin: string;
+  githubId: string;
+  githubAccessToken: string;
+};
+
+export type TeacherSessionUser = AuthenticatedSessionUser;
+
+export type StudentSessionUser = AuthenticatedSessionUser & {
+  studentId: string;
+  studentName: string;
 };
 
 export type StudentRecord = {

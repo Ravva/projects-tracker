@@ -151,6 +151,27 @@ async function listProjectDocuments() {
   return response.documents;
 }
 
+async function listProjectDocumentsByStudent(studentId: string) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    return [];
+  }
+
+  const response = await appwrite.databases.listDocuments(
+    appwrite.databaseId,
+    config.collections.projects,
+    [
+      Query.equal("student_id", studentId),
+      Query.orderDesc("$updatedAt"),
+      Query.limit(100),
+    ],
+  );
+
+  return response.documents;
+}
+
 export async function listProjects(): Promise<ProjectRecord[]> {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
@@ -169,6 +190,40 @@ export async function listProjects(): Promise<ProjectRecord[]> {
       const studentId = String(
         (document as Record<string, unknown>).student_id ?? "",
       );
+      const project = mapProjectDocument(
+        document,
+        studentNameMap.get(studentId) ?? "Неизвестный ученик",
+      );
+      const riskFlags = normalizeProjectRiskFlags(project);
+
+      return {
+        ...project,
+        riskFlags,
+        risk: primaryRiskFromFlags(riskFlags),
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function listProjectsByStudentId(
+  studentId: string,
+): Promise<ProjectRecord[]> {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    return [];
+  }
+
+  try {
+    const [documents, studentNameMap] = await Promise.all([
+      listProjectDocumentsByStudent(studentId),
+      listStudentNameMap(),
+    ]);
+
+    return documents.map((document) => {
       const project = mapProjectDocument(
         document,
         studentNameMap.get(studentId) ?? "Неизвестный ученик",
@@ -238,6 +293,56 @@ export async function createProject(input: ProjectInput) {
     ID.unique(),
     {
       ...buildProjectPayload(input),
+      github_state_json: buildGithubState(),
+      project_state_json: buildProjectState(),
+    },
+  );
+}
+
+export async function createStudentProjectFromGithubSelection(input: {
+  studentId: string;
+  studentName: string;
+  repositoryName: string;
+  repositoryUrl: string;
+  repositoryDescription: string;
+}) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    throw new Error("Appwrite не настроен.");
+  }
+
+  const normalizedUrl = input.repositoryUrl.trim();
+
+  if (!parseGithubUrl(normalizedUrl)) {
+    throw new Error("Выбран некорректный GitHub URL.");
+  }
+
+  const existingProjects = await listProjectsByStudentId(input.studentId);
+
+  if (
+    existingProjects.some(
+      (project) => project.githubUrl.trim() === normalizedUrl,
+    )
+  ) {
+    throw new Error("Этот репозиторий уже выбран для текущего ученика.");
+  }
+
+  return appwrite.databases.createDocument(
+    appwrite.databaseId,
+    config.collections.projects,
+    ID.unique(),
+    {
+      ...buildProjectPayload({
+        studentId: input.studentId,
+        name: input.repositoryName.trim() || `Проект ${input.studentName}`,
+        summary: input.repositoryDescription.trim(),
+        githubUrl: normalizedUrl,
+        status: "draft",
+        specMarkdown: "",
+        planMarkdown: "",
+      }),
       github_state_json: buildGithubState(),
       project_state_json: buildProjectState(),
     },

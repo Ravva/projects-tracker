@@ -1,44 +1,58 @@
 # Tech Context
 
-## Текущее состояние репозитория
+## Основной стек
 
-- в репозитории есть документация, UI-каркас на `Next.js` и server-side data layer;
-- локальный Git-репозиторий инициализирован;
-- удаленный `origin` привязан к `https://github.com/Ravva/projects-tracker.git`;
-- ветка `main` опубликована в удаленный репозиторий;
-- пакетный менеджер по правилам проекта: `bun`;
-- линтинг и автоисправление должны выполняться через `biome`.
+- `Next.js 16` с `App Router`;
+- `React 19`;
+- `Tailwind CSS v4`;
+- `shadcn/ui` preset `a1F9UU9Q`;
+- `Biome` для lint/format;
+- `bun` как пакетный менеджер и runtime для скриптов;
+- `next-auth` для GitHub OAuth;
+- `node-appwrite` для server-side доступа к Appwrite;
+- `xlsx` для teacher import students.
 
-## Целевой стек
+## Auth And Access
 
-- frontend: `Next.js 16`, `React 19`, `Tailwind CSS v4`;
-- библиотеки: `xlsx` (импорт данных);
-- UI kit: `shadcn/ui` preset `a1F9UU9Q`, `radix-ui`, `hugeicons`;
-- package manager: `bun`;
-- code quality: `Biome`;
-- local dev URL: `http://localhost:3100`;
-- backend SDK: `node-appwrite`;
-- frontend/backend платформа: Appwrite;
-- production deployment target: Vercel;
+- OAuth provider: GitHub;
+- GitHub OAuth scope включает доступ, достаточный для чтения списка student repositories владельца;
+- server session хранит `githubLogin`, `githubId` и OAuth access token;
+- роль teacher вычисляется по env allowlist;
+- роль student вычисляется по `students.github_user_id`;
+- student bind использует поля Appwrite:
+  - `github_link_token`
+  - `github_link_expires_at`
+
+## Appwrite
+
+- основная база: `projects-tracker`;
+- коллекции:
+  - `students`
+  - `lessons`
+  - `attendance`
+  - `projects`
+  - `project_ai_reports`
+- схема поднимается идемпотентно через `bun run db:provision`;
+- индекс `students_by_github_link_token` нужен для student bind flow.
+
+## Deployment And Env
+
+- production target: Vercel;
 - production URL: `https://projects-tracker-one.vercel.app`;
-- аутентификация: GitHub OAuth через `next-auth`;
-- интеграция репозиториев: GitHub API;
-- AI-анализ: OpenAI API;
-- уведомления: Telegram Bot API;
-- Telegram linking flow: deep-link `t.me/<bot>?start=<token>` + webhook `/api/telegram/webhook`;
-- документация продукта: Markdown в репозитории.
+- обязательные auth env:
+  - `GITHUB_ID`
+  - `GITHUB_SECRET`
+  - `NEXTAUTH_SECRET`
+  - `NEXTAUTH_URL`
+  - `TEACHER_GITHUB_USER_ID` или `TEACHER_GITHUB_LOGIN`
+- Telegram env:
+  - `TELEGRAM_BOT_TOKEN`
+  - `TELEGRAM_BOT_USERNAME`
+  - `TELEGRAM_WEBHOOK_SECRET`
+  - `TEACHER_TELEGRAM_CHAT_ID`
 
 ## Ограничения
 
-- не запускать и не останавливать dev-сервер;
-- не использовать Telegram username как ключ доставки;
-- для автоматической привязки Telegram нужен публичный webhook URL и секрет `TELEGRAM_WEBHOOK_SECRET`;
-- после смены `TELEGRAM_WEBHOOK_SECRET` нужно заново вызывать `setWebhook`, иначе Telegram начнет получать `401` от production webhook;
-- для production deployment через Vercel требуется авторизованный `vercel` CLI или `VERCEL_TOKEN`;
-- не проектировать student-access как активную возможность MVP;
-- изменения архитектуры должны отражаться в `docs/README.md`.
-- Appwrite имеет жесткие лимиты на суммарный размер строковых атрибутов, поэтому проектные состояния упакованы в JSON;
-- project-формы должны уважать размеры Appwrite-атрибутов: `name` `255`, `summary` `2000`, `github_url` `1000`, `spec_markdown` `4000`, `plan_markdown` `4000`;
-- содержимое `project_state_json` должно оставаться компактным: `manualOverrideNote` `400`, `aiSummary` `600`, `nextSteps` максимум `5 x 120`;
-- для календарных дат нельзя использовать `Date.toISOString().slice(0, 10)` в локали `Europe/Moscow`, иначе дата сдвигается на предыдущий день;
-- до выдачи реальных Appwrite env-переменных приложение должно оставаться работоспособным на empty states.
+- Markdown-файлы не проверяются через Biome;
+- dev server на `localhost:3100` управляется пользователем и не должен запускаться агентом;
+- student-access не дает student права на teacher-only маршруты и ручные teacher actions.

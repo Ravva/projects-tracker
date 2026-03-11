@@ -200,6 +200,56 @@ export async function getStudent(
   }
 }
 
+export async function getStudentByGithubUserId(
+  githubUserId: string,
+): Promise<StudentRecord | null> {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+  const normalizedGithubUserId = githubUserId.trim();
+
+  if (!appwrite || !config || !normalizedGithubUserId) {
+    return null;
+  }
+
+  try {
+    const response = await appwrite.databases.listDocuments(
+      appwrite.databaseId,
+      config.collections.students,
+      [Query.equal("github_user_id", normalizedGithubUserId), Query.limit(1)],
+    );
+    const document = response.documents[0];
+
+    return document ? mapStudentDocument(document) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function claimStudentGithubIdentity(input: {
+  studentId: string;
+  githubUserId: string;
+  githubUsername: string;
+}) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    throw new Error("Appwrite РЅРµ РЅР°СЃС‚СЂРѕРµРЅ.");
+  }
+
+  return appwrite.databases.updateDocument(
+    appwrite.databaseId,
+    config.collections.students,
+    input.studentId,
+    {
+      github_user_id: input.githubUserId.trim(),
+      github_username: input.githubUsername.trim(),
+      github_link_token: "",
+      github_link_expires_at: "",
+    },
+  );
+}
+
 export async function createStudent(input: StudentInput) {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();

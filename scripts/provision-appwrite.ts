@@ -137,6 +137,22 @@ const attributeDefinitions: AttributeDefinition[] = [
   {
     type: "string",
     collectionId: collections.students,
+    key: "github_link_token",
+    size: 255,
+    required: false,
+    xdefault: "",
+  },
+  {
+    type: "string",
+    collectionId: collections.students,
+    key: "github_link_expires_at",
+    size: 255,
+    required: false,
+    xdefault: "",
+  },
+  {
+    type: "string",
+    collectionId: collections.students,
     key: "notes",
     size: 10000,
     required: false,
@@ -336,6 +352,12 @@ const indexDefinitions: IndexDefinition[] = [
     collectionId: collections.students,
     key: "students_by_telegram_link_token",
     attributes: ["telegram_link_token"],
+    orders: [OrderBy.Asc],
+  },
+  {
+    collectionId: collections.students,
+    key: "students_by_github_link_token",
+    attributes: ["github_link_token"],
     orders: [OrderBy.Asc],
   },
   {

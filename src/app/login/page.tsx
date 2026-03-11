@@ -1,14 +1,18 @@
 import { getAuthConfigurationStatus } from "@/lib/server/auth";
+import { buildStudentGithubLinkPath } from "@/lib/server/telegram-linking";
 import { LoginButton } from "./login-button";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; studentLinkToken?: string }>;
 }) {
   const authConfiguration = getAuthConfigurationStatus();
-
-  const { error } = await searchParams;
+  const { error, studentLinkToken } = await searchParams;
+  const isStudentBindFlow = Boolean(studentLinkToken?.trim());
+  const callbackUrl = isStudentBindFlow
+    ? buildStudentGithubLinkPath(studentLinkToken ?? "")
+    : "/auth/complete";
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--status-calm)/0.12),transparent_28%),radial-gradient(circle_at_top_right,hsl(var(--status-warning)/0.12),transparent_22%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--background-secondary)))] px-5 py-10">
@@ -21,14 +25,14 @@ export default async function LoginPage({
             Projects Tracker
           </h1>
           <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground">
-            Teacher-only рабочее пространство для контроля посещаемости,
-            ученических проектов и AI-анализа. Вход разрешен только
-            преподавателю из allowlist GitHub.
+            {isStudentBindFlow
+              ? "Student bind flow: после входа через GitHub система свяжет ваш аккаунт с подтверждённой карточкой ученика и откроет выбор проекта."
+              : "Teacher workspace для контроля посещаемости, ученических проектов и AI-анализа. Вход преподавателя и учеников идёт через GitHub OAuth."}
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
             {authConfiguration.isConfigured ? (
-              <LoginButton />
+              <LoginButton callbackUrl={callbackUrl} />
             ) : (
               <span className="inline-flex cursor-not-allowed items-center rounded-xl bg-muted px-4 py-2 text-sm font-medium text-muted-foreground">
                 OAuth не настроен
@@ -44,8 +48,9 @@ export default async function LoginPage({
 
           {error ? (
             <div className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              Доступ отклонен. Проверьте GitHub OAuth настройки и allowlist
-              преподавателя.
+              {isStudentBindFlow
+                ? "Связать GitHub-аккаунт не удалось. Проверьте, что открыта актуальная ссылка из Telegram."
+                : "Доступ отклонён. Проверьте GitHub OAuth настройки и allowlist преподавателя."}
             </div>
           ) : null}
 
@@ -61,15 +66,17 @@ export default async function LoginPage({
           <div className="rounded-[2rem] border border-border/70 bg-card/88 p-6">
             <div className="text-sm font-medium">Что защищено</div>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">
-              Дашборд, ученики, attendance и проекты доступны только после входа
-              через GitHub.
+              Преподаватель попадает в dashboard, а ученик после подтверждения
+              через Telegram получает доступ только к своему маршруту выбора
+              проекта.
             </p>
           </div>
           <div className="rounded-[2rem] border border-border/70 bg-card/88 p-6">
             <div className="text-sm font-medium">Что потребуется</div>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">
-              `GITHUB_ID`, `GITHUB_SECRET`, `NEXTAUTH_SECRET` и teacher
-              allowlist в env.
+              `GITHUB_ID`, `GITHUB_SECRET`, `NEXTAUTH_SECRET`, teacher allowlist
+              и заполненный `github_user_id` либо активная student-link ссылка
+              из Telegram.
             </p>
           </div>
         </section>

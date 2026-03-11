@@ -1,69 +1,41 @@
 # System Patterns
 
-## Архитектурный срез
+## Архитектурные роли
 
-Система разделена на четыре основных домена:
+- `teacher` — полный доступ к dashboard, students, attendance, projects и teacher actions;
+- `student` — ограниченный доступ только к `/my-project`;
+- `guest` — пользователь после GitHub OAuth, который еще не совпал ни с teacher allowlist, ни с `students.github_user_id`.
 
-- `auth` - вход через GitHub OAuth;
-- `students` - карточки учеников, контактные данные, teacher-only редактирование;
-- `attendance` - недельные занятия и отметки посещаемости;
-- `projects` - GitHub-репозитории, ТЗ, план, AI-отчеты и override.
-- `frontend-shell` - teacher-only app shell, dashboard и продуктовые UI-компоненты.
+## Auth Pattern
 
-## Базовые паттерны
+- единая аутентификация через GitHub OAuth на `next-auth`;
+- teacher определяется по `TEACHER_GITHUB_USER_ID` или fallback `TEACHER_GITHUB_LOGIN`;
+- student определяется поиском в Appwrite `students.github_user_id`;
+- post-login redirect выполняет маршрут `/auth/complete`;
+- teacher-only и student-only ограничения проверяются на сервере через `requireTeacherSession`, `requireStudentSession` и `requireAuthenticatedSession`;
+- `src/middleware.ts` защищает только факт логина, но не роль.
 
-- teacher-only доступ в MVP;
-- future-ready разграничение ролей для последующего добавления `student`;
-- canonical-данные по проекту и артефактам хранятся в Appwrite;
-- GitHub используется как внешний источник состояния репозитория;
-- AI-отчеты сохраняются как неизменяемые снимки;
-- итоговый прогресс вычисляется на чтении, а не сохраняется как отдельный source of truth.
+## Telegram To GitHub Bind Pattern
 
-## Паттерны по доменам
+1. teacher выпускает персональную Telegram deep-link из карточки ученика;
+2. ученик нажимает `Start` в приватном чате с ботом;
+3. webhook сохраняет реальный `telegram_chat_id` и генерирует одноразовый `github_link_token`;
+4. бот отправляет student login-ссылку на `/login?studentLinkToken=...`;
+5. после GitHub OAuth маршрут `/student/link` связывает `github_user_id` с карточкой ученика;
+6. token очищается после успешного bind или после истечения срока.
 
-### Attendance
+## Student Project Selection Pattern
 
-- занятия создаются только по фиксированному календарному шаблону;
-- внеплановые занятия отсутствуют;
-- календарные даты хранятся как локальные `YYYY-MM-DD` без `toISOString()`, чтобы не сдвигаться на день назад в UTC+3;
-- auto-generated занятия текущей недели при чтении сверяются с шаблоном `Вт/Чт/Пт` и при рассинхронизации автоматически обновляются;
-- teacher UI в `/attendance` сведен к weekly-таблице с фиксированными колонками `Вторник/Четверг/Пятница`: каждая ячейка сохраняет attendance напрямую через отдельный server action по одному клику, без отдельного календарного блока и без списка нарушителей;
-- навигация по attendance-неделям строится через query-параметр `weekStart`; репозиторий attendance умеет читать и при необходимости создавать/синхронизировать уроки для выбранной недели, а не только для текущей;
-- summaries учеников для attendance-экрана вычисляются с привязкой к выбранной `weekStart`, чтобы `Статус недели` и `attendanceRate` совпадали с видимой в таблице неделей;
-- при празднике преподаватель удаляет занятие вручную;
-- норма посещаемости фиксирована: максимум `2` занятия в неделю, но если фактически создано меньше двух занятий, требование равно числу созданных занятий.
+- student page `/my-project` показывает только проекты текущего ученика и только его GitHub repositories;
+- список репозиториев читается напрямую из GitHub API по OAuth access token;
+- выбор репозитория создает draft-проект в `projects` со связкой `student_id + github_url`;
+- teacher review и дальнейшее редактирование проекта остаются в teacher-only модуле `/projects`.
 
-### Students
+## Data Isolation
 
-- в MVP карточка ученика управляется только преподавателем;
-- `telegram_chat_id` может вводиться вручную преподавателем или автоматически привязываться через персональный `telegram_link_token` и deep-link `/start`;
-- Telegram Bot API webhook на `/api/telegram/webhook` принимает `/start <token>`, проверяет `TELEGRAM_WEBHOOK_SECRET` и записывает `telegram_chat_id` обратно в карточку ученика;
-- student-access в будущем должен маппиться через `github_user_id`.
-- teacher-only маршруты модуля: `/students` и `/students/[studentId]`;
-- чтение и запись идут через server-side repository и server actions.
-
-### Projects
-
-- AI-анализ блокируется при отсутствии `spec_markdown` или `plan_markdown`;
-- server-side payload проекта нормализуется перед записью, а формы ограничены под размеры Appwrite: `name` `255`, `summary` `2000`, `github_url` `1000`, `spec_markdown` `4000`, `plan_markdown` `4000`;
-- `project_state_json` тоже нормализуется перед записью: `manualOverrideNote` ограничен `400`, `aiSummary` `600`, список `nextSteps` - максимум `5` пунктов по `120` символов;
-- ручной override действует до следующего AI-анализа и затем отключается автоматически;
-- риск `invalid_github_repo` покрывает невалидный URL, несуществующий репозиторий, приватный репозиторий без доступа и временные ошибки интеграции.
-- состояние проекта и AI-отчетов частично хранится в JSON-полях Appwrite для обхода лимита суммарного размера строковых атрибутов.
-
-### Frontend Shell
-
-- приложение построено на `Next.js App Router`;
-- UI-слой основан на `shadcn/ui` с preset `a1F9UU9Q`;
-- основной визуальный паттерн - `Academic Control Room`;
-- карточка "Ближайшее занятие" на teacher dashboard выбирает ближайшую дату относительно текущего дня, а не просто первый урок недели;
-- глобальный shell включает sidebar, sticky header, metric cards и data panels.
-
-### Data Access
-
-- UI-страницы не содержат локального mock-слоя;
-- чтение идет через server-side repositories в `src/lib/server/repositories/*`;
-- запись идет через `server actions` в `src/app/**/actions.ts`;
-- при наличии Appwrite env-конфигурации источником данных становится Appwrite;
-- схема Appwrite и индексы поднимаются через `scripts/provision-appwrite.ts`;
-- при отсутствии конфигурации или данных репозитории возвращают пустые результаты, а UI показывает empty states.
+- teacher repositories продолжают работать как раньше;
+- student flow использует отдельные read/write entrypoints:
+  - поиск ученика по `github_user_id`;
+  - claim одноразового GitHub bind token;
+  - выбор проекта только для `student_id` текущего ученика;
+- `projects` и `project_ai_reports` остаются на компактных JSON-state полях из-за лимитов Appwrite.

@@ -5,7 +5,11 @@ import crypto from "node:crypto";
 import { Query } from "node-appwrite";
 
 import { getAppwriteConfig, getAppwriteDatabases } from "@/lib/server/appwrite";
-import { getStudent } from "@/lib/server/repositories/students";
+import {
+  claimStudentGithubIdentity,
+  getStudent,
+  getStudentByGithubUserId,
+} from "@/lib/server/repositories/students";
 import { sendTelegramMessage } from "@/lib/server/telegram";
 
 const TELEGRAM_BOT_USERNAME = (
@@ -13,6 +17,7 @@ const TELEGRAM_BOT_USERNAME = (
 ).replace(/^@/, "");
 const TELEGRAM_WEBHOOK_SECRET =
   process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ?? "";
+const APP_BASE_URL = process.env.NEXTAUTH_URL?.trim().replace(/\/$/, "") ?? "";
 
 export interface TelegramLinkSession {
   studentId: string;
@@ -20,6 +25,10 @@ export interface TelegramLinkSession {
   chatId: string;
   telegramUsername: string;
 }
+
+type StudentGithubLinkResult =
+  | { ok: true; studentId: string; studentName: string; alreadyLinked: boolean }
+  | { ok: false; code: "expired" | "invalid" | "occupied" | "mismatch" };
 
 interface TelegramBotProfileResponse {
   ok: boolean;
@@ -56,6 +65,25 @@ function getTelegramToken() {
 
 function buildStudentName(firstName: string, lastName: string) {
   return `${firstName} ${lastName}`.trim();
+}
+
+function createGithubLinkExpiryIso() {
+  const expiry = new Date(Date.now() + 1000 * 60 * 60 * 24);
+  return expiry.toISOString();
+}
+
+function isGithubLinkExpired(value: string) {
+  if (!value) {
+    return true;
+  }
+
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return true;
+  }
+
+  return parsed.getTime() < Date.now();
 }
 
 export function createTelegramLinkToken() {
@@ -117,6 +145,18 @@ export async function buildTelegramInviteLink(token: string) {
   return `https://t.me/${username}?start=${token}`;
 }
 
+export function buildStudentGithubLinkPath(token: string) {
+  return `/login?studentLinkToken=${encodeURIComponent(token)}`;
+}
+
+export function buildStudentGithubLinkUrl(token: string) {
+  if (!token || !APP_BASE_URL) {
+    return "";
+  }
+
+  return `${APP_BASE_URL}${buildStudentGithubLinkPath(token)}`;
+}
+
 export async function issueStudentTelegramInvite(studentId: string) {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
@@ -141,6 +181,8 @@ export async function issueStudentTelegramInvite(studentId: string) {
     {
       telegram_link_token: token,
       telegram_linked_at: "",
+      github_link_token: "",
+      github_link_expires_at: "",
     },
   );
 
@@ -192,6 +234,7 @@ export async function claimStudentTelegramLinkByToken(input: {
   const existingTelegramUsername = String(
     (student as Record<string, unknown>).telegram_username ?? "",
   );
+  const githubLinkToken = createTelegramLinkToken();
 
   await appwrite.databases.updateDocument(
     appwrite.databaseId,
@@ -202,13 +245,93 @@ export async function claimStudentTelegramLinkByToken(input: {
       telegram_username: input.telegramUsername || existingTelegramUsername,
       telegram_link_token: "",
       telegram_linked_at: new Date().toISOString(),
+      github_link_token: githubLinkToken,
+      github_link_expires_at: createGithubLinkExpiryIso(),
     },
   );
 
   return {
     studentId,
     studentName: buildStudentName(firstName, lastName),
-  } satisfies Omit<TelegramLinkSession, "chatId" | "telegramUsername">;
+    githubLinkToken,
+  };
+}
+
+export async function claimStudentGithubLinkByToken(input: {
+  token: string;
+  githubUserId: string;
+  githubUsername: string;
+}): Promise<StudentGithubLinkResult> {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+  const normalizedToken = input.token.trim();
+  const normalizedGithubUserId = input.githubUserId.trim();
+
+  if (!appwrite || !config || !normalizedToken || !normalizedGithubUserId) {
+    return { ok: false, code: "invalid" };
+  }
+
+  const response = await appwrite.databases.listDocuments(
+    appwrite.databaseId,
+    config.collections.students,
+    [Query.equal("github_link_token", normalizedToken), Query.limit(2)],
+  );
+  const student = response.documents[0];
+
+  if (!student) {
+    return { ok: false, code: "invalid" };
+  }
+
+  const studentId = student.$id;
+  const studentName = buildStudentName(
+    String((student as Record<string, unknown>).first_name ?? ""),
+    String((student as Record<string, unknown>).last_name ?? ""),
+  );
+  const currentGithubUserId = String(
+    (student as Record<string, unknown>).github_user_id ?? "",
+  );
+  const expiresAt = String(
+    (student as Record<string, unknown>).github_link_expires_at ?? "",
+  );
+
+  if (isGithubLinkExpired(expiresAt)) {
+    await appwrite.databases.updateDocument(
+      appwrite.databaseId,
+      config.collections.students,
+      studentId,
+      {
+        github_link_token: "",
+        github_link_expires_at: "",
+      },
+    );
+
+    return { ok: false, code: "expired" };
+  }
+
+  if (currentGithubUserId && currentGithubUserId !== normalizedGithubUserId) {
+    return { ok: false, code: "mismatch" };
+  }
+
+  const existingStudent = await getStudentByGithubUserId(
+    normalizedGithubUserId,
+  );
+
+  if (existingStudent && existingStudent.id !== studentId) {
+    return { ok: false, code: "occupied" };
+  }
+
+  await claimStudentGithubIdentity({
+    studentId,
+    githubUserId: normalizedGithubUserId,
+    githubUsername: input.githubUsername,
+  });
+
+  return {
+    ok: true,
+    studentId,
+    studentName,
+    alreadyLinked: currentGithubUserId === normalizedGithubUserId,
+  };
 }
 
 export async function handleTelegramStartLinking(
@@ -263,9 +386,19 @@ export async function handleTelegramStartLinking(
     return { handled: true as const };
   }
 
+  const githubLink = buildStudentGithubLinkUrl(linked.githubLinkToken);
+
   await sendTelegramMessage(
     chatId,
-    `Привязка выполнена. Теперь преподаватель может отправлять сообщения в этот чат для ученика ${linked.studentName}.`,
+    [
+      `Привязка Telegram выполнена для ${linked.studentName}.`,
+      "",
+      githubLink
+        ? `Теперь войдите через GitHub по ссылке: ${githubLink}`
+        : "Теперь войдите в Projects Tracker через GitHub. Ссылка входа недоступна, потому что не задан NEXTAUTH_URL.",
+      "",
+      "После входа система свяжет ваш GitHub-аккаунт с карточкой ученика и откроет выбор проекта.",
+    ].join("\n"),
   );
 
   return {

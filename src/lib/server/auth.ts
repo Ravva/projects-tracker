@@ -5,13 +5,22 @@ import type { DefaultSession, NextAuthOptions } from "next-auth";
 import { getServerSession } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 
-import type { TeacherSessionUser } from "@/lib/types";
+import { getStudentByGithubUserId } from "@/lib/server/repositories/students";
+import type {
+  AuthenticatedSessionUser,
+  AuthRole,
+  StudentSessionUser,
+  TeacherSessionUser,
+} from "@/lib/types";
 
 declare module "next-auth" {
   interface Session {
     user: DefaultSession["user"] & {
       id: string;
       githubLogin: string;
+      githubId: string;
+      githubAccessToken: string;
+      role: AuthRole;
     };
   }
 }
@@ -20,6 +29,8 @@ declare module "next-auth/jwt" {
   interface JWT {
     githubLogin?: string;
     githubId?: string;
+    githubAccessToken?: string;
+    role?: AuthRole;
   }
 }
 
@@ -29,6 +40,34 @@ function getTeacherGithubLogin() {
 
 function getTeacherGithubUserId() {
   return process.env.TEACHER_GITHUB_USER_ID?.trim() ?? "";
+}
+
+function isTeacherIdentity(input: { githubLogin: string; githubId: string }) {
+  const teacherGithubUserId = getTeacherGithubUserId();
+
+  if (teacherGithubUserId) {
+    return input.githubId === teacherGithubUserId;
+  }
+
+  return input.githubLogin === getTeacherGithubLogin();
+}
+
+function buildAuthenticatedUser(
+  session: Awaited<ReturnType<typeof getAuthSession>>,
+) {
+  if (!session?.user) {
+    return null;
+  }
+
+  return {
+    id: session.user.id,
+    name: session.user.name ?? "User",
+    email: session.user.email ?? "",
+    image: session.user.image ?? undefined,
+    githubLogin: session.user.githubLogin ?? "",
+    githubId: session.user.githubId ?? "",
+    githubAccessToken: session.user.githubAccessToken ?? "",
+  } satisfies AuthenticatedSessionUser;
 }
 
 export function getAuthConfigurationStatus() {
@@ -59,6 +98,11 @@ export const authOptions: NextAuthOptions = {
     GitHubProvider({
       clientId: process.env.GITHUB_ID ?? "",
       clientSecret: process.env.GITHUB_SECRET ?? "",
+      authorization: {
+        params: {
+          scope: "read:user repo",
+        },
+      },
     }),
   ],
   pages: {
@@ -69,51 +113,31 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ account, profile }) {
-      // Принудительный flush логов
-      console.log(
-        "[GitHub OAuth] Full account:",
-        JSON.stringify(account, null, 2),
-      );
-      process.stdout.write("\n");
-      console.log(
-        "[GitHub OAuth] Full profile:",
-        JSON.stringify(profile, null, 2),
-      );
-      process.stdout.write("\n");
-
       if (account?.provider !== "github" || !profile) {
-        console.log("[GitHub OAuth] Rejected: provider or profile missing");
-        process.stdout.write("\n");
         return false;
       }
 
       const githubProfile = profile as Record<string, unknown>;
-      const login = String(githubProfile.login ?? "").toLowerCase();
-      const teacherGithubUserId = getTeacherGithubUserId();
-      const githubId = String(githubProfile.id ?? "");
-      const expectedLogin = getTeacherGithubLogin();
+      const login = String(githubProfile.login ?? "").trim();
+      const githubId = String(githubProfile.id ?? "").trim();
 
-      // Логирование для отладки
-      console.log("[GitHub OAuth] Login from GitHub:", login);
-      console.log("[GitHub OAuth] Expected login:", expectedLogin);
-      console.log("[GitHub OAuth] GitHub ID:", githubId);
-      console.log("[GitHub OAuth] Teacher User ID:", teacherGithubUserId);
-
-      if (teacherGithubUserId) {
-        const result = githubId === teacherGithubUserId;
-        console.log("[GitHub OAuth] Result (by ID):", result);
-        return result;
-      }
-
-      const result = login === expectedLogin;
-      console.log("[GitHub OAuth] Result (by login):", result);
-      return result;
+      return Boolean(login && githubId);
     },
     async jwt({ token, account, profile }) {
       if (account?.provider === "github" && profile) {
         const githubProfile = profile as Record<string, unknown>;
-        token.githubLogin = String(githubProfile.login ?? "");
-        token.githubId = String(githubProfile.id ?? "");
+        const githubLogin = String(githubProfile.login ?? "");
+        const githubId = String(githubProfile.id ?? "");
+
+        token.githubLogin = githubLogin;
+        token.githubId = githubId;
+        token.githubAccessToken = String(account.access_token ?? "");
+        token.role = isTeacherIdentity({
+          githubLogin: githubLogin.toLowerCase(),
+          githubId,
+        })
+          ? "teacher"
+          : "guest";
       }
 
       return token;
@@ -125,14 +149,19 @@ export const authOptions: NextAuthOptions = {
 
       session.user.id = String(token.sub ?? "");
       session.user.githubLogin = String(token.githubLogin ?? "");
+      session.user.githubId = String(token.githubId ?? "");
+      session.user.githubAccessToken = String(token.githubAccessToken ?? "");
+      session.user.role =
+        token.role === "teacher" || token.role === "student"
+          ? token.role
+          : "guest";
 
       return session;
     },
   },
-  debug: true, // Включить debug логи
+  debug: true,
 };
 
-// Логирование при инициализации
 console.log("[Auth] GITHUB_ID set:", !!process.env.GITHUB_ID);
 console.log("[Auth] GITHUB_SECRET set:", !!process.env.GITHUB_SECRET);
 console.log("[Auth] NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
@@ -142,18 +171,63 @@ export async function getAuthSession() {
   return getServerSession(authOptions);
 }
 
-export async function requireTeacherSession(): Promise<TeacherSessionUser> {
-  const session = await getAuthSession();
+export async function requireAuthenticatedSession(): Promise<AuthenticatedSessionUser> {
+  const user = buildAuthenticatedUser(await getAuthSession());
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/login");
   }
 
+  return user;
+}
+
+export async function getCurrentAuthRole(): Promise<AuthRole> {
+  const user = buildAuthenticatedUser(await getAuthSession());
+
+  if (!user) {
+    return "guest";
+  }
+
+  if (
+    isTeacherIdentity({
+      githubLogin: user.githubLogin.toLowerCase(),
+      githubId: user.githubId,
+    })
+  ) {
+    return "teacher";
+  }
+
+  const student = await getStudentByGithubUserId(user.githubId);
+
+  return student ? "student" : "guest";
+}
+
+export async function requireTeacherSession(): Promise<TeacherSessionUser> {
+  const user = await requireAuthenticatedSession();
+
+  if (
+    !isTeacherIdentity({
+      githubLogin: user.githubLogin.toLowerCase(),
+      githubId: user.githubId,
+    })
+  ) {
+    redirect("/auth/complete");
+  }
+
+  return user;
+}
+
+export async function requireStudentSession(): Promise<StudentSessionUser> {
+  const user = await requireAuthenticatedSession();
+  const student = await getStudentByGithubUserId(user.githubId);
+
+  if (!student) {
+    redirect("/auth/complete");
+  }
+
   return {
-    id: session.user.id,
-    name: session.user.name ?? "Teacher",
-    email: session.user.email ?? "",
-    image: session.user.image ?? undefined,
-    githubLogin: session.user.githubLogin ?? "",
+    ...user,
+    studentId: student.id,
+    studentName: `${student.firstName} ${student.lastName}`.trim(),
   };
 }

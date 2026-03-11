@@ -2,7 +2,7 @@
 
 ## Current Status
 
-Документация и архитектурный контур инициализированы. Локальный Git настроен и синхронизирован с удаленным репозиторием. Реализованы teacher-only GitHub OAuth, Appwrite schema provisioning, CRUD для `students` и `projects`, запись посещаемости и project detail actions.
+Документация и архитектурный контур инициализированы. Локальный Git настроен и синхронизирован с удаленным репозиторием. Реализованы teacher control room, Appwrite schema provisioning, CRUD для `students` и `projects`, запись посещаемости и project detail actions. Дополнительно активирован первый student-access сценарий: bind GitHub-аккаунта по `github_user_id` после Telegram-подтверждения и student-only выбор проекта на `/my-project`.
 
 ## Known Issues
 
@@ -11,9 +11,17 @@
 - даже после нормализации `project_state_json` нужно контролировать суммарный размер JSON при дальнейшем расширении AI summary и списков шагов.
 - для Telegram linking flow нужно сохранять синхронность `TELEGRAM_WEBHOOK_SECRET` между Vercel env и настройкой webhook у бота; при рассинхроне Telegram будет получать `401` от `/api/telegram/webhook`.
 - полный production smoke test teacher-only маршрутов нельзя завершить только терминальными проверками: для прохода `/students`, `/attendance`, `/projects` после логина и реальной Telegram-отправки нужна ручная teacher-сессия в браузере.
+- локальный `.env` не содержит `TELEGRAM_WEBHOOK_SECRET`, поэтому валидный production webhook smoke test с корректным секретом из терминала в этой среде недоступен.
+- в production/Appwrite коллекция `projects` сейчас пуста, поэтому teacher-only сценарии `/projects`, GitHub sync и AI-analysis пока можно проверить только на пустом состоянии или после появления хотя бы одного боевого проекта; проблема не в отсутствии Appwrite-коллекций или схемы.
+- student-access bind flow теперь зависит от `NEXTAUTH_URL`: без корректного публичного URL Telegram-бот не сможет выдать рабочую GitHub login-ссылку после `Start`.
 
 ## Changelog
 
+- 2026-03-11: реализован первый student-access сценарий. Добавлены маршруты `/auth/complete`, `/student/link` и `/my-project`; auth расширен до teacher/student/guest модели, student определяется по `students.github_user_id`, а `/my-project` позволяет выбрать собственный GitHub-репозиторий и создать draft-проект.
+- 2026-03-11: Telegram linking flow расширен до GitHub bind flow. После `Start` webhook сохраняет `telegram_chat_id`, генерирует одноразовый `github_link_token`, бот отправляет student login-ссылку, а bind route связывает GitHub-аккаунт с карточкой по `github_user_id`.
+- 2026-03-11: Appwrite schema обновлена под student bind flow: в `students` добавлены поля `github_link_token` и `github_link_expires_at`, а также индекс `students_by_github_link_token`; `bun run db:provision` успешно применил изменения.
+- 2026-03-11: перепроверена Appwrite-схема для проектов. Подтверждено наличие коллекций `projects` и `project_ai_reports`, всех ожидаемых атрибутов и индексов; `bun run db:provision` проходит идемпотентно без дополнительных изменений в Appwrite. Ограничение `/projects` сведено к пустым данным в production, а не к отсутствующей инфраструктуре.
+- 2026-03-11: продолжен read-only smoke test интеграций без браузера. Через Appwrite подтверждены `25` студентов, `3` auto-generated урока на неделю `2026-03-08`, отсутствие attendance-отметок на эту неделю и пустая коллекция `projects` в production. Дополнительно проверены внешние сервисы: `Telegram getMe` для `@dsbdr_bot` успешен, `GitHub API rate_limit` доступен без токена в базовом лимите `60/60`.
 - 2026-03-11: устранен шум `LF/CRLF` в рабочем дереве Windows. Для локального репозитория выставлен `git config --local core.autocrlf false`, после чего ложные `modified` по кодовым файлам сняты безопасной пересинхронизацией индекса через `git add`/`git reset` без содержательных изменений. `git status` снова показывает только реальные правки, `bun run lint` остается зеленым.
 - 2026-03-11: репозиторий приведен к чистому `biome check` без проверки Markdown-файлов. Выполнено автоисправление `bunx biome check --write` по не-Markdown файлам, после чего успешно проходят `bun run lint` и `bun run build`. В `git status` по многим кодовым файлам остается шум из-за `LF/CRLF` в рабочем дереве Windows, но содержательных diff по коду `git diff` не показывает.
 - 2026-03-11: начат production smoke test на Vercel. Автоматически подтверждены успешный `bun run build`, редирект `https://projects-tracker-one.vercel.app/` на `/login`, доступность `https://projects-tracker-one.vercel.app/login` с `200 OK` и защита `POST /api/telegram/webhook` ответом `401` без секрета. Полный teacher-only проход после логина и реальные Telegram-рассылки остались на ручную браузерную проверку.
@@ -69,4 +77,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `c02a3bd`
+- `last_checked_commit`: `ed86dd89af9515e723a8203e7e22583781c4f5ab`

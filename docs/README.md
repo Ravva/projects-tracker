@@ -2,12 +2,14 @@
 
 ## Product Scope
 
-`Projects Tracker` - teacher-only сервис для учета посещаемости и контроля ученических GitHub-проектов.
+`Projects Tracker` - сервис для teacher control room и ограниченного student-access сценария выбора проекта.
 
 MVP включает:
 
 - вход преподавателя через GitHub OAuth;
+- вход ученика через GitHub OAuth после подтверждения личности через Telegram;
 - teacher-only управление учениками, включая страницу редактирования ученика;
+- student-only выбор своего GitHub-репозитория на маршруте `/my-project`;
 - ручное заполнение `telegram_chat_id` преподавателем и привязку через персональные Telegram `start`-ссылки;
 - недельные занятия по шаблону вторник/четверг/пятница;
 - CRUD проектов, GitHub sync и ручной AI-анализ;
@@ -16,11 +18,13 @@ MVP включает:
 ## Roles
 
 - `teacher`: единственная активная роль в MVP;
-- `student`: future-ready роль, неактивна в MVP.
+- `student`: ограниченная роль для входа и выбора собственного проекта.
 
-### Future Student Access
+### Student Access
 
-Будущий доступ ученика должен строиться на GitHub OAuth и стабильном `github_user_id`. После входа ученик сможет выбрать только свой репозиторий из списка GitHub-репозиториев. Редактирование ученических данных, посещаемости и ручных оценок остается за преподавателем.
+Student-access строится на GitHub OAuth и стабильном `github_user_id`. После подтверждения через Telegram бот ученик получает одноразовую GitHub login-ссылку, связывает свой аккаунт с карточкой ученика и попадает на `/my-project`, где может выбрать только свой репозиторий из списка GitHub-репозиториев владельца. Редактирование ученических данных, посещаемости и ручных оценок остается за преподавателем.
+
+Детальное ТЗ: [Student Project Access](./student-project-access.md).
 
 ## Modules
 
@@ -28,7 +32,10 @@ MVP включает:
 
 - GitHub OAuth как единственный способ входа;
 - реализация на `next-auth`;
-- teacher-only guard для всех экранов MVP через `src/middleware.ts`;
+- teacher определяется по `TEACHER_GITHUB_USER_ID` или fallback `TEACHER_GITHUB_LOGIN`;
+- student определяется поиском по `students.github_user_id`;
+- post-login redirect идет через `/auth/complete`;
+- маршруты `/auth/complete`, `/student/link` и `/my-project` защищены через `src/middleware.ts`, а role-check выполняется на сервере;
 - допуск учителя по `TEACHER_GITHUB_USER_ID` или fallback `TEACHER_GITHUB_LOGIN`.
 
 ### Students
@@ -38,6 +45,7 @@ MVP включает:
 - teacher-only страница редактирования ученика для ввода `telegram_chat_id`;
 - teacher-only страница `/students` поддерживает массовую Telegram-рассылку по выбранным ученикам с пропуском карточек без `chat_id` и итоговой сводкой по отправке;
 - teacher-only страница ученика умеет выпускать персональную invite-ссылку `t.me/<bot>?start=<token>` для автоматической привязки `telegram_chat_id`;
+- после `Start` бот отправляет ученику одноразовую GitHub login-ссылку для безопасной привязки `github_user_id`;
 - импорт из XLSX без дедупликации в MVP.
 
 ### Attendance
@@ -96,6 +104,9 @@ MVP включает:
 - `/` - teacher dashboard с app shell, weekly focus, KPI, risk table, AI summaries и кнопкой ручной отправки weekly digest в Telegram преподавателя.
 - `/students` - teacher-only список учеников.
 - `/students/[studentId]` - teacher-only страница редактирования ученика.
+- `/auth/complete` - post-login resolver для teacher/student.
+- `/student/link` - защищенный bind route, который связывает GitHub-аккаунт ученика с карточкой по одноразовому token.
+- `/my-project` - student-only страница выбора GitHub-репозитория и создания draft-проекта.
 - `/api/telegram/webhook` - публичный route для Telegram Bot API, который обрабатывает `/start <token>` и сохраняет `telegram_chat_id` в карточку ученика.
 - `/attendance` - teacher-only weekly attendance workspace.
 - `/projects` - teacher-only project control workspace.
@@ -104,7 +115,8 @@ MVP включает:
 ## Local Development
 
 - dev server должен использовать `localhost:3100`.
-- `.env.example` включает `TELEGRAM_BOT_TOKEN` для ученических и teacher-only Telegram-уведомлений, `TELEGRAM_BOT_USERNAME` для генерации `start`-ссылок, `TELEGRAM_WEBHOOK_SECRET` для защиты webhook и `TEACHER_TELEGRAM_CHAT_ID` для weekly digest преподавателю.
+- `.env.example` включает `TELEGRAM_BOT_TOKEN` для ученических и teacher-only Telegram-уведомлений, `TELEGRAM_BOT_USERNAME` для генерации `start`-ссылок, `TELEGRAM_WEBHOOK_SECRET` для защиты webhook и `TEACHER_TELEGRAM_CHAT_ID` для weekly digest преподавателю;
+- GitHub OAuth запрашивает scope, достаточный для чтения списка student repositories владельца.
 
 ## Deployment
 
@@ -118,7 +130,7 @@ MVP включает:
 
 - для автоматической привязки ученика нужно настроить у бота webhook на публичный URL вида `https://<domain>/api/telegram/webhook`;
 - если задан `TELEGRAM_WEBHOOK_SECRET`, Telegram должен отправлять тот же secret в заголовке `x-telegram-bot-api-secret-token`;
-- в production teacher-only страница ученика уже выпускает персональную `start`-ссылку, а webhook автоматически сохраняет `telegram_chat_id` после нажатия `Start`.
+- в production teacher-only страница ученика уже выпускает персональную `start`-ссылку, webhook автоматически сохраняет `telegram_chat_id` после нажатия `Start`, а затем бот отправляет student login-ссылку для bind flow по `github_user_id`.
 
 ## Risk Rules
 
