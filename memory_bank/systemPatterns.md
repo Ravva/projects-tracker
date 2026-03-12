@@ -31,6 +31,15 @@
 - выбор репозитория создает draft-проект в `projects` со связкой `student_id + github_url`;
 - teacher review и дальнейшее редактирование проекта остаются в teacher-only модуле `/projects`.
 
+## Project Analysis Pattern
+
+- teacher-only AI-анализ проекта запускается из `/projects/[projectId]`;
+- backend читает `memory_bank/projectbrief.md`, `productContext.md`, `activeContext.md`, `progress.md` и опциональный `docs/README.md` прямо из student GitHub repository;
+- `completion_percent` считается детерминированно по уникальным задачам из `activeContext.md` и `progress.md`;
+- commit metrics и флаг `abandoned` считаются по истории коммитов default branch;
+- AI используется только для нормализации summary, risks и next steps поверх уже рассчитанного snapshot;
+- агрегированные metrics пишутся в `projects.project_state_json`, а история запусков — в `project_ai_reports`.
+
 ## Data Isolation
 
 - teacher repositories продолжают работать как раньше;

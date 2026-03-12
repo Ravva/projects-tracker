@@ -63,7 +63,10 @@ Student-access строится на GitHub OAuth и стабильном `githu
 
 - проект принадлежит ученику;
 - репозиторий нормализуется в `owner/repo/default_branch`;
-- AI-анализ запускается только если заполнены ТЗ и план разработки;
+- AI-анализ teacher-only проекта читает `memory_bank` и commit history прямо из student GitHub repository, а не полагается только на локально заполненные поля проекта;
+- `completion_percent` считается детерминированно по задачам из `memory_bank/activeContext.md` и `memory_bank/progress.md`;
+- AI используется только для нормализации summary и next steps поверх уже рассчитанных метрик;
+- детальное ТЗ механизма: [Project Repo Analysis](./project-repo-analysis.md);
 - project-формы ограничивают `name`, `summary`, `github_url`, `spec_markdown` и `plan_markdown` по фактическим лимитам Appwrite;
 - project-формы и поле `manualOverrideNote` показывают явные счетчики символов рядом с лимитами, чтобы преподаватель видел остаток до сохранения;
 - содержимое `project_state_json` нормализуется перед записью: `manualOverrideNote`, `aiSummary` и `nextSteps` подрезаются до безопасных размеров;
@@ -140,6 +143,10 @@ Student-access строится на GitHub OAuth и стабильном `githu
   - несуществующий репозиторий;
   - приватный репозиторий без доступа;
   - временные ошибки GitHub API.
+- риск `missing_memory_bank` означает отсутствие ожидаемых файлов `memory_bank` в student repo.
+- риск `missing_spec` означает отсутствие осмысленного ТЗ в `projectbrief.md` и `productContext.md`.
+- риск `missing_plan` означает отсутствие осмысленного плана в `activeContext.md` и `progress.md`.
+- риск `abandoned` означает, что последний коммит старше 7 дней.
 
 ## Dashboard Thresholds
 
