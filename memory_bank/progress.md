@@ -20,6 +20,7 @@
 
 ## Changelog
 
+- 2026-03-13: починен student bind flow после Telegram invite. Student GitHub login теперь стартует с landing URL `/login?studentLinkToken=...`, но OAuth callback целенаправленно уходит в `/student/link?token=...`; login page также умеет подхватывать `callbackUrl` от `next-auth`/`middleware` и при уже активной сессии автоматически продолжает bind вместо возврата на экран входа.
 - 2026-03-13: AI-анализ проектов переведен на единый официальный OpenAI client. Вынесен server-only модуль вызова OpenAI Responses API, анализ теперь использует только `OPENAI_API_KEY` и `OPENAI_MODEL`, а архитектурная документация синхронизирована без изменения `docs/OAuth.md`.
 - 2026-03-11: зафиксировано завершение ручного production smoke test teacher-only сценариев на Vercel. Подтверждены `/students`, `/attendance`, `/projects`, массовая Telegram-рассылка и teacher weekly digest; следующий шаг перенесен на 2026-03-12 для полного student-access smoke test.
 - 2026-03-11: локальный dev server переведен на `127.0.0.1:3300`. Диагностика показала, что в Windows порт `3100` входит в системный excluded TCP range `3068-3167`, поэтому bind на нем запрещен даже вне IPv6. Документация и memory bank синхронизированы.

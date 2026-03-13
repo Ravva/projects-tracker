@@ -145,8 +145,12 @@ export async function buildTelegramInviteLink(token: string) {
   return `https://t.me/${username}?start=${token}`;
 }
 
-export function buildStudentGithubLinkPath(token: string) {
+export function buildStudentGithubLoginPath(token: string) {
   return `/login?studentLinkToken=${encodeURIComponent(token)}`;
+}
+
+export function buildStudentGithubCallbackPath(token: string) {
+  return `/student/link?token=${encodeURIComponent(token)}`;
 }
 
 export function buildStudentGithubLinkUrl(token: string) {
@@ -154,7 +158,7 @@ export function buildStudentGithubLinkUrl(token: string) {
     return "";
   }
 
-  return `${APP_BASE_URL}${buildStudentGithubLinkPath(token)}`;
+  return `${APP_BASE_URL}${buildStudentGithubLoginPath(token)}`;
 }
 
 export async function issueStudentTelegramInvite(studentId: string) {

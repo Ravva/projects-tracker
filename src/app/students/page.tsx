@@ -207,19 +207,16 @@ export default async function StudentsPage() {
                 name="firstName"
                 placeholder="Имя"
                 className="rounded-xl bg-background/80"
-                required
               />
               <Input
                 name="lastName"
                 placeholder="Фамилия"
                 className="rounded-xl bg-background/80"
-                required
               />
               <Input
                 name="githubUsername"
                 placeholder="GitHub username"
                 className="rounded-xl bg-background/80"
-                required
               />
               <Input
                 name="githubUserId"

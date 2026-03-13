@@ -1,18 +1,71 @@
-import { getAuthConfigurationStatus } from "@/lib/server/auth";
-import { buildStudentGithubLinkPath } from "@/lib/server/telegram-linking";
+import { redirect } from "next/navigation";
+
+import {
+  getAuthConfigurationStatus,
+  getAuthSession,
+  getCurrentAuthRole,
+} from "@/lib/server/auth";
+import {
+  buildStudentGithubCallbackPath,
+  buildStudentGithubLoginPath,
+} from "@/lib/server/telegram-linking";
 import { LoginButton } from "./login-button";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; studentLinkToken?: string }>;
+  searchParams: Promise<{
+    callbackUrl?: string;
+    error?: string;
+    studentLinkToken?: string;
+  }>;
 }) {
   const authConfiguration = getAuthConfigurationStatus();
-  const { error, studentLinkToken } = await searchParams;
-  const isStudentBindFlow = Boolean(studentLinkToken?.trim());
-  const callbackUrl = isStudentBindFlow
-    ? buildStudentGithubLinkPath(studentLinkToken ?? "")
+  const session = await getAuthSession();
+  const {
+    callbackUrl: requestedCallbackUrl,
+    error,
+    studentLinkToken,
+  } = await searchParams;
+  const normalizedStudentLinkToken = studentLinkToken?.trim() ?? "";
+  const fallbackCallbackUrl = normalizedStudentLinkToken
+    ? buildStudentGithubCallbackPath(normalizedStudentLinkToken)
     : "/auth/complete";
+  const normalizedCallbackUrl = requestedCallbackUrl?.trim() ?? "";
+  const callbackUrlObject = normalizedCallbackUrl
+    ? new URL(normalizedCallbackUrl, "http://localhost")
+    : null;
+  const callbackStudentLinkToken =
+    callbackUrlObject?.searchParams.get("token")?.trim() ?? "";
+  const effectiveStudentLinkToken =
+    normalizedStudentLinkToken || callbackStudentLinkToken;
+  const isStudentBindFlow = Boolean(effectiveStudentLinkToken);
+  const resolvedCallbackUrl = normalizedCallbackUrl || fallbackCallbackUrl;
+
+  if (session?.user) {
+    if (effectiveStudentLinkToken) {
+      redirect(buildStudentGithubCallbackPath(effectiveStudentLinkToken));
+    }
+
+    const role = await getCurrentAuthRole();
+
+    if (role === "teacher") {
+      redirect("/");
+    }
+
+    if (role === "student") {
+      redirect("/my-project");
+    }
+
+    redirect("/auth/complete");
+  }
+
+  const oauthCallbackUrl = isStudentBindFlow
+    ? buildStudentGithubCallbackPath(effectiveStudentLinkToken)
+    : resolvedCallbackUrl;
+  const studentLoginPath = effectiveStudentLinkToken
+    ? buildStudentGithubLoginPath(effectiveStudentLinkToken)
+    : "";
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--status-calm)/0.12),transparent_28%),radial-gradient(circle_at_top_right,hsl(var(--status-warning)/0.12),transparent_22%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--background-secondary)))] px-5 py-10">
@@ -32,7 +85,7 @@ export default async function LoginPage({
 
           <div className="mt-8 flex flex-wrap gap-3">
             {authConfiguration.isConfigured ? (
-              <LoginButton callbackUrl={callbackUrl} />
+              <LoginButton callbackUrl={oauthCallbackUrl} />
             ) : (
               <span className="inline-flex cursor-not-allowed items-center rounded-xl bg-muted px-4 py-2 text-sm font-medium text-muted-foreground">
                 OAuth не настроен
@@ -51,6 +104,17 @@ export default async function LoginPage({
               {isStudentBindFlow
                 ? "Связать GitHub-аккаунт не удалось. Проверьте, что открыта актуальная ссылка из Telegram."
                 : "Доступ отклонён. Проверьте GitHub OAuth настройки и allowlist преподавателя."}
+            </div>
+          ) : null}
+
+          {isStudentBindFlow && studentLoginPath ? (
+            <div className="mt-6 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
+              Если после GitHub-авторизации браузер снова открыл страницу входа,
+              система автоматически продолжит привязку по этой student-ссылке:{" "}
+              <span className="font-medium text-foreground">
+                {studentLoginPath}
+              </span>
+              .
             </div>
           ) : null}
 
