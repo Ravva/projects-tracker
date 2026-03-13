@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
 
 export function LoginButton({
   callbackUrl = "/auth/complete",
@@ -8,12 +9,13 @@ export function LoginButton({
   callbackUrl?: string;
 }) {
   return (
-    <button
+    <Button
       type="button"
       onClick={() => signIn("github", { callbackUrl })}
-      className="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+      size="lg"
+      className="rounded-xl px-4 text-sm font-semibold shadow-sm shadow-primary/20"
     >
       Войти через GitHub
-    </button>
+    </Button>
   );
 }

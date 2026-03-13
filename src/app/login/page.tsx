@@ -91,12 +91,6 @@ export default async function LoginPage({
                 OAuth не настроен
               </span>
             )}
-            <a
-              href="/docs/README.md"
-              className="inline-flex items-center rounded-xl border border-border bg-background/90 px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
-            >
-              Архитектура
-            </a>
           </div>
 
           {error ? (

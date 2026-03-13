@@ -24,6 +24,7 @@
 - 2026-03-13: AI-анализ проектов переведен на единый официальный OpenAI client. Вынесен server-only модуль вызова OpenAI Responses API, анализ теперь использует только `OPENAI_API_KEY` и `OPENAI_MODEL`, а архитектурная документация синхронизирована без изменения `docs/OAuth.md`.
 - 2026-03-11: зафиксировано завершение ручного production smoke test teacher-only сценариев на Vercel. Подтверждены `/students`, `/attendance`, `/projects`, массовая Telegram-рассылка и teacher weekly digest; следующий шаг перенесен на 2026-03-12 для полного student-access smoke test.
 - 2026-03-11: локальный dev server переведен на `127.0.0.1:3300`. Диагностика показала, что в Windows порт `3100` входит в системный excluded TCP range `3068-3167`, поэтому bind на нем запрещен даже вне IPv6. Документация и memory bank синхронизированы.
+- 2026-03-13: выполнен минимальный polish страницы входа. На `/login` удалена вторичная ссылка `Архитектура`, а CTA `Войти через GitHub` переведен с самописного `button` на общий `Button` из UI-системы; `Biome` с автоисправлением и повторной проверкой для измененных TSX-файлов проходит успешно.
 - 2026-03-12: teacher-only AI-анализ проектов переведен на GitHub `memory_bank` и commit history. Новый server-side parser читает `memory_bank/projectbrief.md`, `productContext.md`, `activeContext.md`, `progress.md` и опциональный `docs/README.md`, считает детерминированный `completion_percent` по уникальным задачам, выставляет rule-based флаги `missing_memory_bank` / `missing_spec` / `missing_plan` / `abandoned`, сохраняет commit metrics в `project_state_json` и `project_ai_reports`, а страница `/projects/[projectId]` показывает repo signals и источники анализа. Обновлены архитектурная документация и memory bank.
 - 2026-03-11: ужесточена teacher-auth политика. В production роль `teacher` теперь определяется только по `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` оставлен fallback-механизмом только для non-production сред и локальной разработки. Обновлены `src/lib/server/auth.ts`, архитектурная документация и память проекта.
 - 2026-03-11: реализован первый student-access сценарий. Добавлены маршруты `/auth/complete`, `/student/link` и `/my-project`; auth расширен до teacher/student/guest модели, student определяется по `students.github_user_id`, а `/my-project` позволяет выбрать собственный GitHub-репозиторий и создать draft-проект.
@@ -86,4 +87,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `6efa1fa7a8c4a97555b55ad88cea3b4ecf87fa22`
+- `last_checked_commit`: `ca54bb28b00a17fdf865ecf17d5d88b2968bbd41`
