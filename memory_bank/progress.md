@@ -86,4 +86,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `df9f28101c0c28d3ca6207567d96cd533e60c16a`
+- `last_checked_commit`: `6efa1fa7a8c4a97555b55ad88cea3b4ecf87fa22`
