@@ -12,6 +12,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - в работе: откат `attendance` с мгновенной server-side записи на client-side draft с общей кнопкой сохранения, чтобы убрать задержку при проставлении посещаемости;
 - закрыто в текущей сессии: AI-анализ student-проектов переведен на чтение `memory_bank` из GitHub-репозитория, progress считается по задачам из `progress.md` и `activeContext.md`, commit metrics сохраняются в `project_state_json`/`project_ai_reports`, а teacher-only страница проекта показывает repo signals и флаг `abandoned` при отсутствии коммитов больше недели;
 - закрыто в текущей сессии: OpenAI-интеграция для AI-анализа вынесена в отдельный server-only клиент официального Responses API; анализ использует только `OPENAI_API_KEY` и `OPENAI_MODEL`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
+- закрыто в текущей сессии: до первого AI-анализа teacher-only проекты больше не получают ложный badge `missing_memory_bank`; список проектов, detail page, dashboard и weekly digest показывают нейтральное состояние `данные отсутствуют` до первого repo analysis;
 - закрыто в текущей сессии: production deployment на Vercel завершен, рабочий URL приложения — `https://projects-tracker-one.vercel.app`;
 - закрыто в текущей сессии: GitHub OAuth на Vercel стабилизирован, критичным env оказался корректный `NEXTAUTH_URL`;
 - закрыто в текущей сессии: Telegram webhook привязан к production route `/api/telegram/webhook` с `TELEGRAM_WEBHOOK_SECRET`;

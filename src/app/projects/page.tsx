@@ -20,6 +20,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PROJECT_FIELD_LIMITS } from "@/lib/project-limits";
+import {
+  getProjectProgressLabel,
+  getProjectRiskLabel,
+  getProjectRiskTone,
+} from "@/lib/project-risk";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { listProjects } from "@/lib/server/repositories/projects";
 import { listStudents } from "@/lib/server/repositories/students";
@@ -96,12 +101,12 @@ export default async function ProjectsPage() {
                       <TableCell>{project.status}</TableCell>
                       <TableCell>
                         <StatusPill
-                          tone={project.progress < 25 ? "critical" : "warning"}
-                          label={project.risk}
+                          tone={getProjectRiskTone(project)}
+                          label={getProjectRiskLabel(project.risk)}
                         />
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {project.progress}%
+                        {getProjectProgressLabel(project)}
                       </TableCell>
                     </TableRow>
                   ))

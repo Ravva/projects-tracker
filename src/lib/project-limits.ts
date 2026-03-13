@@ -64,7 +64,7 @@ export function normalizeProjectState(input: {
 }) {
   return {
     primaryRisk: trimToLimit(
-      input.primaryRisk ?? "healthy",
+      input.primaryRisk ?? "data_missing",
       PROJECT_STATE_LIMITS.primaryRisk,
     ),
     riskFlags: (input.riskFlags ?? []).slice(0, PROJECT_STATE_LIMITS.riskFlags),

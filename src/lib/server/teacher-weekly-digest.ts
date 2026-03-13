@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getProjectRiskLabel, isProjectInReviewZone } from "@/lib/project-risk";
 import { formatWeekRangeLabel } from "@/lib/server/date-utils";
 import { getCurrentAttendanceWeek } from "@/lib/server/repositories/attendance";
 import { listProjects } from "@/lib/server/repositories/projects";
@@ -8,6 +9,7 @@ import {
   sendTelegramMessage,
   TELEGRAM_CHAT_ID_PATTERN,
 } from "@/lib/server/telegram";
+import type { ProjectRecord } from "@/lib/types";
 
 const TEACHER_TELEGRAM_CHAT_ID =
   process.env.TEACHER_TELEGRAM_CHAT_ID?.trim() ?? "";
@@ -29,12 +31,12 @@ function buildDigestMessage(input: {
     attendanceRate: number;
     telegramChatId: string;
   }>;
-  riskyProjects: Array<{
-    studentName: string;
-    name: string;
-    progress: number;
-    risk: string;
-  }>;
+  riskyProjects: Array<
+    Pick<
+      ProjectRecord,
+      "studentName" | "name" | "progress" | "risk" | "hasAiAnalysisSnapshot"
+    >
+  >;
   filledChatIds: number;
   totalStudents: number;
 }) {
@@ -68,7 +70,7 @@ function buildDigestMessage(input: {
         .slice(0, 5)
         .map(
           (project) =>
-            `- ${project.studentName} / ${project.name}: ${project.progress}% (${project.risk})`,
+            `- ${project.studentName} / ${project.name}: ${project.hasAiAnalysisSnapshot ? `${project.progress}%` : "нет данных"} (${getProjectRiskLabel(project.risk)})`,
         ),
     );
   }
@@ -98,7 +100,9 @@ export async function sendTeacherWeeklyDigest(): Promise<TeacherWeeklyDigestResu
   const studentsNeedingAttention = students.filter(
     (student) => student.weeklyState !== "success",
   );
-  const riskyProjects = projects.filter((project) => project.progress < 50);
+  const riskyProjects = projects.filter((project) =>
+    isProjectInReviewZone(project),
+  );
   const filledChatIds = students.filter((student) =>
     Boolean(student.telegramChatId),
   ).length;

@@ -49,6 +49,24 @@ function normalizeRiskFlags(value: unknown): ProjectRisk[] {
   return [];
 }
 
+function normalizeProjectRisk(value: unknown): ProjectRisk {
+  if (
+    value === "data_missing" ||
+    value === "healthy" ||
+    value === "invalid_github_repo" ||
+    value === "missing_memory_bank" ||
+    value === "missing_spec" ||
+    value === "missing_plan" ||
+    value === "abandoned" ||
+    value === "stale_repo" ||
+    value === "low_progress"
+  ) {
+    return value;
+  }
+
+  return "healthy";
+}
+
 function parseStringList(value: unknown) {
   if (!value) {
     return [];
@@ -214,6 +232,7 @@ export function mapProjectDocument(
   const manualOverrideEnabled = Boolean(
     projectState.manualOverrideEnabled ?? false,
   );
+  const lastAiAnalysisAtRaw = String(projectState.lastAiAnalysisAt ?? "");
   const aiCompletionPercent = Number(projectState.aiCompletionPercent ?? 0);
   const manualCompletionPercentRaw = projectState.manualCompletionPercent;
   const manualCompletionPercent =
@@ -233,8 +252,9 @@ export function mapProjectDocument(
     name: String(getField(document, "name") ?? ""),
     summary: String(getField(document, "summary") ?? ""),
     status: String(getField(document, "status") ?? "draft"),
-    risk: String(projectState.primaryRisk ?? "healthy"),
+    risk: normalizeProjectRisk(projectState.primaryRisk),
     riskFlags,
+    hasAiAnalysisSnapshot: Boolean(lastAiAnalysisAtRaw),
     progress,
     aiCompletionPercent,
     manualCompletionPercent,
@@ -259,7 +279,7 @@ export function mapProjectDocument(
     lastCommit: String(githubState.lastCommitAt ?? "Нет данных"),
     lastCommitSha: String(githubState.lastCommitSha ?? ""),
     lastSyncAt: String(githubState.lastSyncAt ?? "Нет данных"),
-    lastAiAnalysisAt: String(projectState.lastAiAnalysisAt ?? "Нет данных"),
+    lastAiAnalysisAt: lastAiAnalysisAtRaw || "Нет данных",
     githubUrl: String(getField(document, "github_url") ?? ""),
     githubOwner: String(githubState.owner ?? ""),
     githubRepo: String(githubState.repo ?? ""),

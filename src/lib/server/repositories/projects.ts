@@ -24,6 +24,12 @@ import type {
   ProjectRisk,
 } from "@/lib/types";
 
+function hasProjectAiAnalysisSnapshot(
+  project: Pick<ProjectRecord, "hasAiAnalysisSnapshot">,
+) {
+  return project.hasAiAnalysisSnapshot;
+}
+
 function parseGithubUrl(githubUrl: string) {
   const match = githubUrl
     .trim()
@@ -103,6 +109,25 @@ function buildProjectState(
 
 function normalizeProjectRiskFlags(project: ProjectRecord) {
   const flags = new Set<ProjectRisk>();
+  const analysisSnapshotAvailable = hasProjectAiAnalysisSnapshot(project);
+
+  if (!analysisSnapshotAvailable) {
+    for (const flag of project.riskFlags) {
+      if (
+        flag === "invalid_github_repo" ||
+        flag === "abandoned" ||
+        flag === "stale_repo"
+      ) {
+        flags.add(flag === "stale_repo" ? "abandoned" : flag);
+      }
+    }
+
+    if (project.isAbandoned) {
+      flags.add("abandoned");
+    }
+
+    return [...flags];
+  }
 
   if (!project.hasMemoryBank) {
     flags.add("missing_memory_bank");
@@ -136,9 +161,22 @@ function normalizeProjectRiskFlags(project: ProjectRecord) {
   return [...flags];
 }
 
-function primaryRiskFromFlags(flags: ProjectRisk[]) {
+function primaryRiskFromFlags(
+  flags: ProjectRisk[],
+  options: {
+    hasAiAnalysisSnapshot: boolean;
+  },
+): ProjectRisk {
   if (flags.includes("invalid_github_repo")) {
     return "invalid_github_repo";
+  }
+
+  if (flags.includes("abandoned") || flags.includes("stale_repo")) {
+    return "abandoned";
+  }
+
+  if (!options.hasAiAnalysisSnapshot) {
+    return "data_missing";
   }
 
   if (flags.includes("missing_memory_bank")) {
@@ -151,10 +189,6 @@ function primaryRiskFromFlags(flags: ProjectRisk[]) {
 
   if (flags.includes("missing_plan")) {
     return "missing_plan";
-  }
-
-  if (flags.includes("abandoned") || flags.includes("stale_repo")) {
-    return "abandoned";
   }
 
   if (flags.includes("low_progress")) {
@@ -260,7 +294,9 @@ export async function listProjects(): Promise<ProjectRecord[]> {
       return {
         ...project,
         riskFlags,
-        risk: primaryRiskFromFlags(riskFlags),
+        risk: primaryRiskFromFlags(riskFlags, {
+          hasAiAnalysisSnapshot: hasProjectAiAnalysisSnapshot(project),
+        }),
       };
     });
   } catch {
@@ -294,7 +330,9 @@ export async function listProjectsByStudentId(
       return {
         ...project,
         riskFlags,
-        risk: primaryRiskFromFlags(riskFlags),
+        risk: primaryRiskFromFlags(riskFlags, {
+          hasAiAnalysisSnapshot: hasProjectAiAnalysisSnapshot(project),
+        }),
       };
     });
   } catch {
@@ -333,7 +371,9 @@ export async function getProject(
     return {
       ...project,
       riskFlags,
-      risk: primaryRiskFromFlags(riskFlags),
+      risk: primaryRiskFromFlags(riskFlags, {
+        hasAiAnalysisSnapshot: hasProjectAiAnalysisSnapshot(project),
+      }),
     };
   } catch {
     return null;
@@ -470,7 +510,9 @@ async function updateProjectRiskFlags(projectId: string, flags: ProjectRisk[]) {
     projectId,
     {
       project_state_json: buildProjectStateFromProject(project, {
-        primaryRisk: primaryRiskFromFlags(flags),
+        primaryRisk: primaryRiskFromFlags(flags, {
+          hasAiAnalysisSnapshot: hasProjectAiAnalysisSnapshot(project),
+        }),
         riskFlags: flags,
       }),
     },
@@ -549,7 +591,9 @@ export async function syncProjectGithub(projectId: string) {
           lastSyncAt: new Date().toISOString(),
         }),
         project_state_json: buildProjectStateFromProject(project, {
-          primaryRisk: primaryRiskFromFlags(riskFlags),
+          primaryRisk: primaryRiskFromFlags(riskFlags, {
+            hasAiAnalysisSnapshot: hasProjectAiAnalysisSnapshot(project),
+          }),
           riskFlags,
           hasRepository: true,
           lastCommitDaysAgo: lastCommit?.committedAt
@@ -733,7 +777,9 @@ export async function runProjectAiAnalysis(projectId: string) {
         lastSyncAt: new Date().toISOString(),
       }),
       project_state_json: buildProjectStateFromProject(project, {
-        primaryRisk: primaryRiskFromFlags(nextRiskFlags),
+        primaryRisk: primaryRiskFromFlags(nextRiskFlags, {
+          hasAiAnalysisSnapshot: true,
+        }),
         riskFlags: nextRiskFlags,
         aiCompletionPercent: completionPercent,
         manualCompletionPercent: project.manualCompletionPercent,

@@ -20,6 +20,7 @@
 
 ## Changelog
 
+- 2026-03-13: исправлена pre-analysis индикация проектов. До первого AI-анализа teacher-only UI больше не интерпретирует дефолтные `false` в `project_state_json` как реальные `missing_memory_bank` / `missing_spec` / `missing_plan`; вместо этого список проектов, detail page, dashboard и weekly digest показывают статус `данные отсутствуют` до первого repo analysis.
 - 2026-03-13: починен student bind flow после Telegram invite. Student GitHub login теперь стартует с landing URL `/login?studentLinkToken=...`, но OAuth callback целенаправленно уходит в `/student/link?token=...`; login page также умеет подхватывать `callbackUrl` от `next-auth`/`middleware` и при уже активной сессии автоматически продолжает bind вместо возврата на экран входа.
 - 2026-03-13: AI-анализ проектов переведен на единый официальный OpenAI client. Вынесен server-only модуль вызова OpenAI Responses API, анализ теперь использует только `OPENAI_API_KEY` и `OPENAI_MODEL`, а архитектурная документация синхронизирована без изменения `docs/OAuth.md`.
 - 2026-03-11: зафиксировано завершение ручного production smoke test teacher-only сценариев на Vercel. Подтверждены `/students`, `/attendance`, `/projects`, массовая Telegram-рассылка и teacher weekly digest; следующий шаг перенесен на 2026-03-12 для полного student-access smoke test.
@@ -87,4 +88,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `ca54bb28b00a17fdf865ecf17d5d88b2968bbd41`
+- `last_checked_commit`: `a0d92a9c6a223f09727bba0b6bd3a36bdc78b2ba`

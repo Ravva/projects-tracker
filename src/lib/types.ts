@@ -93,6 +93,7 @@ export type AttendanceWeekRecord = {
 };
 
 export type ProjectRisk =
+  | "data_missing"
   | "healthy"
   | "invalid_github_repo"
   | "missing_memory_bank"
@@ -124,8 +125,9 @@ export type ProjectRecord = ProjectRepositoryMetrics & {
   name: string;
   summary: string;
   status: string;
-  risk: string;
+  risk: ProjectRisk;
   riskFlags: ProjectRisk[];
+  hasAiAnalysisSnapshot: boolean;
   progress: number;
   aiCompletionPercent: number;
   manualCompletionPercent: number | null;

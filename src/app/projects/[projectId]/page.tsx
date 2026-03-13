@@ -29,6 +29,12 @@ import {
   PROJECT_FIELD_LIMITS,
   PROJECT_STATE_LIMITS,
 } from "@/lib/project-limits";
+import {
+  getProjectBooleanMetricLabel,
+  getProjectProgressLabel,
+  getProjectRiskLabel,
+  getProjectRiskTone,
+} from "@/lib/project-risk";
 import { requireTeacherSession } from "@/lib/server/auth";
 import {
   getProject,
@@ -52,6 +58,10 @@ export default async function ProjectDetailsPage({
   if (!project) {
     notFound();
   }
+
+  const aiSummaryText = project.hasAiAnalysisSnapshot
+    ? project.aiSummary || "AI summary пока не рассчитан."
+    : "Данные AI-анализа пока отсутствуют. Запустите AI-анализ, чтобы получить summary и сигналы репозитория.";
 
   return (
     <TeacherShell
@@ -90,8 +100,8 @@ export default async function ProjectDetailsPage({
                 <CardTitle className="flex items-center justify-between text-base">
                   Overview
                   <StatusPill
-                    tone={project.progress < 25 ? "critical" : "warning"}
-                    label={`${project.progress}%`}
+                    tone={getProjectRiskTone(project)}
+                    label={getProjectProgressLabel(project)}
                   />
                 </CardTitle>
               </CardHeader>
@@ -161,7 +171,7 @@ export default async function ProjectDetailsPage({
                       <option value="review">review</option>
                       <option value="done">done</option>
                     </select>
-                    <div>Текущий риск: {project.risk}</div>
+                    <div>Текущий риск: {getProjectRiskLabel(project.risk)}</div>
                   </div>
                 </div>
               </CardContent>
@@ -227,12 +237,10 @@ export default async function ProjectDetailsPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
-              <p className="leading-7 text-muted-foreground">
-                {project.aiSummary || "AI summary пока не рассчитан."}
-              </p>
+              <p className="leading-7 text-muted-foreground">{aiSummaryText}</p>
               <StatusPill
-                tone={project.progress < 25 ? "critical" : "warning"}
-                label={project.risk}
+                tone={getProjectRiskTone(project)}
+                label={getProjectRiskLabel(project.risk)}
               />
               <div className="grid gap-3 rounded-2xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground sm:grid-cols-2">
                 <div>
@@ -246,10 +254,29 @@ export default async function ProjectDetailsPage({
                     </div>
                     <div>
                       memory_bank:{" "}
-                      {project.hasMemoryBank ? "обнаружен" : "отсутствует"}
+                      {getProjectBooleanMetricLabel(
+                        project,
+                        project.hasMemoryBank,
+                        {
+                          positive: "обнаружен",
+                          negative: "отсутствует",
+                        },
+                      )}
                     </div>
-                    <div>ТЗ: {project.hasSpec ? "есть" : "нет"}</div>
-                    <div>План: {project.hasPlan ? "есть" : "нет"}</div>
+                    <div>
+                      ТЗ:{" "}
+                      {getProjectBooleanMetricLabel(project, project.hasSpec, {
+                        positive: "есть",
+                        negative: "нет",
+                      })}
+                    </div>
+                    <div>
+                      План:{" "}
+                      {getProjectBooleanMetricLabel(project, project.hasPlan, {
+                        positive: "есть",
+                        negative: "нет",
+                      })}
+                    </div>
                   </div>
                 </div>
                 <div>
@@ -257,26 +284,39 @@ export default async function ProjectDetailsPage({
                     Задачи и коммиты
                   </div>
                   <div className="mt-2 space-y-1">
-                    <div>
-                      Задачи: {project.trackedTasksCompleted}/
-                      {project.trackedTasksTotal}
-                    </div>
-                    <div>
-                      В работе: {project.trackedTasksInProgress}, pending:{" "}
-                      {project.trackedTasksPending}
-                    </div>
-                    <div>Коммитов в выборке: {project.commitCount}</div>
-                    <div>Частота: {project.commitsPerWeek}/нед</div>
-                    <div>
-                      Последний коммит:{" "}
-                      {project.lastCommitDaysAgo === null
-                        ? "нет данных"
-                        : `${project.lastCommitDaysAgo} дн. назад`}
-                    </div>
-                    <div>
-                      Статус активности:{" "}
-                      {project.isAbandoned ? "проект заброшен" : "активен"}
-                    </div>
+                    {project.hasAiAnalysisSnapshot ? (
+                      <>
+                        <div>
+                          Задачи: {project.trackedTasksCompleted}/
+                          {project.trackedTasksTotal}
+                        </div>
+                        <div>
+                          В работе: {project.trackedTasksInProgress}, pending:{" "}
+                          {project.trackedTasksPending}
+                        </div>
+                        <div>Коммитов в выборке: {project.commitCount}</div>
+                        <div>Частота: {project.commitsPerWeek}/нед</div>
+                        <div>
+                          Последний коммит:{" "}
+                          {project.lastCommitDaysAgo === null
+                            ? "нет данных"
+                            : `${project.lastCommitDaysAgo} дн. назад`}
+                        </div>
+                        <div>
+                          Статус активности:{" "}
+                          {project.isAbandoned ? "проект заброшен" : "активен"}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>Задачи: нет данных</div>
+                        <div>В работе: нет данных</div>
+                        <div>Коммитов в выборке: нет данных</div>
+                        <div>Частота: нет данных</div>
+                        <div>Последний коммит: нет данных</div>
+                        <div>Статус активности: нет данных</div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

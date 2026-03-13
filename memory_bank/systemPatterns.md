@@ -39,6 +39,7 @@
 - commit metrics и флаг `abandoned` считаются по истории коммитов default branch;
 - AI используется только для нормализации summary, risks и next steps поверх уже рассчитанного snapshot;
 - запрос к модели идет через server-only клиент официального OpenAI Responses API с `OPENAI_API_KEY` и `OPENAI_MODEL`;
+- до первого AI-анализа проект остается в нейтральном состоянии `данные отсутствуют`; флаги `missing_memory_bank`, `missing_spec` и `missing_plan` выставляются только после реального repo analysis;
 - агрегированные metrics пишутся в `projects.project_state_json`, а история запусков — в `project_ai_reports`.
 
 ## Data Isolation

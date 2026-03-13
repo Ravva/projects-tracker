@@ -67,6 +67,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - вызов модели идет только через официальный OpenAI Responses API с серверным `OPENAI_API_KEY`; пользовательские OAuth-токены и неофициальные ChatGPT-потоки не используются;
 - `completion_percent` считается детерминированно по задачам из `memory_bank/activeContext.md` и `memory_bank/progress.md`;
 - AI используется только для нормализации summary и next steps поверх уже рассчитанных метрик;
+- до первого AI-анализа UI показывает состояние `данные отсутствуют`; флаги `missing_memory_bank`, `missing_spec` и `missing_plan` появляются только после реального анализа репозитория;
 - детальное ТЗ механизма: [Project Repo Analysis](./project-repo-analysis.md);
 - project-формы ограничивают `name`, `summary`, `github_url`, `spec_markdown` и `plan_markdown` по фактическим лимитам Appwrite;
 - project-формы и поле `manualOverrideNote` показывают явные счетчики символов рядом с лимитами, чтобы преподаватель видел остаток до сохранения;
@@ -146,6 +147,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
   - несуществующий репозиторий;
   - приватный репозиторий без доступа;
   - временные ошибки GitHub API.
+- риск `data_missing` означает, что AI-анализ еще не запускался и repository-derived signals пока не собраны.
 - риск `missing_memory_bank` означает отсутствие ожидаемых файлов `memory_bank` в student repo.
 - риск `missing_spec` означает отсутствие осмысленного ТЗ в `projectbrief.md` и `productContext.md`.
 - риск `missing_plan` означает отсутствие осмысленного плана в `activeContext.md` и `progress.md`.

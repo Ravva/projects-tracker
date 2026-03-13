@@ -34,6 +34,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  getProjectProgressLabel,
+  getProjectRiskLabel,
+  getProjectRiskTone,
+  isProjectInReviewZone,
+} from "@/lib/project-risk";
 import { parseIsoDate } from "@/lib/server/date-utils";
 import { getCurrentAttendanceWeek } from "@/lib/server/repositories/attendance";
 import { listProjects } from "@/lib/server/repositories/projects";
@@ -70,7 +76,9 @@ export async function TeacherDashboard({
   const studentsNeedingAttention = students.filter(
     (student) => student.weeklyState !== "success",
   );
-  const riskyProjects = projects.filter((project) => project.progress < 50);
+  const riskyProjects = projects.filter((project) =>
+    isProjectInReviewZone(project),
+  );
   const filledChatIds = students.filter(
     (student) => student.telegramChatId,
   ).length;
@@ -429,12 +437,12 @@ export async function TeacherDashboard({
                       </TableCell>
                       <TableCell>
                         <StatusPill
-                          tone={project.progress < 25 ? "critical" : "warning"}
-                          label={project.risk}
+                          tone={getProjectRiskTone(project)}
+                          label={getProjectRiskLabel(project.risk)}
                         />
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {project.progress}%
+                        {getProjectProgressLabel(project)}
                       </TableCell>
                     </TableRow>
                   ))
