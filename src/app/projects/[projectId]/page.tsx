@@ -7,7 +7,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
+import { RunAiAnalysisButton } from "@/app/projects/[projectId]/run-ai-analysis-button";
 import {
   deleteProjectAction,
   runProjectAiAnalysisAction,
@@ -28,6 +28,7 @@ import {
   getProject,
   listProjectAiReports,
 } from "@/lib/server/repositories/projects";
+import { cn } from "@/lib/utils";
 
 type ProjectSnapshotPreview = {
   memoryBankPreview?: {
@@ -50,6 +51,22 @@ function parseInputSnapshotPreview(rawJson: string) {
 function extractTextOrFallback(value: string | undefined, fallback: string) {
   const normalized = value?.trim();
   return normalized || fallback;
+}
+
+function getSignalToneClasses(
+  tone: "critical" | "warning" | "success" | "calm",
+) {
+  return cn(
+    "rounded-2xl border p-4",
+    tone === "critical" &&
+      "border-[hsl(var(--status-critical)/0.35)] bg-[hsl(var(--status-critical)/0.08)]",
+    tone === "warning" &&
+      "border-[hsl(var(--status-warning)/0.35)] bg-[hsl(var(--status-warning)/0.1)]",
+    tone === "success" &&
+      "border-[hsl(var(--status-success)/0.35)] bg-[hsl(var(--status-success)/0.08)]",
+    tone === "calm" &&
+      "border-[hsl(var(--status-calm)/0.35)] bg-[hsl(var(--status-calm)/0.08)]",
+  );
 }
 
 export default async function ProjectDetailsPage({
@@ -95,6 +112,21 @@ export default async function ProjectDetailsPage({
   const aiSummaryText = project.hasAiAnalysisSnapshot
     ? project.aiSummary || "AI summary пока не рассчитан."
     : "Данные AI-анализа пока отсутствуют. Запустите AI-анализ, чтобы получить project overview и repo signals.";
+  const progressTone = !project.hasAiAnalysisSnapshot
+    ? "calm"
+    : project.progress >= 75
+      ? "success"
+      : project.progress >= 40
+        ? "warning"
+        : "critical";
+  const riskTone = getProjectRiskTone(project);
+  const activityTone = !project.hasAiAnalysisSnapshot
+    ? "calm"
+    : project.isAbandoned
+      ? "critical"
+      : project.lastCommitDaysAgo !== null && project.lastCommitDaysAgo <= 2
+        ? "success"
+        : "warning";
 
   return (
     <TeacherShell
@@ -119,7 +151,7 @@ export default async function ProjectDetailsPage({
           </form>
           <form action={runProjectAiAnalysisAction}>
             <input type="hidden" name="projectId" value={project.id} />
-            <Button className="rounded-xl">Запустить AI-анализ</Button>
+            <RunAiAnalysisButton />
           </form>
         </>
       }
@@ -164,7 +196,7 @@ export default async function ProjectDetailsPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className={getSignalToneClasses(progressTone)}>
                 <div className="text-sm font-medium text-foreground">
                   Выполнение
                 </div>
@@ -176,7 +208,7 @@ export default async function ProjectDetailsPage({
                   deliverables завершено
                 </div>
               </div>
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className={getSignalToneClasses(riskTone)}>
                 <div className="text-sm font-medium text-foreground">Риск</div>
                 <div className="mt-3">
                   <StatusPill
@@ -188,7 +220,7 @@ export default async function ProjectDetailsPage({
                   Статус проекта: {project.status}
                 </div>
               </div>
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className={getSignalToneClasses(activityTone)}>
                 <div className="text-sm font-medium text-foreground">
                   Активность
                 </div>
