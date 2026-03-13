@@ -49,6 +49,18 @@ export function normalizeProjectState(input: {
   lastAiAnalysisAt?: string;
   aiSummary?: string;
   nextSteps?: string[];
+  hasRepository?: boolean;
+  hasMemoryBank?: boolean;
+  hasSpec?: boolean;
+  hasPlan?: boolean;
+  trackedTasksTotal?: number;
+  trackedTasksCompleted?: number;
+  trackedTasksInProgress?: number;
+  trackedTasksPending?: number;
+  commitCount?: number;
+  commitsPerWeek?: number;
+  lastCommitDaysAgo?: number | null;
+  isAbandoned?: boolean;
 }) {
   return {
     primaryRisk: trimToLimit(
@@ -71,5 +83,17 @@ export function normalizeProjectState(input: {
     nextSteps: (input.nextSteps ?? [])
       .slice(0, PROJECT_STATE_LIMITS.nextSteps)
       .map((step) => trimToLimit(step, PROJECT_STATE_LIMITS.nextStepItem)),
+    hasRepository: input.hasRepository ?? false,
+    hasMemoryBank: input.hasMemoryBank ?? false,
+    hasSpec: input.hasSpec ?? false,
+    hasPlan: input.hasPlan ?? false,
+    trackedTasksTotal: input.trackedTasksTotal ?? 0,
+    trackedTasksCompleted: input.trackedTasksCompleted ?? 0,
+    trackedTasksInProgress: input.trackedTasksInProgress ?? 0,
+    trackedTasksPending: input.trackedTasksPending ?? 0,
+    commitCount: input.commitCount ?? 0,
+    commitsPerWeek: input.commitsPerWeek ?? 0,
+    lastCommitDaysAgo: input.lastCommitDaysAgo ?? null,
+    isAbandoned: input.isAbandoned ?? false,
   };
 }

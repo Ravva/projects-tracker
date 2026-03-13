@@ -10,6 +10,8 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - удерживать teacher-only UI и документацию синхронизированными;
 - стабилизировать CRUD-потоки `students`, `attendance` и `projects` на реальных данных;
 - в работе: откат `attendance` с мгновенной server-side записи на client-side draft с общей кнопкой сохранения, чтобы убрать задержку при проставлении посещаемости;
+- закрыто в текущей сессии: AI-анализ student-проектов переведен на чтение `memory_bank` из GitHub-репозитория, progress считается по задачам из `progress.md` и `activeContext.md`, commit metrics сохраняются в `project_state_json`/`project_ai_reports`, а teacher-only страница проекта показывает repo signals и флаг `abandoned` при отсутствии коммитов больше недели;
+- закрыто в текущей сессии: OpenAI-интеграция для AI-анализа вынесена в отдельный server-only клиент официального Responses API; анализ использует только `OPENAI_API_KEY` и `OPENAI_MODEL`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
 - закрыто в текущей сессии: production deployment на Vercel завершен, рабочий URL приложения — `https://projects-tracker-one.vercel.app`;
 - закрыто в текущей сессии: GitHub OAuth на Vercel стабилизирован, критичным env оказался корректный `NEXTAUTH_URL`;
 - закрыто в текущей сессии: Telegram webhook привязан к production route `/api/telegram/webhook` с `TELEGRAM_WEBHOOK_SECRET`;
@@ -67,6 +69,8 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - `projects` и `project_ai_reports` хранят часть состояния в компактных JSON-полях из-за лимитов Appwrite;
 - при отсутствии Appwrite-конфигурации страницы показывают пустые состояния вместо локального mock-слоя;
 - итоговая степень реализации проекта вычисляется на лету;
+- AI-анализ проекта должен опираться на данные из `memory_bank` student-репозитория и commit history GitHub, а AI используется для нормализации summary и next steps поверх собранных метрик;
+- вызов модели для teacher-only AI-анализа должен идти только через официальный OpenAI Responses API с серверным `OPENAI_API_KEY`;
 - ручной override сбрасывается после следующего AI-анализа;
 - будущая привязка student-access должна строиться на `github_user_id`, а не на username.
 - production teacher-access должен опираться только на `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` допустим только как non-production fallback.

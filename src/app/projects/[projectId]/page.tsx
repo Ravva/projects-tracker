@@ -234,6 +234,52 @@ export default async function ProjectDetailsPage({
                 tone={project.progress < 25 ? "critical" : "warning"}
                 label={project.risk}
               />
+              <div className="grid gap-3 rounded-2xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground sm:grid-cols-2">
+                <div>
+                  <div className="font-medium text-foreground">
+                    Репозиторий и memory bank
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    <div>
+                      Репозиторий:{" "}
+                      {project.hasRepository ? "подключен" : "не найден"}
+                    </div>
+                    <div>
+                      memory_bank:{" "}
+                      {project.hasMemoryBank ? "обнаружен" : "отсутствует"}
+                    </div>
+                    <div>ТЗ: {project.hasSpec ? "есть" : "нет"}</div>
+                    <div>План: {project.hasPlan ? "есть" : "нет"}</div>
+                  </div>
+                </div>
+                <div>
+                  <div className="font-medium text-foreground">
+                    Задачи и коммиты
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    <div>
+                      Задачи: {project.trackedTasksCompleted}/
+                      {project.trackedTasksTotal}
+                    </div>
+                    <div>
+                      В работе: {project.trackedTasksInProgress}, pending:{" "}
+                      {project.trackedTasksPending}
+                    </div>
+                    <div>Коммитов в выборке: {project.commitCount}</div>
+                    <div>Частота: {project.commitsPerWeek}/нед</div>
+                    <div>
+                      Последний коммит:{" "}
+                      {project.lastCommitDaysAgo === null
+                        ? "нет данных"
+                        : `${project.lastCommitDaysAgo} дн. назад`}
+                    </div>
+                    <div>
+                      Статус активности:{" "}
+                      {project.isAbandoned ? "проект заброшен" : "активен"}
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                 <div className="text-sm font-medium">Ручной override</div>
                 <form
@@ -324,9 +370,20 @@ export default async function ProjectDetailsPage({
                   <div className="font-medium">
                     {report.completionPercent}% • {report.createdAt}
                   </div>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    memory_bank: {report.hasMemoryBank ? "да" : "нет"} • ТЗ:{" "}
+                    {report.hasSpec ? "да" : "нет"} • План:{" "}
+                    {report.hasPlan ? "да" : "нет"} • Коммиты:{" "}
+                    {report.commitCount} • Частота: {report.commitsPerWeek}/нед
+                  </div>
                   <p className="mt-2 leading-6 text-muted-foreground">
                     {report.summary}
                   </p>
+                  {report.sourceFiles.length > 0 ? (
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                      Источники: {report.sourceFiles.join(", ")}
+                    </p>
+                  ) : null}
                 </div>
               ))}
               {reports.length === 0 ? (

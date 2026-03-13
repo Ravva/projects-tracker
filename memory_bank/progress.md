@@ -2,7 +2,7 @@
 
 ## Current Status
 
-Документация и архитектурный контур инициализированы. Локальный Git настроен и синхронизирован с удаленным репозиторием. Реализованы teacher control room, Appwrite schema provisioning, CRUD для `students` и `projects`, запись посещаемости и project detail actions. Дополнительно активирован первый student-access сценарий: bind GitHub-аккаунта по `github_user_id` после Telegram-подтверждения и student-only выбор проекта на `/my-project`.
+Документация и архитектурный контур инициализированы. Локальный Git настроен и синхронизирован с удаленным репозиторием. Реализованы teacher control room, Appwrite schema provisioning, CRUD для `students` и `projects`, запись посещаемости и project detail actions. Дополнительно активирован первый student-access сценарий: bind GitHub-аккаунта по `github_user_id` после Telegram-подтверждения и student-only выбор проекта на `/my-project`. Teacher-only AI-анализ проектов теперь опирается на данные `memory_bank` и commit history student GitHub repository, а не только на локально заполненные поля проекта.
 
 ## Known Issues
 
@@ -16,11 +16,14 @@
 - student-access bind flow теперь зависит от `NEXTAUTH_URL`: без корректного публичного URL Telegram-бот не сможет выдать рабочую GitHub login-ссылку после `Start`.
 - production teacher login теперь требует `TEACHER_GITHUB_USER_ID`; если переменная не задана, teacher-доступ считается не настроенным даже при наличии `TEACHER_GITHUB_LOGIN`.
 - полный production smoke test student-access сценария еще не пройден; он перенесен на 2026-03-12.
+- commit metrics сейчас считаются по выборке последних commit pages GitHub API, поэтому для очень больших репозиториев частота и количество отражают актуальное рабочее окно, а не бесконечную историю всего проекта.
 
 ## Changelog
 
+- 2026-03-13: AI-анализ проектов переведен на единый официальный OpenAI client. Вынесен server-only модуль вызова OpenAI Responses API, анализ теперь использует только `OPENAI_API_KEY` и `OPENAI_MODEL`, а архитектурная документация синхронизирована без изменения `docs/OAuth.md`.
 - 2026-03-11: зафиксировано завершение ручного production smoke test teacher-only сценариев на Vercel. Подтверждены `/students`, `/attendance`, `/projects`, массовая Telegram-рассылка и teacher weekly digest; следующий шаг перенесен на 2026-03-12 для полного student-access smoke test.
 - 2026-03-11: локальный dev server переведен на `127.0.0.1:3300`. Диагностика показала, что в Windows порт `3100` входит в системный excluded TCP range `3068-3167`, поэтому bind на нем запрещен даже вне IPv6. Документация и memory bank синхронизированы.
+- 2026-03-12: teacher-only AI-анализ проектов переведен на GitHub `memory_bank` и commit history. Новый server-side parser читает `memory_bank/projectbrief.md`, `productContext.md`, `activeContext.md`, `progress.md` и опциональный `docs/README.md`, считает детерминированный `completion_percent` по уникальным задачам, выставляет rule-based флаги `missing_memory_bank` / `missing_spec` / `missing_plan` / `abandoned`, сохраняет commit metrics в `project_state_json` и `project_ai_reports`, а страница `/projects/[projectId]` показывает repo signals и источники анализа. Обновлены архитектурная документация и memory bank.
 - 2026-03-11: ужесточена teacher-auth политика. В production роль `teacher` теперь определяется только по `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` оставлен fallback-механизмом только для non-production сред и локальной разработки. Обновлены `src/lib/server/auth.ts`, архитектурная документация и память проекта.
 - 2026-03-11: реализован первый student-access сценарий. Добавлены маршруты `/auth/complete`, `/student/link` и `/my-project`; auth расширен до teacher/student/guest модели, student определяется по `students.github_user_id`, а `/my-project` позволяет выбрать собственный GitHub-репозиторий и создать draft-проект.
 - 2026-03-11: Telegram linking flow расширен до GitHub bind flow. После `Start` webhook сохраняет `telegram_chat_id`, генерирует одноразовый `github_link_token`, бот отправляет student login-ссылку, а bind route связывает GitHub-аккаунт с карточкой по `github_user_id`.
@@ -82,4 +85,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `9f7894669073b189ac9b50996ea77e8d4512cba9`
+- `last_checked_commit`: `df9f28101c0c28d3ca6207567d96cd533e60c16a`

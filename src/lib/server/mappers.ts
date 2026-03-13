@@ -197,6 +197,18 @@ export function mapProjectDocument(
     lastAiAnalysisAt?: string;
     aiSummary?: string;
     nextSteps?: unknown;
+    hasRepository?: boolean;
+    hasMemoryBank?: boolean;
+    hasSpec?: boolean;
+    hasPlan?: boolean;
+    trackedTasksTotal?: number;
+    trackedTasksCompleted?: number;
+    trackedTasksInProgress?: number;
+    trackedTasksPending?: number;
+    commitCount?: number;
+    commitsPerWeek?: number;
+    lastCommitDaysAgo?: number | null;
+    isAbandoned?: boolean;
   };
   const riskFlags = normalizeRiskFlags(projectState.riskFlags);
   const manualOverrideEnabled = Boolean(
@@ -228,6 +240,22 @@ export function mapProjectDocument(
     manualCompletionPercent,
     manualOverrideEnabled,
     manualOverrideNote: String(projectState.manualOverrideNote ?? ""),
+    hasRepository: Boolean(projectState.hasRepository ?? false),
+    hasMemoryBank: Boolean(projectState.hasMemoryBank ?? false),
+    hasSpec: Boolean(projectState.hasSpec ?? false),
+    hasPlan: Boolean(projectState.hasPlan ?? false),
+    trackedTasksTotal: Number(projectState.trackedTasksTotal ?? 0),
+    trackedTasksCompleted: Number(projectState.trackedTasksCompleted ?? 0),
+    trackedTasksInProgress: Number(projectState.trackedTasksInProgress ?? 0),
+    trackedTasksPending: Number(projectState.trackedTasksPending ?? 0),
+    commitCount: Number(projectState.commitCount ?? 0),
+    commitsPerWeek: Number(projectState.commitsPerWeek ?? 0),
+    lastCommitDaysAgo:
+      projectState.lastCommitDaysAgo === null ||
+      projectState.lastCommitDaysAgo === undefined
+        ? null
+        : Number(projectState.lastCommitDaysAgo),
+    isAbandoned: Boolean(projectState.isAbandoned ?? false),
     lastCommit: String(githubState.lastCommitAt ?? "Нет данных"),
     lastCommitSha: String(githubState.lastCommitSha ?? ""),
     lastSyncAt: String(githubState.lastSyncAt ?? "Нет данных"),
@@ -253,6 +281,19 @@ export function mapProjectAiReportDocument(
     missingItems?: unknown;
     risks?: unknown;
     nextSteps?: unknown;
+    sourceFiles?: unknown;
+    hasRepository?: boolean;
+    hasMemoryBank?: boolean;
+    hasSpec?: boolean;
+    hasPlan?: boolean;
+    trackedTasksTotal?: number;
+    trackedTasksCompleted?: number;
+    trackedTasksInProgress?: number;
+    trackedTasksPending?: number;
+    commitCount?: number;
+    commitsPerWeek?: number;
+    lastCommitDaysAgo?: number | null;
+    isAbandoned?: boolean;
   };
 
   return {
@@ -264,11 +305,28 @@ export function mapProjectAiReportDocument(
     inputSnapshotJson: String(payload.inputSnapshotJson ?? "{}"),
     summary: String(getField(document, "summary") ?? ""),
     completionPercent: Number(getField(document, "completion_percent") ?? 0),
+    hasRepository: Boolean(payload.hasRepository ?? false),
+    hasMemoryBank: Boolean(payload.hasMemoryBank ?? false),
+    hasSpec: Boolean(payload.hasSpec ?? false),
+    hasPlan: Boolean(payload.hasPlan ?? false),
+    trackedTasksTotal: Number(payload.trackedTasksTotal ?? 0),
+    trackedTasksCompleted: Number(payload.trackedTasksCompleted ?? 0),
+    trackedTasksInProgress: Number(payload.trackedTasksInProgress ?? 0),
+    trackedTasksPending: Number(payload.trackedTasksPending ?? 0),
+    commitCount: Number(payload.commitCount ?? 0),
+    commitsPerWeek: Number(payload.commitsPerWeek ?? 0),
+    lastCommitDaysAgo:
+      payload.lastCommitDaysAgo === null ||
+      payload.lastCommitDaysAgo === undefined
+        ? null
+        : Number(payload.lastCommitDaysAgo),
+    isAbandoned: Boolean(payload.isAbandoned ?? false),
     implementedItems: parseStringList(payload.implementedItems),
     partialItems: parseStringList(payload.partialItems),
     missingItems: parseStringList(payload.missingItems),
     risks: parseStringList(payload.risks),
     nextSteps: parseStringList(payload.nextSteps),
+    sourceFiles: parseStringList(payload.sourceFiles),
     createdAt: document.$createdAt,
   };
 }

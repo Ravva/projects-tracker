@@ -6,11 +6,16 @@ import {
   normalizeProjectState,
 } from "@/lib/project-limits";
 import { getAppwriteConfig, getAppwriteDatabases } from "@/lib/server/appwrite";
-import { daysSince } from "@/lib/server/date-utils";
+import {
+  getGithubRepositoryMetadata,
+  listGithubRepositoryCommits,
+} from "@/lib/server/github";
 import {
   mapProjectAiReportDocument,
   mapProjectDocument,
 } from "@/lib/server/mappers";
+import { getOpenAiModel, requestOpenAiJsonObject } from "@/lib/server/openai";
+import { analyzeProjectRepository } from "@/lib/server/project-repository-analysis";
 import { listStudentNameMap } from "@/lib/server/repositories/students";
 import type {
   ProjectAiReportRecord,
@@ -71,7 +76,7 @@ function buildGithubState(
 function buildProjectState(
   input: Partial<{
     primaryRisk: string;
-    riskFlags: ProjectRisk[];
+    riskFlags: string[];
     aiCompletionPercent: number;
     manualCompletionPercent: number | null;
     manualOverrideEnabled: boolean;
@@ -79,6 +84,18 @@ function buildProjectState(
     lastAiAnalysisAt: string;
     aiSummary: string;
     nextSteps: string[];
+    hasRepository: boolean;
+    hasMemoryBank: boolean;
+    hasSpec: boolean;
+    hasPlan: boolean;
+    trackedTasksTotal: number;
+    trackedTasksCompleted: number;
+    trackedTasksInProgress: number;
+    trackedTasksPending: number;
+    commitCount: number;
+    commitsPerWeek: number;
+    lastCommitDaysAgo: number | null;
+    isAbandoned: boolean;
   }> = {},
 ) {
   return JSON.stringify(normalizeProjectState(input));
@@ -87,23 +104,32 @@ function buildProjectState(
 function normalizeProjectRiskFlags(project: ProjectRecord) {
   const flags = new Set<ProjectRisk>();
 
-  if (!project.specMarkdown.trim()) {
+  if (!project.hasMemoryBank) {
+    flags.add("missing_memory_bank");
+  }
+
+  if (!project.hasSpec) {
     flags.add("missing_spec");
   }
 
-  if (!project.planMarkdown.trim()) {
+  if (!project.hasPlan) {
     flags.add("missing_plan");
   }
 
-  if (project.progress < 25) {
+  if (project.progress < 25 && project.trackedTasksTotal > 0) {
     flags.add("low_progress");
   }
 
-  if (daysSince(project.lastCommit) >= 7) {
-    flags.add("stale_repo");
+  if (project.isAbandoned) {
+    flags.add("abandoned");
   }
 
   for (const flag of project.riskFlags) {
+    if (flag === "stale_repo") {
+      flags.add("abandoned");
+      continue;
+    }
+
     flags.add(flag);
   }
 
@@ -115,12 +141,8 @@ function primaryRiskFromFlags(flags: ProjectRisk[]) {
     return "invalid_github_repo";
   }
 
-  if (flags.includes("low_progress")) {
-    return "low_progress";
-  }
-
-  if (flags.includes("stale_repo")) {
-    return "stale_repo";
+  if (flags.includes("missing_memory_bank")) {
+    return "missing_memory_bank";
   }
 
   if (flags.includes("missing_spec")) {
@@ -131,7 +153,46 @@ function primaryRiskFromFlags(flags: ProjectRisk[]) {
     return "missing_plan";
   }
 
+  if (flags.includes("abandoned") || flags.includes("stale_repo")) {
+    return "abandoned";
+  }
+
+  if (flags.includes("low_progress")) {
+    return "low_progress";
+  }
+
   return "healthy";
+}
+
+function buildProjectStateFromProject(
+  project: ProjectRecord,
+  overrides: Partial<Parameters<typeof normalizeProjectState>[0]> = {},
+) {
+  return buildProjectState({
+    primaryRisk: project.risk,
+    riskFlags: project.riskFlags,
+    aiCompletionPercent: project.aiCompletionPercent,
+    manualCompletionPercent: project.manualCompletionPercent,
+    manualOverrideEnabled: project.manualOverrideEnabled,
+    manualOverrideNote: project.manualOverrideNote,
+    lastAiAnalysisAt:
+      project.lastAiAnalysisAt === "Нет данных" ? "" : project.lastAiAnalysisAt,
+    aiSummary: project.aiSummary,
+    nextSteps: project.nextSteps,
+    hasRepository: project.hasRepository,
+    hasMemoryBank: project.hasMemoryBank,
+    hasSpec: project.hasSpec,
+    hasPlan: project.hasPlan,
+    trackedTasksTotal: project.trackedTasksTotal,
+    trackedTasksCompleted: project.trackedTasksCompleted,
+    trackedTasksInProgress: project.trackedTasksInProgress,
+    trackedTasksPending: project.trackedTasksPending,
+    commitCount: project.commitCount,
+    commitsPerWeek: project.commitsPerWeek,
+    lastCommitDaysAgo: project.lastCommitDaysAgo,
+    isAbandoned: project.isAbandoned,
+    ...overrides,
+  });
 }
 
 async function listProjectDocuments() {
@@ -394,20 +455,6 @@ export async function deleteProject(projectId: string) {
   );
 }
 
-function buildGithubHeaders() {
-  const headers: Record<string, string> = {
-    Accept: "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "projects-tracker",
-  };
-
-  if (process.env.GITHUB_TOKEN) {
-    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
-  }
-
-  return headers;
-}
-
 async function updateProjectRiskFlags(projectId: string, flags: ProjectRisk[]) {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
@@ -422,19 +469,9 @@ async function updateProjectRiskFlags(projectId: string, flags: ProjectRisk[]) {
     config.collections.projects,
     projectId,
     {
-      project_state_json: buildProjectState({
+      project_state_json: buildProjectStateFromProject(project, {
         primaryRisk: primaryRiskFromFlags(flags),
         riskFlags: flags,
-        aiCompletionPercent: project.aiCompletionPercent,
-        manualCompletionPercent: project.manualCompletionPercent,
-        manualOverrideEnabled: project.manualOverrideEnabled,
-        manualOverrideNote: project.manualOverrideNote,
-        lastAiAnalysisAt:
-          project.lastAiAnalysisAt === "Нет данных"
-            ? ""
-            : project.lastAiAnalysisAt,
-        aiSummary: project.aiSummary,
-        nextSteps: project.nextSteps,
       }),
     },
   );
@@ -457,46 +494,43 @@ export async function syncProjectGithub(projectId: string) {
   }
 
   try {
-    const repoResponse = await fetch(
-      `https://api.github.com/repos/${parsed.owner}/${parsed.repo}`,
-      { headers: buildGithubHeaders() },
+    const metadata = await getGithubRepositoryMetadata(
+      parsed.owner,
+      parsed.repo,
     );
-
-    if (!repoResponse.ok) {
-      throw new Error(`GitHub repo request failed with ${repoResponse.status}`);
-    }
-
-    const repoData = (await repoResponse.json()) as {
-      default_branch: string;
-      private: boolean;
-      html_url: string;
-    };
-    const commitResponse = await fetch(
-      `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/commits?per_page=1&sha=${repoData.default_branch}`,
-      { headers: buildGithubHeaders() },
+    const commitData = await listGithubRepositoryCommits(
+      parsed.owner,
+      parsed.repo,
+      metadata.defaultBranch,
+      {
+        maxPages: 1,
+        perPage: 1,
+      },
     );
-
-    if (!commitResponse.ok) {
-      throw new Error(
-        `GitHub commit request failed with ${commitResponse.status}`,
-      );
-    }
-
-    const commitData = (await commitResponse.json()) as Array<{
-      sha: string;
-      commit: { author: { date: string } };
-    }>;
     const lastCommit = commitData[0];
     const riskFlags = normalizeProjectRiskFlags({
       ...project,
+      hasRepository: true,
       githubOwner: parsed.owner,
       githubRepo: parsed.repo,
-      defaultBranch: repoData.default_branch,
-      lastCommit: lastCommit?.commit.author.date ?? "",
+      defaultBranch: metadata.defaultBranch,
+      lastCommit: lastCommit?.committedAt ?? "",
       lastCommitSha: lastCommit?.sha ?? "",
       lastSyncAt: new Date().toISOString(),
+      lastCommitDaysAgo: lastCommit?.committedAt
+        ? Math.floor(
+            (Date.now() - new Date(lastCommit.committedAt).getTime()) /
+              (24 * 60 * 60 * 1000),
+          )
+        : null,
+      isAbandoned: lastCommit?.committedAt
+        ? Math.floor(
+            (Date.now() - new Date(lastCommit.committedAt).getTime()) /
+              (24 * 60 * 60 * 1000),
+          ) > 7
+        : true,
       riskFlags: project.riskFlags.filter(
-        (flag) => flag !== "invalid_github_repo",
+        (flag) => flag !== "invalid_github_repo" && flag !== "stale_repo",
       ),
     });
 
@@ -505,28 +539,31 @@ export async function syncProjectGithub(projectId: string) {
       config.collections.projects,
       projectId,
       {
-        github_url: repoData.html_url,
+        github_url: metadata.htmlUrl,
         github_state_json: buildGithubState({
           owner: parsed.owner,
           repo: parsed.repo,
-          defaultBranch: repoData.default_branch,
-          lastCommitAt: lastCommit?.commit.author.date ?? "",
+          defaultBranch: metadata.defaultBranch,
+          lastCommitAt: lastCommit?.committedAt ?? "",
           lastCommitSha: lastCommit?.sha ?? "",
           lastSyncAt: new Date().toISOString(),
         }),
-        project_state_json: buildProjectState({
+        project_state_json: buildProjectStateFromProject(project, {
           primaryRisk: primaryRiskFromFlags(riskFlags),
           riskFlags,
-          aiCompletionPercent: project.aiCompletionPercent,
-          manualCompletionPercent: project.manualCompletionPercent,
-          manualOverrideEnabled: project.manualOverrideEnabled,
-          manualOverrideNote: project.manualOverrideNote,
-          lastAiAnalysisAt:
-            project.lastAiAnalysisAt === "Нет данных"
-              ? ""
-              : project.lastAiAnalysisAt,
-          aiSummary: project.aiSummary,
-          nextSteps: project.nextSteps,
+          hasRepository: true,
+          lastCommitDaysAgo: lastCommit?.committedAt
+            ? Math.floor(
+                (Date.now() - new Date(lastCommit.committedAt).getTime()) /
+                  (24 * 60 * 60 * 1000),
+              )
+            : null,
+          isAbandoned: lastCommit?.committedAt
+            ? Math.floor(
+                (Date.now() - new Date(lastCommit.committedAt).getTime()) /
+                  (24 * 60 * 60 * 1000),
+              ) > 7
+            : true,
         }),
       },
     );
@@ -534,17 +571,6 @@ export async function syncProjectGithub(projectId: string) {
     await updateProjectRiskFlags(projectId, ["invalid_github_repo"]);
     throw new Error("Не удалось синхронизировать GitHub-репозиторий.");
   }
-}
-
-function requireOpenAiConfig() {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL ?? "gpt-5-mini";
-
-  if (!apiKey) {
-    throw new Error("OPENAI_API_KEY не задан.");
-  }
-
-  return { apiKey, model };
 }
 
 export async function runProjectAiAnalysis(projectId: string) {
@@ -556,84 +582,105 @@ export async function runProjectAiAnalysis(projectId: string) {
     throw new Error("Проект не найден.");
   }
 
-  if (!project.specMarkdown.trim() || !project.planMarkdown.trim()) {
-    throw new Error("AI-анализ запрещен без ТЗ и плана.");
+  const openAiModel = getOpenAiModel();
+  const parsedGithubUrl = parseGithubUrl(project.githubUrl);
+
+  if (!parsedGithubUrl) {
+    await updateProjectRiskFlags(projectId, ["invalid_github_repo"]);
+    throw new Error("Некорректный GitHub URL.");
   }
 
-  const openAi = requireOpenAiConfig();
+  let repositoryAnalysis: Awaited<ReturnType<typeof analyzeProjectRepository>>;
+
+  try {
+    repositoryAnalysis = await analyzeProjectRepository({
+      owner: parsedGithubUrl.owner,
+      repo: parsedGithubUrl.repo,
+    });
+  } catch {
+    await updateProjectRiskFlags(projectId, ["invalid_github_repo"]);
+    throw new Error("Не удалось собрать данные проекта из GitHub.");
+  }
+  const completionPercent = repositoryAnalysis.metrics.completionPercent;
+  const nextRiskFlags = normalizeProjectRiskFlags({
+    ...project,
+    riskFlags: project.riskFlags.filter(
+      (flag) => flag !== "invalid_github_repo" && flag !== "stale_repo",
+    ),
+    progress: completionPercent,
+    aiCompletionPercent: completionPercent,
+    hasRepository: repositoryAnalysis.repository.hasRepository,
+    hasMemoryBank: repositoryAnalysis.metrics.hasMemoryBank,
+    hasSpec: repositoryAnalysis.metrics.hasSpec,
+    hasPlan: repositoryAnalysis.metrics.hasPlan,
+    trackedTasksTotal: repositoryAnalysis.metrics.trackedTasksTotal,
+    trackedTasksCompleted: repositoryAnalysis.metrics.trackedTasksCompleted,
+    trackedTasksInProgress: repositoryAnalysis.metrics.trackedTasksInProgress,
+    trackedTasksPending: repositoryAnalysis.metrics.trackedTasksPending,
+    commitCount: repositoryAnalysis.metrics.commitCount,
+    commitsPerWeek: repositoryAnalysis.metrics.commitsPerWeek,
+    lastCommit: repositoryAnalysis.metrics.lastCommitAt,
+    lastCommitSha: repositoryAnalysis.metrics.lastCommitSha,
+    lastCommitDaysAgo: repositoryAnalysis.metrics.lastCommitDaysAgo,
+    isAbandoned: repositoryAnalysis.metrics.isAbandoned,
+    githubOwner: repositoryAnalysis.repository.owner,
+    githubRepo: repositoryAnalysis.repository.repo,
+    defaultBranch: repositoryAnalysis.repository.defaultBranch,
+    githubUrl: repositoryAnalysis.repository.htmlUrl,
+  });
   const inputSnapshot = {
     name: project.name,
     summary: project.summary,
     github: {
-      url: project.githubUrl,
-      owner: project.githubOwner,
-      repo: project.githubRepo,
-      branch: project.defaultBranch,
-      lastCommit: project.lastCommit,
-      lastCommitSha: project.lastCommitSha,
+      url: repositoryAnalysis.repository.htmlUrl,
+      owner: repositoryAnalysis.repository.owner,
+      repo: repositoryAnalysis.repository.repo,
+      branch: repositoryAnalysis.repository.defaultBranch,
+      lastCommit: repositoryAnalysis.metrics.lastCommitAt,
+      lastCommitSha: repositoryAnalysis.metrics.lastCommitSha,
+      commitCount: repositoryAnalysis.metrics.commitCount,
+      commitsPerWeek: repositoryAnalysis.metrics.commitsPerWeek,
+      lastCommitDaysAgo: repositoryAnalysis.metrics.lastCommitDaysAgo,
+      isAbandoned: repositoryAnalysis.metrics.isAbandoned,
     },
-    specMarkdown: project.specMarkdown,
-    planMarkdown: project.planMarkdown,
-  };
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${openAi.apiKey}`,
-      "Content-Type": "application/json",
+    repositorySignals: {
+      hasRepository: repositoryAnalysis.repository.hasRepository,
+      hasMemoryBank: repositoryAnalysis.metrics.hasMemoryBank,
+      hasSpec: repositoryAnalysis.metrics.hasSpec,
+      hasPlan: repositoryAnalysis.metrics.hasPlan,
+      sourceFiles: repositoryAnalysis.repository.sourceFiles,
     },
-    body: JSON.stringify({
-      model: openAi.model,
-      input: [
-        {
-          role: "system",
-          content: [
-            {
-              type: "input_text",
-              text: "Ты оцениваешь учебный GitHub-проект. Верни строго JSON с полями summary, completion_percent, risks, next_steps, implemented_items, partial_items, missing_items.",
-            },
-          ],
-        },
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_text",
-              text: JSON.stringify(inputSnapshot),
-            },
-          ],
-        },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error("OpenAI API вернул ошибку.");
-  }
-
-  const responseJson = (await response.json()) as {
-    output_text?: string;
+    taskMetrics: {
+      total: repositoryAnalysis.metrics.trackedTasksTotal,
+      completed: repositoryAnalysis.metrics.trackedTasksCompleted,
+      inProgress: repositoryAnalysis.metrics.trackedTasksInProgress,
+      pending: repositoryAnalysis.metrics.trackedTasksPending,
+      completionPercent,
+    },
+    taskHighlights: repositoryAnalysis.taskHighlights,
+    memoryBank: {
+      projectBrief: repositoryAnalysis.files.projectBrief?.content ?? "",
+      productContext: repositoryAnalysis.files.productContext?.content ?? "",
+      activeContext: repositoryAnalysis.files.activeContext?.content ?? "",
+      progress: repositoryAnalysis.files.progress?.content ?? "",
+      docsReadme: repositoryAnalysis.files.docsReadme?.content ?? "",
+    },
   };
-  const parsed = JSON.parse(responseJson.output_text ?? "{}") as {
+  const parsed = await requestOpenAiJsonObject<{
     summary?: string;
-    completion_percent?: number;
     risks?: string[];
     next_steps?: string[];
     implemented_items?: string[];
     partial_items?: string[];
     missing_items?: string[];
-  };
-  const completionPercent = Number(parsed.completion_percent ?? 0);
+  }>({
+    model: openAiModel,
+    systemPrompt:
+      "Ты оцениваешь учебный GitHub-проект по данным memory_bank и метрикам GitHub. Анализ проводится исключительно в образовательных целях. Процент реализации уже рассчитан детерминированно и его нельзя менять. Верни строго JSON с полями summary, risks, next_steps, implemented_items, partial_items, missing_items. Summary должен кратко объяснять текущее состояние проекта, опираясь на готовые метрики и содержимое memory_bank.",
+    userPayload: inputSnapshot,
+  });
   const risks = Array.isArray(parsed.risks) ? parsed.risks : [];
   const nextSteps = Array.isArray(parsed.next_steps) ? parsed.next_steps : [];
-  const riskFlags = normalizeProjectRiskFlags({
-    ...project,
-    aiSummary: parsed.summary ?? "",
-    aiCompletionPercent: completionPercent,
-    progress: completionPercent,
-    riskFlags: risks.includes("invalid_github_repo")
-      ? ["invalid_github_repo"]
-      : project.riskFlags.filter((flag) => flag !== "invalid_github_repo"),
-  });
 
   await appwrite.databases.createDocument(
     appwrite.databaseId,
@@ -641,9 +688,9 @@ export async function runProjectAiAnalysis(projectId: string) {
     ID.unique(),
     {
       project_id: projectId,
-      source_commit_sha: project.lastCommitSha,
-      analysis_version: "v1",
-      model_name: openAi.model,
+      source_commit_sha: repositoryAnalysis.metrics.lastCommitSha,
+      analysis_version: "v2-memory-bank",
+      model_name: openAiModel,
       summary: parsed.summary ?? "",
       completion_percent: completionPercent,
       report_payload_json: JSON.stringify({
@@ -653,6 +700,20 @@ export async function runProjectAiAnalysis(projectId: string) {
         missingItems: parsed.missing_items ?? [],
         risks,
         nextSteps,
+        sourceFiles: repositoryAnalysis.repository.sourceFiles,
+        hasRepository: repositoryAnalysis.repository.hasRepository,
+        hasMemoryBank: repositoryAnalysis.metrics.hasMemoryBank,
+        hasSpec: repositoryAnalysis.metrics.hasSpec,
+        hasPlan: repositoryAnalysis.metrics.hasPlan,
+        trackedTasksTotal: repositoryAnalysis.metrics.trackedTasksTotal,
+        trackedTasksCompleted: repositoryAnalysis.metrics.trackedTasksCompleted,
+        trackedTasksInProgress:
+          repositoryAnalysis.metrics.trackedTasksInProgress,
+        trackedTasksPending: repositoryAnalysis.metrics.trackedTasksPending,
+        commitCount: repositoryAnalysis.metrics.commitCount,
+        commitsPerWeek: repositoryAnalysis.metrics.commitsPerWeek,
+        lastCommitDaysAgo: repositoryAnalysis.metrics.lastCommitDaysAgo,
+        isAbandoned: repositoryAnalysis.metrics.isAbandoned,
       }),
     },
   );
@@ -662,9 +723,18 @@ export async function runProjectAiAnalysis(projectId: string) {
     config.collections.projects,
     projectId,
     {
-      project_state_json: buildProjectState({
-        primaryRisk: primaryRiskFromFlags(riskFlags),
-        riskFlags,
+      github_url: repositoryAnalysis.repository.htmlUrl,
+      github_state_json: buildGithubState({
+        owner: repositoryAnalysis.repository.owner,
+        repo: repositoryAnalysis.repository.repo,
+        defaultBranch: repositoryAnalysis.repository.defaultBranch,
+        lastCommitAt: repositoryAnalysis.metrics.lastCommitAt,
+        lastCommitSha: repositoryAnalysis.metrics.lastCommitSha,
+        lastSyncAt: new Date().toISOString(),
+      }),
+      project_state_json: buildProjectStateFromProject(project, {
+        primaryRisk: primaryRiskFromFlags(nextRiskFlags),
+        riskFlags: nextRiskFlags,
         aiCompletionPercent: completionPercent,
         manualCompletionPercent: project.manualCompletionPercent,
         manualOverrideEnabled: false,
@@ -672,6 +742,19 @@ export async function runProjectAiAnalysis(projectId: string) {
         lastAiAnalysisAt: new Date().toISOString(),
         aiSummary: parsed.summary ?? "",
         nextSteps,
+        hasRepository: repositoryAnalysis.repository.hasRepository,
+        hasMemoryBank: repositoryAnalysis.metrics.hasMemoryBank,
+        hasSpec: repositoryAnalysis.metrics.hasSpec,
+        hasPlan: repositoryAnalysis.metrics.hasPlan,
+        trackedTasksTotal: repositoryAnalysis.metrics.trackedTasksTotal,
+        trackedTasksCompleted: repositoryAnalysis.metrics.trackedTasksCompleted,
+        trackedTasksInProgress:
+          repositoryAnalysis.metrics.trackedTasksInProgress,
+        trackedTasksPending: repositoryAnalysis.metrics.trackedTasksPending,
+        commitCount: repositoryAnalysis.metrics.commitCount,
+        commitsPerWeek: repositoryAnalysis.metrics.commitsPerWeek,
+        lastCommitDaysAgo: repositoryAnalysis.metrics.lastCommitDaysAgo,
+        isAbandoned: repositoryAnalysis.metrics.isAbandoned,
       }),
     },
   );
@@ -695,19 +778,10 @@ export async function setProjectManualOverride(
     config.collections.projects,
     projectId,
     {
-      project_state_json: buildProjectState({
-        primaryRisk: project.risk,
-        riskFlags: project.riskFlags,
-        aiCompletionPercent: project.aiCompletionPercent,
+      project_state_json: buildProjectStateFromProject(project, {
         manualCompletionPercent: percent,
         manualOverrideEnabled: true,
         manualOverrideNote: note,
-        lastAiAnalysisAt:
-          project.lastAiAnalysisAt === "Нет данных"
-            ? ""
-            : project.lastAiAnalysisAt,
-        aiSummary: project.aiSummary,
-        nextSteps: project.nextSteps,
       }),
     },
   );
@@ -727,19 +801,9 @@ export async function clearProjectManualOverride(projectId: string) {
     config.collections.projects,
     projectId,
     {
-      project_state_json: buildProjectState({
-        primaryRisk: project.risk,
-        riskFlags: project.riskFlags,
-        aiCompletionPercent: project.aiCompletionPercent,
-        manualCompletionPercent: project.manualCompletionPercent,
+      project_state_json: buildProjectStateFromProject(project, {
         manualOverrideEnabled: false,
         manualOverrideNote: "",
-        lastAiAnalysisAt:
-          project.lastAiAnalysisAt === "Нет данных"
-            ? ""
-            : project.lastAiAnalysisAt,
-        aiSummary: project.aiSummary,
-        nextSteps: project.nextSteps,
       }),
     },
   );

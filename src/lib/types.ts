@@ -95,12 +95,29 @@ export type AttendanceWeekRecord = {
 export type ProjectRisk =
   | "healthy"
   | "invalid_github_repo"
+  | "missing_memory_bank"
   | "missing_spec"
   | "missing_plan"
+  | "abandoned"
   | "stale_repo"
   | "low_progress";
 
-export type ProjectRecord = {
+export type ProjectRepositoryMetrics = {
+  hasRepository: boolean;
+  hasMemoryBank: boolean;
+  hasSpec: boolean;
+  hasPlan: boolean;
+  trackedTasksTotal: number;
+  trackedTasksCompleted: number;
+  trackedTasksInProgress: number;
+  trackedTasksPending: number;
+  commitCount: number;
+  commitsPerWeek: number;
+  lastCommitDaysAgo: number | null;
+  isAbandoned: boolean;
+};
+
+export type ProjectRecord = ProjectRepositoryMetrics & {
   id: string;
   studentId: string;
   studentName: string;
@@ -138,7 +155,7 @@ export type ProjectInput = {
   planMarkdown: string;
 };
 
-export type ProjectAiReportRecord = {
+export type ProjectAiReportRecord = ProjectRepositoryMetrics & {
   id: string;
   projectId: string;
   sourceCommitSha: string;
@@ -152,5 +169,6 @@ export type ProjectAiReportRecord = {
   missingItems: string[];
   risks: string[];
   nextSteps: string[];
+  sourceFiles: string[];
   createdAt: string;
 };

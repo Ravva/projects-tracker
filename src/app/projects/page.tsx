@@ -198,8 +198,8 @@ export default async function ProjectsPage() {
                 GitHub metadata
               </div>
               <p className="mt-2 leading-6 text-muted-foreground">
-                Detail page уже поддерживает teacher-only edit, sync, AI-анализ
-                и override.
+                Detail page уже поддерживает teacher-only edit, sync, анализ
+                `memory_bank` из GitHub-репозитория, AI-summary и override.
               </p>
             </div>
             <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
@@ -208,8 +208,10 @@ export default async function ProjectsPage() {
                 ТЗ и план
               </div>
               <p className="mt-2 leading-6 text-muted-foreground">
-                ТЗ и план редактируются на странице проекта и валидируют
-                AI-анализ.
+                Teacher notes редактируются на странице проекта, а AI-анализ
+                теперь опирается на `memory_bank/projectbrief.md`,
+                `memory_bank/productContext.md`, `memory_bank/activeContext.md`
+                и `memory_bank/progress.md` в student repo.
               </p>
             </div>
           </CardContent>
