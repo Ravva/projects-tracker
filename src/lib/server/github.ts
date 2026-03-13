@@ -54,6 +54,19 @@ export interface GithubCommitSnapshot {
   committedAt: string;
 }
 
+export class GithubRequestError extends Error {
+  status: number;
+  isRateLimit: boolean;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "GithubRequestError";
+    this.status = status;
+    this.isRateLimit =
+      status === 403 && message.toLowerCase().includes("rate limit");
+  }
+}
+
 function buildGithubHeaders(accessToken?: string) {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
@@ -85,7 +98,17 @@ async function fetchGithubJson<T>(
   }
 
   if (!response.ok) {
-    throw new Error(`GitHub API request failed with ${response.status}.`);
+    let message = `GitHub API request failed with ${response.status}.`;
+
+    try {
+      const data = (await response.json()) as { message?: string };
+
+      if (data.message?.trim()) {
+        message = data.message.trim();
+      }
+    } catch {}
+
+    throw new GithubRequestError(message, response.status);
   }
 
   return (await response.json()) as T;

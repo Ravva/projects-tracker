@@ -5,8 +5,13 @@ import {
   normalizeProjectInput,
   normalizeProjectState,
 } from "@/lib/project-limits";
+import {
+  getAiGatewayModel,
+  requestAiGatewayJsonObject,
+} from "@/lib/server/ai-gateway";
 import { getAppwriteConfig, getAppwriteDatabases } from "@/lib/server/appwrite";
 import {
+  GithubRequestError,
   getGithubRepositoryMetadata,
   listGithubRepositoryCommits,
 } from "@/lib/server/github";
@@ -14,7 +19,6 @@ import {
   mapProjectAiReportDocument,
   mapProjectDocument,
 } from "@/lib/server/mappers";
-import { getOpenAiModel, requestOpenAiJsonObject } from "@/lib/server/openai";
 import { analyzeProjectRepository } from "@/lib/server/project-repository-analysis";
 import { listStudentNameMap } from "@/lib/server/repositories/students";
 import type {
@@ -227,6 +231,96 @@ function buildProjectStateFromProject(
     isAbandoned: project.isAbandoned,
     ...overrides,
   });
+}
+
+function trimReportText(value: string, limit: number) {
+  return value.trim().slice(0, limit);
+}
+
+function buildProjectReportPayload(input: {
+  projectName: string;
+  github: {
+    url: string;
+    owner: string;
+    repo: string;
+    branch: string;
+    lastCommit: string;
+    lastCommitSha: string;
+    commitCount: number;
+    commitsPerWeek: number;
+    lastCommitDaysAgo: number | null;
+    isAbandoned: boolean;
+  };
+  repositorySignals: {
+    hasRepository: boolean;
+    hasMemoryBank: boolean;
+    hasSpec: boolean;
+    hasPlan: boolean;
+    sourceFiles: string[];
+  };
+  taskMetrics: {
+    total: number;
+    completed: number;
+    inProgress: number;
+    pending: number;
+    completionPercent: number;
+  };
+  taskHighlights: {
+    completed: string[];
+    inProgress: string[];
+    pending: string[];
+  };
+  memoryBank: {
+    projectBrief: string;
+    productContext: string;
+    activeContext: string;
+    progress: string;
+    docsReadme: string;
+  };
+  implementedItems: string[];
+  partialItems: string[];
+  missingItems: string[];
+  risks: string[];
+  nextSteps: string[];
+}) {
+  return JSON.stringify({
+    inputSnapshotJson: JSON.stringify({
+      name: input.projectName,
+      github: input.github,
+      repositorySignals: input.repositorySignals,
+      taskMetrics: input.taskMetrics,
+      taskHighlights: input.taskHighlights,
+      memoryBankPreview: {
+        projectBrief: trimReportText(input.memoryBank.projectBrief, 300),
+        productContext: trimReportText(input.memoryBank.productContext, 300),
+        activeContext: trimReportText(input.memoryBank.activeContext, 300),
+        progress: trimReportText(input.memoryBank.progress, 300),
+        docsReadme: trimReportText(input.memoryBank.docsReadme, 300),
+      },
+    }),
+    implementedItems: input.implementedItems,
+    partialItems: input.partialItems,
+    missingItems: input.missingItems,
+    risks: input.risks,
+    nextSteps: input.nextSteps,
+    sourceFiles: input.repositorySignals.sourceFiles,
+    hasRepository: input.repositorySignals.hasRepository,
+    hasMemoryBank: input.repositorySignals.hasMemoryBank,
+    hasSpec: input.repositorySignals.hasSpec,
+    hasPlan: input.repositorySignals.hasPlan,
+    trackedTasksTotal: input.taskMetrics.total,
+    trackedTasksCompleted: input.taskMetrics.completed,
+    trackedTasksInProgress: input.taskMetrics.inProgress,
+    trackedTasksPending: input.taskMetrics.pending,
+    commitCount: input.github.commitCount,
+    commitsPerWeek: input.github.commitsPerWeek,
+    lastCommitDaysAgo: input.github.lastCommitDaysAgo,
+    isAbandoned: input.github.isAbandoned,
+  });
+}
+
+function isGithubRateLimitError(error: unknown) {
+  return error instanceof GithubRequestError && error.isRateLimit;
 }
 
 async function listProjectDocuments() {
@@ -611,7 +705,13 @@ export async function syncProjectGithub(projectId: string) {
         }),
       },
     );
-  } catch {
+  } catch (error) {
+    if (isGithubRateLimitError(error)) {
+      throw new Error(
+        "Превышен лимит GitHub API. Добавьте GITHUB_TOKEN и повторите позже.",
+      );
+    }
+
     await updateProjectRiskFlags(projectId, ["invalid_github_repo"]);
     throw new Error("Не удалось синхронизировать GitHub-репозиторий.");
   }
@@ -626,7 +726,7 @@ export async function runProjectAiAnalysis(projectId: string) {
     throw new Error("Проект не найден.");
   }
 
-  const openAiModel = getOpenAiModel();
+  const aiModel = getAiGatewayModel();
   const parsedGithubUrl = parseGithubUrl(project.githubUrl);
 
   if (!parsedGithubUrl) {
@@ -641,7 +741,13 @@ export async function runProjectAiAnalysis(projectId: string) {
       owner: parsedGithubUrl.owner,
       repo: parsedGithubUrl.repo,
     });
-  } catch {
+  } catch (error) {
+    if (isGithubRateLimitError(error)) {
+      throw new Error(
+        "Превышен лимит GitHub API. Добавьте GITHUB_TOKEN и повторите позже.",
+      );
+    }
+
     await updateProjectRiskFlags(projectId, ["invalid_github_repo"]);
     throw new Error("Не удалось собрать данные проекта из GitHub.");
   }
@@ -710,7 +816,7 @@ export async function runProjectAiAnalysis(projectId: string) {
       docsReadme: repositoryAnalysis.files.docsReadme?.content ?? "",
     },
   };
-  const parsed = await requestOpenAiJsonObject<{
+  const parsed = await requestAiGatewayJsonObject<{
     summary?: string;
     risks?: string[];
     next_steps?: string[];
@@ -718,9 +824,9 @@ export async function runProjectAiAnalysis(projectId: string) {
     partial_items?: string[];
     missing_items?: string[];
   }>({
-    model: openAiModel,
+    model: aiModel,
     systemPrompt:
-      "Ты оцениваешь учебный GitHub-проект по данным memory_bank и метрикам GitHub. Анализ проводится исключительно в образовательных целях. Процент реализации уже рассчитан детерминированно и его нельзя менять. Верни строго JSON с полями summary, risks, next_steps, implemented_items, partial_items, missing_items. Summary должен кратко объяснять текущее состояние проекта, опираясь на готовые метрики и содержимое memory_bank.",
+      "Ты оцениваешь учебный GitHub-проект по данным memory_bank и метрикам GitHub. Анализ проводится исключительно в образовательных целях. Процент реализации уже рассчитан детерминированно и его нельзя менять. Верни только компактный JSON с полями summary, risks, next_steps, implemented_items, partial_items, missing_items. Summary: одна короткая строка до 240 символов. Каждый массив: максимум 5 коротких элементов без markdown и без пояснений вне JSON.",
     userPayload: inputSnapshot,
   });
   const risks = Array.isArray(parsed.risks) ? parsed.risks : [];
@@ -733,31 +839,22 @@ export async function runProjectAiAnalysis(projectId: string) {
     {
       project_id: projectId,
       source_commit_sha: repositoryAnalysis.metrics.lastCommitSha,
-      analysis_version: "v2-memory-bank",
-      model_name: openAiModel,
+      analysis_version: "v3-cloudflare-worker",
+      model_name: aiModel,
       summary: parsed.summary ?? "",
       completion_percent: completionPercent,
-      report_payload_json: JSON.stringify({
-        inputSnapshotJson: JSON.stringify(inputSnapshot),
+      report_payload_json: buildProjectReportPayload({
+        projectName: project.name,
+        github: inputSnapshot.github,
+        repositorySignals: inputSnapshot.repositorySignals,
+        taskMetrics: inputSnapshot.taskMetrics,
+        taskHighlights: inputSnapshot.taskHighlights,
+        memoryBank: inputSnapshot.memoryBank,
         implementedItems: parsed.implemented_items ?? [],
         partialItems: parsed.partial_items ?? [],
         missingItems: parsed.missing_items ?? [],
         risks,
         nextSteps,
-        sourceFiles: repositoryAnalysis.repository.sourceFiles,
-        hasRepository: repositoryAnalysis.repository.hasRepository,
-        hasMemoryBank: repositoryAnalysis.metrics.hasMemoryBank,
-        hasSpec: repositoryAnalysis.metrics.hasSpec,
-        hasPlan: repositoryAnalysis.metrics.hasPlan,
-        trackedTasksTotal: repositoryAnalysis.metrics.trackedTasksTotal,
-        trackedTasksCompleted: repositoryAnalysis.metrics.trackedTasksCompleted,
-        trackedTasksInProgress:
-          repositoryAnalysis.metrics.trackedTasksInProgress,
-        trackedTasksPending: repositoryAnalysis.metrics.trackedTasksPending,
-        commitCount: repositoryAnalysis.metrics.commitCount,
-        commitsPerWeek: repositoryAnalysis.metrics.commitsPerWeek,
-        lastCommitDaysAgo: repositoryAnalysis.metrics.lastCommitDaysAgo,
-        isAbandoned: repositoryAnalysis.metrics.isAbandoned,
       }),
     },
   );

@@ -9,26 +9,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import {
-  clearProjectOverrideAction,
   deleteProjectAction,
   runProjectAiAnalysisAction,
-  setProjectOverrideAction,
   syncProjectAction,
-  updateProjectAction,
 } from "@/app/projects/actions";
 import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  InputWithCounter,
-  TextareaWithCounter,
-} from "@/components/ui/field-with-counter";
-import { Input } from "@/components/ui/input";
-import {
-  PROJECT_FIELD_LIMITS,
-  PROJECT_STATE_LIMITS,
-} from "@/lib/project-limits";
 import {
   getProjectBooleanMetricLabel,
   getProjectProgressLabel,
@@ -40,7 +28,29 @@ import {
   getProject,
   listProjectAiReports,
 } from "@/lib/server/repositories/projects";
-import { listStudents } from "@/lib/server/repositories/students";
+
+type ProjectSnapshotPreview = {
+  memoryBankPreview?: {
+    projectBrief?: string;
+    productContext?: string;
+    activeContext?: string;
+    progress?: string;
+    docsReadme?: string;
+  };
+};
+
+function parseInputSnapshotPreview(rawJson: string) {
+  try {
+    return JSON.parse(rawJson) as ProjectSnapshotPreview;
+  } catch {
+    return {};
+  }
+}
+
+function extractTextOrFallback(value: string | undefined, fallback: string) {
+  const normalized = value?.trim();
+  return normalized || fallback;
+}
 
 export default async function ProjectDetailsPage({
   params,
@@ -49,19 +59,42 @@ export default async function ProjectDetailsPage({
 }) {
   const teacher = await requireTeacherSession();
   const { projectId } = await params;
-  const [project, reports, students] = await Promise.all([
+  const [project, reports] = await Promise.all([
     getProject(projectId),
     listProjectAiReports(projectId),
-    listStudents(),
   ]);
 
   if (!project) {
     notFound();
   }
 
+  const latestReport = reports[0] ?? null;
+  const snapshotPreview = latestReport
+    ? parseInputSnapshotPreview(latestReport.inputSnapshotJson)
+    : {};
+  const projectBriefPreview = extractTextOrFallback(
+    snapshotPreview.memoryBankPreview?.projectBrief,
+    project.summary || "Краткое описание проекта пока отсутствует.",
+  );
+  const productContextPreview = extractTextOrFallback(
+    snapshotPreview.memoryBankPreview?.productContext,
+    "Продуктовый контекст пока не извлечен из memory_bank.",
+  );
+  const activeContextPreview = extractTextOrFallback(
+    snapshotPreview.memoryBankPreview?.activeContext,
+    project.hasAiAnalysisSnapshot
+      ? "Текущий контекст не найден в последнем AI-snapshot."
+      : "Сначала запустите AI-анализ, чтобы получить текущий контекст из memory_bank.",
+  );
+  const progressContextPreview = extractTextOrFallback(
+    snapshotPreview.memoryBankPreview?.progress,
+    project.hasAiAnalysisSnapshot
+      ? "Прогресс-пометки пока не найдены в последнем AI-snapshot."
+      : "Сначала запустите AI-анализ, чтобы получить сигналы прогресса из memory_bank.",
+  );
   const aiSummaryText = project.hasAiAnalysisSnapshot
     ? project.aiSummary || "AI summary пока не рассчитан."
-    : "Данные AI-анализа пока отсутствуют. Запустите AI-анализ, чтобы получить summary и сигналы репозитория.";
+    : "Данные AI-анализа пока отсутствуют. Запустите AI-анализ, чтобы получить project overview и repo signals.";
 
   return (
     <TeacherShell
@@ -91,137 +124,114 @@ export default async function ProjectDetailsPage({
         </>
       }
     >
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="grid gap-6">
-          <form action={updateProjectAction} className="grid gap-6">
-            <input type="hidden" name="projectId" value={project.id} />
-            <Card className="border-border/70 bg-card/88 shadow-none">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between text-base">
-                  Overview
+          <Card className="border-border/70 bg-card/88 shadow-none">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between text-base">
+                Что это за проект
+                <StatusPill
+                  tone={getProjectRiskTone(project)}
+                  label={getProjectProgressLabel(project)}
+                />
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="mb-2 text-sm font-medium text-foreground">
+                  Project brief
+                </div>
+                <p className="text-sm leading-7 text-muted-foreground">
+                  {projectBriefPreview}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="mb-2 text-sm font-medium text-foreground">
+                  Product context
+                </div>
+                <p className="text-sm leading-7 text-muted-foreground">
+                  {productContextPreview}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card/88 shadow-none">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-3 text-base">
+                <HugeiconsIcon icon={Task01Icon} size={18} strokeWidth={1.8} />
+                Прогресс и сигналы
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="text-sm font-medium text-foreground">
+                  Выполнение
+                </div>
+                <div className="mt-3 text-3xl font-semibold text-foreground">
+                  {project.progress}%
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  {project.trackedTasksCompleted}/{project.trackedTasksTotal}{" "}
+                  deliverables завершено
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="text-sm font-medium text-foreground">Риск</div>
+                <div className="mt-3">
                   <StatusPill
                     tone={getProjectRiskTone(project)}
-                    label={getProjectProgressLabel(project)}
+                    label={getProjectRiskLabel(project.risk)}
                   />
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <div className="flex items-center gap-3 font-medium">
-                    <HugeiconsIcon
-                      icon={Github01Icon}
-                      size={18}
-                      strokeWidth={1.8}
-                    />
-                    GitHub metadata
-                  </div>
-                  <div className="mt-3 space-y-3 text-sm text-muted-foreground">
-                    <InputWithCounter
-                      name="githubUrl"
-                      defaultValue={project.githubUrl}
-                      className="rounded-xl bg-background/80"
-                      maxLength={PROJECT_FIELD_LIMITS.githubUrl}
-                    />
-                    <div>Owner: {project.githubOwner || "не определен"}</div>
-                    <div>Repo: {project.githubRepo || "не определен"}</div>
-                    <div>Default branch: {project.defaultBranch}</div>
-                    <div>Последний коммит: {project.lastCommit}</div>
+                </div>
+                <div className="mt-3 text-sm text-muted-foreground">
+                  Статус проекта: {project.status}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="text-sm font-medium text-foreground">
+                  Активность
+                </div>
+                <div className="mt-3 space-y-1 text-sm text-muted-foreground">
+                  <div>Коммитов в выборке: {project.commitCount}</div>
+                  <div>Частота: {project.commitsPerWeek}/нед</div>
+                  <div>
+                    Последний коммит:{" "}
+                    {project.lastCommitDaysAgo === null
+                      ? "нет данных"
+                      : `${project.lastCommitDaysAgo} дн. назад`}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <div className="flex items-center gap-3 font-medium">
-                    <HugeiconsIcon
-                      icon={Task01Icon}
-                      size={18}
-                      strokeWidth={1.8}
-                    />
-                    Review status
-                  </div>
-                  <div className="mt-3 space-y-3 text-sm text-muted-foreground">
-                    <InputWithCounter
-                      name="name"
-                      defaultValue={project.name}
-                      className="rounded-xl bg-background/80"
-                      maxLength={PROJECT_FIELD_LIMITS.name}
-                    />
-                    <InputWithCounter
-                      name="summary"
-                      defaultValue={project.summary}
-                      className="rounded-xl bg-background/80"
-                      maxLength={PROJECT_FIELD_LIMITS.summary}
-                    />
-                    <select
-                      name="studentId"
-                      defaultValue={project.studentId}
-                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground"
-                    >
-                      {students.map((student) => (
-                        <option key={student.id} value={student.id}>
-                          {student.firstName} {student.lastName}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      name="status"
-                      defaultValue={project.status}
-                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground"
-                    >
-                      <option value="draft">draft</option>
-                      <option value="active">active</option>
-                      <option value="review">review</option>
-                      <option value="done">done</option>
-                    </select>
-                    <div>Текущий риск: {getProjectRiskLabel(project.risk)}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="border-border/70 bg-card/88 shadow-none">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-3 text-base">
-                  <HugeiconsIcon
-                    icon={Note01Icon}
-                    size={18}
-                    strokeWidth={1.8}
-                  />
-                  ТЗ и план разработки
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4 xl:grid-cols-2">
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <div className="mb-3 text-sm font-medium">spec_markdown</div>
-                  <TextareaWithCounter
-                    name="specMarkdown"
-                    className="min-h-64 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm leading-6 text-muted-foreground outline-none"
-                    defaultValue={project.specMarkdown}
-                    maxLength={PROJECT_FIELD_LIMITS.specMarkdown}
-                  />
-                  <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                    До {PROJECT_FIELD_LIMITS.specMarkdown} символов.
-                  </p>
+          <Card className="border-border/70 bg-card/88 shadow-none">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-3 text-base">
+                <HugeiconsIcon icon={Note01Icon} size={18} strokeWidth={1.8} />
+                Текущий контекст
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 xl:grid-cols-2">
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="mb-2 text-sm font-medium text-foreground">
+                  Active context
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <div className="mb-3 text-sm font-medium">plan_markdown</div>
-                  <TextareaWithCounter
-                    name="planMarkdown"
-                    className="min-h-64 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm leading-6 text-muted-foreground outline-none"
-                    defaultValue={project.planMarkdown}
-                    maxLength={PROJECT_FIELD_LIMITS.planMarkdown}
-                  />
-                  <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                    До {PROJECT_FIELD_LIMITS.planMarkdown} символов.
-                  </p>
+                <p className="text-sm leading-7 text-muted-foreground">
+                  {activeContextPreview}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="mb-2 text-sm font-medium text-foreground">
+                  Progress notes
                 </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex gap-3">
-              <Button type="submit" className="rounded-xl">
-                Сохранить проект
-              </Button>
-            </div>
-          </form>
+                <p className="text-sm leading-7 text-muted-foreground">
+                  {progressContextPreview}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid gap-6">
@@ -238,132 +248,114 @@ export default async function ProjectDetailsPage({
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
               <p className="leading-7 text-muted-foreground">{aiSummaryText}</p>
-              <StatusPill
-                tone={getProjectRiskTone(project)}
-                label={getProjectRiskLabel(project.risk)}
-              />
-              <div className="grid gap-3 rounded-2xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground sm:grid-cols-2">
-                <div>
-                  <div className="font-medium text-foreground">
-                    Репозиторий и memory bank
-                  </div>
-                  <div className="mt-2 space-y-1">
-                    <div>
-                      Репозиторий:{" "}
-                      {project.hasRepository ? "подключен" : "не найден"}
-                    </div>
-                    <div>
-                      memory_bank:{" "}
-                      {getProjectBooleanMetricLabel(
-                        project,
-                        project.hasMemoryBank,
-                        {
-                          positive: "обнаружен",
-                          negative: "отсутствует",
-                        },
-                      )}
-                    </div>
-                    <div>
-                      ТЗ:{" "}
-                      {getProjectBooleanMetricLabel(project, project.hasSpec, {
-                        positive: "есть",
-                        negative: "нет",
-                      })}
-                    </div>
-                    <div>
-                      План:{" "}
-                      {getProjectBooleanMetricLabel(project, project.hasPlan, {
-                        positive: "есть",
-                        negative: "нет",
-                      })}
-                    </div>
-                  </div>
+              <div className="grid gap-3 rounded-2xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
+                <div className="font-medium text-foreground">
+                  Репозиторий и memory signals
                 </div>
+                <div>Ученик: {project.studentName}</div>
                 <div>
-                  <div className="font-medium text-foreground">
-                    Задачи и коммиты
-                  </div>
-                  <div className="mt-2 space-y-1">
-                    {project.hasAiAnalysisSnapshot ? (
-                      <>
-                        <div>
-                          Задачи: {project.trackedTasksCompleted}/
-                          {project.trackedTasksTotal}
-                        </div>
-                        <div>
-                          В работе: {project.trackedTasksInProgress}, pending:{" "}
-                          {project.trackedTasksPending}
-                        </div>
-                        <div>Коммитов в выборке: {project.commitCount}</div>
-                        <div>Частота: {project.commitsPerWeek}/нед</div>
-                        <div>
-                          Последний коммит:{" "}
-                          {project.lastCommitDaysAgo === null
-                            ? "нет данных"
-                            : `${project.lastCommitDaysAgo} дн. назад`}
-                        </div>
-                        <div>
-                          Статус активности:{" "}
-                          {project.isAbandoned ? "проект заброшен" : "активен"}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div>Задачи: нет данных</div>
-                        <div>В работе: нет данных</div>
-                        <div>Коммитов в выборке: нет данных</div>
-                        <div>Частота: нет данных</div>
-                        <div>Последний коммит: нет данных</div>
-                        <div>Статус активности: нет данных</div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                <div className="text-sm font-medium">Ручной override</div>
-                <form
-                  action={setProjectOverrideAction}
-                  className="mt-3 space-y-3"
-                >
-                  <input type="hidden" name="projectId" value={project.id} />
-                  <Input
-                    name="manualCompletionPercent"
-                    type="number"
-                    min={0}
-                    max={100}
-                    defaultValue={
-                      project.manualCompletionPercent ?? project.progress
-                    }
-                    className="rounded-xl bg-background/80"
-                  />
-                  <TextareaWithCounter
-                    name="manualOverrideNote"
-                    className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none"
-                    defaultValue={project.manualOverrideNote}
-                    placeholder="Комментарий override"
-                    maxLength={PROJECT_STATE_LIMITS.manualOverrideNote}
-                  />
-                  <p className="text-xs leading-5 text-muted-foreground">
-                    До {PROJECT_STATE_LIMITS.manualOverrideNote} символов.
-                  </p>
-                  <div className="flex gap-2">
-                    <Button type="submit" className="rounded-xl">
-                      Применить override
-                    </Button>
-                  </div>
-                </form>
-                <form action={clearProjectOverrideAction} className="mt-3">
-                  <input type="hidden" name="projectId" value={project.id} />
-                  <Button
-                    type="submit"
-                    variant="outline"
-                    className="rounded-xl bg-background/90"
+                  GitHub:{" "}
+                  <Link
+                    href={project.githubUrl}
+                    className="text-primary underline-offset-4 hover:underline"
+                    target="_blank"
                   >
-                    Сбросить override
-                  </Button>
-                </form>
+                    {project.githubOwner && project.githubRepo
+                      ? `${project.githubOwner}/${project.githubRepo}`
+                      : project.githubUrl}
+                  </Link>
+                </div>
+                <div>
+                  Репозиторий:{" "}
+                  {project.hasRepository ? "подключен" : "не найден"}
+                </div>
+                <div>
+                  memory_bank:{" "}
+                  {getProjectBooleanMetricLabel(
+                    project,
+                    project.hasMemoryBank,
+                    {
+                      positive: "обнаружен",
+                      negative: "отсутствует",
+                    },
+                  )}
+                </div>
+                <div>
+                  ТЗ:{" "}
+                  {getProjectBooleanMetricLabel(project, project.hasSpec, {
+                    positive: "есть",
+                    negative: "нет",
+                  })}
+                </div>
+                <div>
+                  План:{" "}
+                  {getProjectBooleanMetricLabel(project, project.hasPlan, {
+                    positive: "есть",
+                    negative: "нет",
+                  })}
+                </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card/88 shadow-none">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Следующие шаги</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              {project.nextSteps.length > 0 ? (
+                project.nextSteps.map((step) => (
+                  <div
+                    key={step}
+                    className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6 text-muted-foreground"
+                  >
+                    {step}
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6 text-muted-foreground">
+                  После AI-анализа здесь появятся следующие шаги по проекту.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card/88 shadow-none">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-3 text-base">
+                <HugeiconsIcon
+                  icon={Github01Icon}
+                  size={18}
+                  strokeWidth={1.8}
+                />
+                История AI-отчетов
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              {reports.length > 0 ? (
+                reports.map((report) => (
+                  <div
+                    key={report.id}
+                    className="rounded-2xl border border-border/70 bg-background/70 p-4"
+                  >
+                    <div className="font-medium">
+                      {report.completionPercent}% • {report.createdAt}
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      memory_bank: {report.hasMemoryBank ? "да" : "нет"} • ТЗ:{" "}
+                      {report.hasSpec ? "да" : "нет"} • План:{" "}
+                      {report.hasPlan ? "да" : "нет"}
+                    </div>
+                    <p className="mt-2 leading-6 text-muted-foreground">
+                      {report.summary}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6 text-muted-foreground">
+                  История AI-отчетов пока пуста.
+                </div>
+              )}
               <form action={deleteProjectAction}>
                 <input type="hidden" name="projectId" value={project.id} />
                 <Button
@@ -373,64 +365,6 @@ export default async function ProjectDetailsPage({
                   Удалить проект
                 </Button>
               </form>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Next steps</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              {project.nextSteps.map((step) => (
-                <div
-                  key={step}
-                  className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6 text-muted-foreground"
-                >
-                  {step}
-                </div>
-              ))}
-              {project.nextSteps.length === 0 ? (
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6 text-muted-foreground">
-                  После первого AI-анализа здесь появятся следующие шаги.
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">История AI-отчетов</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              {reports.map((report) => (
-                <div
-                  key={report.id}
-                  className="rounded-2xl border border-border/70 bg-background/70 p-4"
-                >
-                  <div className="font-medium">
-                    {report.completionPercent}% • {report.createdAt}
-                  </div>
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    memory_bank: {report.hasMemoryBank ? "да" : "нет"} • ТЗ:{" "}
-                    {report.hasSpec ? "да" : "нет"} • План:{" "}
-                    {report.hasPlan ? "да" : "нет"} • Коммиты:{" "}
-                    {report.commitCount} • Частота: {report.commitsPerWeek}/нед
-                  </div>
-                  <p className="mt-2 leading-6 text-muted-foreground">
-                    {report.summary}
-                  </p>
-                  {report.sourceFiles.length > 0 ? (
-                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                      Источники: {report.sourceFiles.join(", ")}
-                    </p>
-                  ) : null}
-                </div>
-              ))}
-              {reports.length === 0 ? (
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6 text-muted-foreground">
-                  История AI-отчетов пока пуста.
-                </div>
-              ) : null}
             </CardContent>
           </Card>
         </div>

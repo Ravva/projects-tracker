@@ -6,13 +6,13 @@ import {
   listGithubRepositoryCommits,
 } from "@/lib/server/github";
 
-type TaskStatus = "completed" | "in_progress" | "pending";
+type DeliverableStatus = "completed" | "in_progress" | "pending" | "blocked";
 
-type ParsedTask = {
-  status: TaskStatus;
-  text: string;
-  normalizedText: string;
-  source: string;
+type ParsedDeliverable = {
+  id: string;
+  title: string;
+  status: DeliverableStatus;
+  weight: number;
 };
 
 type RepositoryFileSnapshot = {
@@ -115,132 +115,136 @@ function extractMarkdownSection(content: string | null, heading: string) {
   return collected.join("\n").trim();
 }
 
-function extractMarkdownBullets(sectionContent: string) {
-  if (!sectionContent.trim()) {
-    return [];
+function normalizeDeliverableStatus(value: string) {
+  const normalized = value.trim().toLowerCase();
+
+  if (
+    normalized === "completed" ||
+    normalized === "in_progress" ||
+    normalized === "pending" ||
+    normalized === "blocked"
+  ) {
+    return normalized;
   }
 
-  const lines = sectionContent.split(/\r?\n/);
-  const bullets: string[] = [];
-  let currentBullet = "";
+  return null;
+}
 
-  const flushCurrentBullet = () => {
-    if (currentBullet.trim()) {
-      bullets.push(currentBullet.trim());
-      currentBullet = "";
-    }
+function parseDeliverableTableRow(line: string): ParsedDeliverable | null {
+  const trimmed = line.trim();
+
+  if (!trimmed.startsWith("|")) {
+    return null;
+  }
+
+  const columns = trimmed
+    .split("|")
+    .slice(1, -1)
+    .map((column) => column.trim());
+
+  if (columns.length < 4) {
+    return null;
+  }
+
+  if (
+    columns.every((column) => /^:?-{3,}:?$/.test(column)) ||
+    columns[0].toLowerCase() === "id"
+  ) {
+    return null;
+  }
+
+  const status = normalizeDeliverableStatus(columns[2]);
+  const weight = Number(columns[3].replace("%", "").trim());
+
+  if (!columns[0] || !columns[1] || !status || !Number.isFinite(weight)) {
+    return null;
+  }
+
+  return {
+    id: columns[0],
+    title: columns[1],
+    status,
+    weight,
   };
+}
+
+function parseDeliverableBullet(line: string): ParsedDeliverable | null {
+  const trimmed = line.trim();
+
+  if (!/^\s*-\s+/.test(trimmed)) {
+    return null;
+  }
+
+  const content = trimmed.replace(/^\s*-\s+/, "");
+  const idMatch = content.match(/(?:^|\|)\s*id\s*:\s*([^|]+?)(?=\s*\||$)/i);
+  const titleMatch = content.match(
+    /(?:^|\|)\s*(?:title|deliverable|name)\s*:\s*([^|]+?)(?=\s*\||$)/i,
+  );
+  const statusMatch = content.match(
+    /(?:^|\|)\s*status\s*:\s*([^|]+?)(?=\s*\||$)/i,
+  );
+  const weightMatch = content.match(
+    /(?:^|\|)\s*weight\s*:\s*([^|]+?)(?=\s*\||$)/i,
+  );
+  const status = normalizeDeliverableStatus(statusMatch?.[1] ?? "");
+  const weight = Number((weightMatch?.[1] ?? "").replace("%", "").trim());
+
+  if (
+    !idMatch?.[1]?.trim() ||
+    !titleMatch?.[1]?.trim() ||
+    !status ||
+    !Number.isFinite(weight)
+  ) {
+    return null;
+  }
+
+  return {
+    id: idMatch[1].trim(),
+    title: titleMatch[1].trim(),
+    status,
+    weight,
+  };
+}
+
+export function parseProjectDeliverables(content: string | null) {
+  const section = extractMarkdownSection(content, "Project Deliverables");
+  const lines = section.split(/\r?\n/);
+  const deliverables: ParsedDeliverable[] = [];
 
   for (const line of lines) {
-    if (/^\s*(?:-|\d+\.)\s+/.test(line)) {
-      flushCurrentBullet();
-      currentBullet = line.replace(/^\s*(?:-|\d+\.)\s+/, "").trim();
-      continue;
+    const parsed =
+      parseDeliverableTableRow(line) ?? parseDeliverableBullet(line);
+
+    if (parsed) {
+      deliverables.push(parsed);
     }
-
-    if (currentBullet && /^\s{2,}\S+/.test(line)) {
-      currentBullet = `${currentBullet} ${line.trim()}`;
-      continue;
-    }
-
-    flushCurrentBullet();
   }
 
-  flushCurrentBullet();
+  const totalWeight = deliverables.reduce(
+    (sum, deliverable) => sum + deliverable.weight,
+    0,
+  );
+  const hasValidWeights = totalWeight === 100;
 
-  return bullets;
-}
-
-function normalizeTaskText(text: string) {
-  return text
-    .toLowerCase()
-    .replace(/^\d{4}-\d{2}-\d{2}:\s*/, "")
-    .replace(/^закрыто в текущей сессии:\s*/, "")
-    .replace(/^в работе:\s*/, "")
-    .replace(/^следующим этапом после текущей правки остается\s*/, "")
-    .replace(/^следующий этап:\s*/, "")
-    .replace(/^закрыто:\s*/, "")
-    .replace(/^выполнено:\s*/, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function classifyActiveContextTask(text: string): TaskStatus {
-  const normalized = text.toLowerCase();
-
-  if (
-    normalized.includes("закрыто") ||
-    normalized.includes("выполнено") ||
-    normalized.includes("заверш")
-  ) {
-    return "completed";
-  }
-
-  if (
-    normalized.includes("в работе") ||
-    normalized.includes("начат") ||
-    normalized.includes("начата")
-  ) {
-    return "in_progress";
-  }
-
-  return "pending";
-}
-
-function parseTasksFromActiveContext(content: string | null): ParsedTask[] {
-  const section = extractMarkdownSection(content, "Задача в работе");
-
-  return extractMarkdownBullets(section)
-    .map((text) => ({
-      status: classifyActiveContextTask(text),
-      text,
-      normalizedText: normalizeTaskText(text),
-      source: "memory_bank/activeContext.md",
-    }))
-    .filter((task) => Boolean(task.normalizedText));
-}
-
-function parseTasksFromProgress(content: string | null): ParsedTask[] {
-  const changelog = extractMarkdownSection(content, "Changelog");
-
-  return extractMarkdownBullets(changelog)
-    .map((text) => ({
-      status: "completed" as const,
-      text,
-      normalizedText: normalizeTaskText(text),
-      source: "memory_bank/progress.md",
-    }))
-    .filter((task) => Boolean(task.normalizedText));
-}
-
-function dedupeTasks(tasks: ParsedTask[]) {
-  const statusRank: Record<TaskStatus, number> = {
-    pending: 0,
-    in_progress: 1,
-    completed: 2,
+  return {
+    deliverables,
+    hasValidWeights,
+    totalWeight,
   };
-  const taskMap = new Map<string, ParsedTask>();
-
-  for (const task of tasks) {
-    const existing = taskMap.get(task.normalizedText);
-
-    if (!existing || statusRank[task.status] > statusRank[existing.status]) {
-      taskMap.set(task.normalizedText, task);
-    }
-  }
-
-  return [...taskMap.values()];
 }
 
-function limitTaskHighlights(
-  tasks: ParsedTask[],
-  status: TaskStatus,
+function limitDeliverableHighlights(
+  deliverables: ParsedDeliverable[],
+  statuses: DeliverableStatus[],
   limit = 5,
 ) {
-  return tasks
-    .filter((task) => task.status === status)
+  return deliverables
+    .filter((deliverable) => statuses.includes(deliverable.status))
     .slice(0, limit)
-    .map((task) => task.text);
+    .map(
+      (deliverable) =>
+        `${deliverable.id}: ${deliverable.title} (${deliverable.weight}%)`,
+    );
 }
 
 function daysSinceIsoDate(isoDate: string) {
@@ -312,25 +316,26 @@ export async function analyzeProjectRepository(input: {
     progress ? "memory_bank/progress.md" : null,
     docsReadme ? "docs/README.md" : null,
   ].filter((path): path is string => Boolean(path));
-
-  const tasks = dedupeTasks([
-    ...parseTasksFromActiveContext(activeContext),
-    ...parseTasksFromProgress(progress),
-  ]);
-  const trackedTasksCompleted = tasks.filter(
-    (task) => task.status === "completed",
+  const parsedDeliverables = parseProjectDeliverables(projectBrief);
+  const deliverables =
+    parsedDeliverables.hasValidWeights &&
+    parsedDeliverables.deliverables.length > 0
+      ? parsedDeliverables.deliverables
+      : [];
+  const trackedTasksCompleted = deliverables.filter(
+    (deliverable) => deliverable.status === "completed",
   ).length;
-  const trackedTasksInProgress = tasks.filter(
-    (task) => task.status === "in_progress",
+  const trackedTasksInProgress = deliverables.filter(
+    (deliverable) => deliverable.status === "in_progress",
   ).length;
-  const trackedTasksPending = tasks.filter(
-    (task) => task.status === "pending",
+  const trackedTasksPending = deliverables.filter(
+    (deliverable) =>
+      deliverable.status === "pending" || deliverable.status === "blocked",
   ).length;
-  const trackedTasksTotal = tasks.length;
-  const completionPercent =
-    trackedTasksTotal === 0
-      ? 0
-      : Math.round((trackedTasksCompleted / trackedTasksTotal) * 100);
+  const trackedTasksTotal = deliverables.length;
+  const completionPercent = deliverables.reduce((sum, deliverable) => {
+    return deliverable.status === "completed" ? sum + deliverable.weight : sum;
+  }, 0);
   const lastCommit = commits[0];
   const oldestCommit = commits.at(-1);
   const sampleWindowDays = oldestCommit
@@ -385,7 +390,10 @@ export async function analyzeProjectRepository(input: {
         hasMeaningfulMarkdown(projectBrief) &&
         hasMeaningfulMarkdown(productContext),
       hasPlan:
-        hasMeaningfulMarkdown(activeContext) && hasMeaningfulMarkdown(progress),
+        parsedDeliverables.hasValidWeights &&
+        deliverables.length > 0 &&
+        hasMeaningfulMarkdown(activeContext) &&
+        hasMeaningfulMarkdown(progress),
       trackedTasksTotal,
       trackedTasksCompleted,
       trackedTasksInProgress,
@@ -399,9 +407,9 @@ export async function analyzeProjectRepository(input: {
       isAbandoned: lastCommitDaysAgo === null ? true : lastCommitDaysAgo > 7,
     },
     taskHighlights: {
-      completed: limitTaskHighlights(tasks, "completed"),
-      inProgress: limitTaskHighlights(tasks, "in_progress"),
-      pending: limitTaskHighlights(tasks, "pending"),
+      completed: limitDeliverableHighlights(deliverables, ["completed"]),
+      inProgress: limitDeliverableHighlights(deliverables, ["in_progress"]),
+      pending: limitDeliverableHighlights(deliverables, ["pending", "blocked"]),
     },
   };
 }

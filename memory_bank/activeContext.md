@@ -10,9 +10,18 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - удерживать teacher-only UI и документацию синхронизированными;
 - стабилизировать CRUD-потоки `students`, `attendance` и `projects` на реальных данных;
 - в работе: откат `attendance` с мгновенной server-side записи на client-side draft с общей кнопкой сохранения, чтобы убрать задержку при проставлении посещаемости;
+- закрыто в текущей сессии: расчет `completion_percent` переведен с эвристики по `activeContext/progress` на канонический `## Project Deliverables` в `memory_bank/projectbrief.md`; локальный `projectbrief.md` получил взвешенный список deliverables на `100%`, а AI-анализ больше не должен завышать готовность из-за session log;
 - закрыто в текущей сессии: AI-анализ student-проектов переведен на чтение `memory_bank` из GitHub-репозитория, progress считается по задачам из `progress.md` и `activeContext.md`, commit metrics сохраняются в `project_state_json`/`project_ai_reports`, а teacher-only страница проекта показывает repo signals и флаг `abandoned` при отсутствии коммитов больше недели;
-- закрыто в текущей сессии: OpenAI-интеграция для AI-анализа вынесена в отдельный server-only клиент официального Responses API; анализ использует только `OPENAI_API_KEY` и `OPENAI_MODEL`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
+- закрыто в текущей сессии: `/projects` очищен от teacher-only формы ручного создания проекта; новые проекты должны приходить только из student-flow `/my-project` после GitHub bind и выбора репозитория;
+- закрыто в текущей сессии: teacher-only detail page `/projects/[projectId]` переориентирована на обзор проекта: краткие выборки `projectBrief/productContext`, процент выполнения, текущий контекст из `memory_bank`, repo signals, next steps и история AI-отчетов;
+- закрыто в текущей сессии: предыдущая прямая OpenAI-интеграция для AI-анализа заменена на server-only вызов Cloudflare Worker gateway; teacher-only приложение теперь использует `AI_GATEWAY_URL`, `AI_GATEWAY_TOKEN` и модель Workers AI `@cf/openai/gpt-oss-120b`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
 - закрыто в текущей сессии: до первого AI-анализа teacher-only проекты больше не получают ложный badge `missing_memory_bank`; список проектов, detail page, dashboard и weekly digest показывают нейтральное состояние `данные отсутствуют` до первого repo analysis;
+- закрыто в текущей сессии: teacher-only AI-анализ проектов переведен с прямого OpenAI API на отдельный Cloudflare Worker c Workers AI `@cf/openai/gpt-oss-120b`; добавлен token-protected gateway между Vercel-приложением и моделью, а для деплоя Worker подготовлен подпроект `workers/ai-worker`;
+- закрыто в текущей сессии: Worker `projects-tracker-ai` задеплоен на Cloudflare `workers.dev`, локальный `.env` привязан к gateway, и первый живой AI-report успешно записан в `project_ai_reports` для `-PopFlix88`;
+- закрыто в текущей сессии: teacher-only GitHub diagnostics уточнены — временный `403 rate limit exceeded` теперь возвращается как отдельная ошибка про `GITHUB_TOKEN`, а не записывается в риск `invalid_github_repo`;
+- закрыто в текущей сессии: в локальный `.env` добавлен рабочий `GITHUB_TOKEN`, после чего teacher-only GitHub API перешел на лимит `5000` запросов и live AI-analysis удалось повторно прогнать без упора в публичный лимит;
+- закрыто в текущей сессии: Appwrite-лимит `report_payload_json <= 12000` учтен для AI-отчетов — длинные `memory_bank` теперь сохраняются в compact preview-формате, поэтому большие student repos больше не ломают запись `project_ai_reports`;
+- закрыто в текущей сессии: живой AI-analysis успешно записан для всех трех подключенных student projects; итоговые состояния после прогона: `LinguaFlow` — `healthy`, `-PopFlix88` — `healthy`, `startlaunch` — `missing_memory_bank`;
 - закрыто в текущей сессии: production deployment на Vercel завершен, рабочий URL приложения — `https://projects-tracker-one.vercel.app`;
 - закрыто в текущей сессии: GitHub OAuth на Vercel стабилизирован, критичным env оказался корректный `NEXTAUTH_URL`;
 - закрыто в текущей сессии: Telegram webhook привязан к production route `/api/telegram/webhook` с `TELEGRAM_WEBHOOK_SECRET`;
@@ -72,7 +81,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - при отсутствии Appwrite-конфигурации страницы показывают пустые состояния вместо локального mock-слоя;
 - итоговая степень реализации проекта вычисляется на лету;
 - AI-анализ проекта должен опираться на данные из `memory_bank` student-репозитория и commit history GitHub, а AI используется для нормализации summary и next steps поверх собранных метрик;
-- вызов модели для teacher-only AI-анализа должен идти только через официальный OpenAI Responses API с серверным `OPENAI_API_KEY`;
+- вызов модели для teacher-only AI-анализа должен идти только через Cloudflare Worker gateway с Workers AI `@cf/openai/gpt-oss-120b` и server-side токеном `AI_GATEWAY_TOKEN`;
 - ручной override сбрасывается после следующего AI-анализа;
 - будущая привязка student-access должна строиться на `github_user_id`, а не на username.
 - production teacher-access должен опираться только на `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` допустим только как non-production fallback.

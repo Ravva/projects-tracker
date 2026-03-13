@@ -63,9 +63,10 @@ Student-access строится на GitHub OAuth и стабильном `githu
 
 - проект принадлежит ученику;
 - репозиторий нормализуется в `owner/repo/default_branch`;
+- teacher вручную не создает проекты из `/projects`; новый проект появляется только из student-flow `/my-project` после GitHub bind и выбора репозитория;
 - AI-анализ teacher-only проекта читает `memory_bank` и commit history прямо из student GitHub repository, а не полагается только на локально заполненные поля проекта;
-- вызов модели идет только через официальный OpenAI Responses API с серверным `OPENAI_API_KEY`; пользовательские OAuth-токены и неофициальные ChatGPT-потоки не используются;
-- `completion_percent` считается детерминированно по задачам из `memory_bank/activeContext.md` и `memory_bank/progress.md`;
+- вызов модели идет через отдельный Cloudflare Worker gateway с Workers AI `@cf/openai/gpt-oss-120b`; основное приложение обращается к нему только по `AI_GATEWAY_URL` и `AI_GATEWAY_TOKEN`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
+- `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; вес завершенных deliverables дает итоговый процент, а `activeContext.md` и `progress.md` больше не используются как источник процента;
 - AI используется только для нормализации summary и next steps поверх уже рассчитанных метрик;
 - до первого AI-анализа UI показывает состояние `данные отсутствуют`; флаги `missing_memory_bank`, `missing_spec` и `missing_plan` появляются только после реального анализа репозитория;
 - детальное ТЗ механизма: [Project Repo Analysis](./project-repo-analysis.md);
@@ -114,13 +115,14 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - `/my-project` - student-only страница выбора GitHub-репозитория и создания draft-проекта.
 - `/api/telegram/webhook` - публичный route для Telegram Bot API, который обрабатывает `/start <token>` и сохраняет `telegram_chat_id` в карточку ученика.
 - `/attendance` - teacher-only weekly attendance workspace.
-- `/projects` - teacher-only project control workspace.
-- `/projects/[projectId]` - teacher-only страница review проекта.
+- `/projects` - teacher-only список подключенных student-проектов без ручного создания.
+- `/projects/[projectId]` - teacher-only обзор проекта: что это за проект, процент выполнения, текущий контекст из `memory_bank`, repo signals и история AI-отчетов.
 
 ## Local Development
 
 - dev server должен использовать `127.0.0.1:3300`; в локальной Windows-среде порт `3100` попадает в system excluded range, а `localhost` дополнительно может уводить bind в `::1`.
 - `.env.example` включает `TELEGRAM_BOT_TOKEN` для ученических и teacher-only Telegram-уведомлений, `TELEGRAM_BOT_USERNAME` для генерации `start`-ссылок, `TELEGRAM_WEBHOOK_SECRET` для защиты webhook и `TEACHER_TELEGRAM_CHAT_ID` для weekly digest преподавателю;
+- `.env.example` также включает `AI_GATEWAY_URL`, `AI_GATEWAY_TOKEN` и опциональный `AI_GATEWAY_MODEL` для server-side вызова Cloudflare Worker с Workers AI;
 - GitHub OAuth запрашивает scope, достаточный для чтения списка student repositories владельца.
 
 ## Deployment
@@ -130,7 +132,8 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - для production deployment требуется авторизованный `vercel` CLI или `VERCEL_TOKEN`;
 - production env должен включать корректный `NEXTAUTH_URL` для публичного Vercel URL;
 - production env должен включать `TEACHER_GITHUB_USER_ID`; без него teacher login считается не настроенным;
-- production env должен включать `OPENAI_API_KEY`; `OPENAI_MODEL` опционален и по умолчанию равен `gpt-5-mini`;
+- production env должен включать `AI_GATEWAY_URL` и `AI_GATEWAY_TOKEN`; `AI_GATEWAY_MODEL` опционален и по умолчанию равен `@cf/openai/gpt-oss-120b`;
+- отдельный Worker разворачивается через `wrangler` из подпроекта `workers/ai-worker` и использует binding `[ai]`;
 - Telegram webhook уже привязан к `https://projects-tracker-one.vercel.app/api/telegram/webhook`;
 - на 2026-03-11 production smoke test teacher-only сценариев `/students`, `/attendance`, `/projects`, массовой Telegram-рассылки и teacher weekly digest подтвержден вручную.
 

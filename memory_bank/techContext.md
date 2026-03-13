@@ -11,6 +11,7 @@
 - `next-auth` для GitHub OAuth;
 - `node-appwrite` для server-side доступа к Appwrite;
 - GitHub REST API для чтения student repositories, `memory_bank` файлов и commit history;
+- Cloudflare Workers + Workers AI для server-side AI gateway и модели `@cf/openai/gpt-oss-120b`;
 - `xlsx` для teacher import students.
 
 ## Auth And Access
@@ -52,13 +53,15 @@
   - `TELEGRAM_WEBHOOK_SECRET`
   - `TEACHER_TELEGRAM_CHAT_ID`
 - AI env:
-  - `OPENAI_API_KEY`
-  - `OPENAI_MODEL`
+  - `AI_GATEWAY_URL`
+  - `AI_GATEWAY_TOKEN`
+  - `AI_GATEWAY_MODEL`
+  - `GITHUB_TOKEN` желателен для стабильного teacher-only AI-analysis и GitHub sync без упора в публичный rate limit
 
 ## Ограничения
 
 - Markdown-файлы не проверяются через Biome;
 - dev server на `127.0.0.1:3300` управляется пользователем и не должен запускаться агентом;
 - teacher-only AI-анализ student projects опирается на публично доступные или доступные через `GITHUB_TOKEN` данные GitHub repo;
-- teacher-only AI-анализ вызывает модели только через официальный OpenAI Responses API с серверным `OPENAI_API_KEY`; `OPENAI_MODEL` остается конфигурируемым env;
+- teacher-only AI-анализ вызывает модели только через Cloudflare Worker gateway с Workers AI; само приложение не хранит прямой provider API key и использует `AI_GATEWAY_URL`/`AI_GATEWAY_TOKEN`;
 - student-access не дает student права на teacher-only маршруты и ручные teacher actions.

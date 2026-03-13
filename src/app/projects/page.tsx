@@ -2,15 +2,10 @@ import { Github01Icon, Note01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 
-import { createProjectAction } from "@/app/projects/actions";
 import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  InputWithCounter,
-  TextareaWithCounter,
-} from "@/components/ui/field-with-counter";
 import {
   Table,
   TableBody,
@@ -19,7 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PROJECT_FIELD_LIMITS } from "@/lib/project-limits";
 import {
   getProjectProgressLabel,
   getProjectRiskLabel,
@@ -27,14 +21,10 @@ import {
 } from "@/lib/project-risk";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { listProjects } from "@/lib/server/repositories/projects";
-import { listStudents } from "@/lib/server/repositories/students";
 
 export default async function ProjectsPage() {
   const teacher = await requireTeacherSession();
-  const [projects, students] = await Promise.all([
-    listProjects(),
-    listStudents(),
-  ]);
+  const projects = await listProjects();
 
   return (
     <TeacherShell
@@ -43,14 +33,9 @@ export default async function ProjectsPage() {
       teacherName={teacher.name}
       teacherEmail={teacher.email}
       actions={
-        <>
-          <Button variant="outline" className="rounded-xl bg-background/90">
-            GitHub sync
-          </Button>
-          <Button asChild className="rounded-xl">
-            <Link href="#create-project">Новый проект</Link>
-          </Button>
-        </>
+        <Button variant="outline" className="rounded-xl bg-background/90">
+          GitHub sync
+        </Button>
       }
     >
       <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
@@ -121,78 +106,6 @@ export default async function ProjectsPage() {
             <CardTitle className="text-base">Фокус review</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <form
-              id="create-project"
-              action={createProjectAction}
-              className="space-y-3 rounded-2xl border border-border/70 bg-background/70 p-4"
-            >
-              <div className="font-medium">Новый проект</div>
-              <select
-                name="studentId"
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
-                required
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  Выберите ученика
-                </option>
-                {students.map((student) => (
-                  <option key={student.id} value={student.id}>
-                    {student.firstName} {student.lastName}
-                  </option>
-                ))}
-              </select>
-              <InputWithCounter
-                name="name"
-                placeholder="Название проекта"
-                className="rounded-xl bg-background/80"
-                maxLength={PROJECT_FIELD_LIMITS.name}
-                required
-              />
-              <InputWithCounter
-                name="githubUrl"
-                placeholder="https://github.com/owner/repo"
-                className="rounded-xl bg-background/80"
-                maxLength={PROJECT_FIELD_LIMITS.githubUrl}
-                required
-              />
-              <InputWithCounter
-                name="summary"
-                placeholder="Краткое описание"
-                className="rounded-xl bg-background/80"
-                maxLength={PROJECT_FIELD_LIMITS.summary}
-              />
-              <select
-                name="status"
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
-                defaultValue="draft"
-              >
-                <option value="draft">draft</option>
-                <option value="active">active</option>
-                <option value="review">review</option>
-                <option value="done">done</option>
-              </select>
-              <TextareaWithCounter
-                name="specMarkdown"
-                className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none"
-                placeholder="ТЗ"
-                maxLength={PROJECT_FIELD_LIMITS.specMarkdown}
-              />
-              <TextareaWithCounter
-                name="planMarkdown"
-                className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none"
-                placeholder="План разработки"
-                maxLength={PROJECT_FIELD_LIMITS.planMarkdown}
-              />
-              <p className="text-xs leading-5 text-muted-foreground">
-                Лимиты Appwrite: описание до {PROJECT_FIELD_LIMITS.summary}{" "}
-                символов, ТЗ и план до {PROJECT_FIELD_LIMITS.specMarkdown}.
-              </p>
-              <Button type="submit" className="w-full rounded-xl">
-                Создать проект
-              </Button>
-            </form>
-
             <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
               <div className="flex items-center gap-3 font-medium">
                 <HugeiconsIcon
@@ -203,8 +116,9 @@ export default async function ProjectsPage() {
                 GitHub metadata
               </div>
               <p className="mt-2 leading-6 text-muted-foreground">
-                Detail page уже поддерживает teacher-only edit, sync, анализ
-                `memory_bank` из GitHub-репозитория, AI-summary и override.
+                Проекты создаются учеником через `/my-project` после GitHub bind
+                flow. Teacher-only workspace нужен для review, sync и AI-анализа
+                уже подключенных репозиториев.
               </p>
             </div>
             <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
@@ -213,10 +127,9 @@ export default async function ProjectsPage() {
                 ТЗ и план
               </div>
               <p className="mt-2 leading-6 text-muted-foreground">
-                Teacher notes редактируются на странице проекта, а AI-анализ
-                теперь опирается на `memory_bank/projectbrief.md`,
-                `memory_bank/productContext.md`, `memory_bank/activeContext.md`
-                и `memory_bank/progress.md` в student repo.
+                Детальная страница проекта показывает краткую выборку из
+                `memory_bank`: что это за проект, какой у него прогресс и какой
+                сейчас текущий контекст.
               </p>
             </div>
           </CardContent>

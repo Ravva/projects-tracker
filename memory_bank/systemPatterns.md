@@ -29,16 +29,26 @@
 - student page `/my-project` показывает только проекты текущего ученика и только его GitHub repositories;
 - список репозиториев читается напрямую из GitHub API по OAuth access token;
 - выбор репозитория создает draft-проект в `projects` со связкой `student_id + github_url`;
-- teacher review и дальнейшее редактирование проекта остаются в teacher-only модуле `/projects`.
+- teacher review и AI-анализ остаются в teacher-only модуле `/projects`, но ручное создание проекта преподавателем не используется.
+
+## Project Review Pattern
+
+- `/projects` показывает только подключенные student-проекты и не содержит teacher-only форму ручного создания;
+- `/projects/[projectId]` — обзорная страница, а не primary edit-form;
+- detail page опирается на последний AI-report и краткие preview из `memory_bank`, чтобы показать:
+  - что это за проект;
+  - какой у него процент выполнения;
+  - какой у него текущий контекст;
+  - какие repo signals и next steps актуальны сейчас.
 
 ## Project Analysis Pattern
 
 - teacher-only AI-анализ проекта запускается из `/projects/[projectId]`;
 - backend читает `memory_bank/projectbrief.md`, `productContext.md`, `activeContext.md`, `progress.md` и опциональный `docs/README.md` прямо из student GitHub repository;
-- `completion_percent` считается детерминированно по уникальным задачам из `activeContext.md` и `progress.md`;
+- `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; deliverables без валидной суммы весов `100` не участвуют в расчете процента;
 - commit metrics и флаг `abandoned` считаются по истории коммитов default branch;
 - AI используется только для нормализации summary, risks и next steps поверх уже рассчитанного snapshot;
-- запрос к модели идет через server-only клиент официального OpenAI Responses API с `OPENAI_API_KEY` и `OPENAI_MODEL`;
+- Vercel-приложение не ходит к модели напрямую: server-only клиент вызывает token-protected Cloudflare Worker `/chat`, а уже Worker обращается к Workers AI `@cf/openai/gpt-oss-120b` через binding `AI`;
 - до первого AI-анализа проект остается в нейтральном состоянии `данные отсутствуют`; флаги `missing_memory_bank`, `missing_spec` и `missing_plan` выставляются только после реального repo analysis;
 - агрегированные metrics пишутся в `projects.project_state_json`, а история запусков — в `project_ai_reports`.
 

@@ -17,12 +17,18 @@
 - production teacher login теперь требует `TEACHER_GITHUB_USER_ID`; если переменная не задана, teacher-доступ считается не настроенным даже при наличии `TEACHER_GITHUB_LOGIN`.
 - полный production smoke test student-access сценария еще не пройден; он перенесен на 2026-03-12.
 - commit metrics сейчас считаются по выборке последних commit pages GitHub API, поэтому для очень больших репозиториев частота и количество отражают актуальное рабочее окно, а не бесконечную историю всего проекта.
+- без `GITHUB_TOKEN` teacher-only AI-analysis и GitHub sync быстро упираются в публичный rate limit GitHub API; временный `403 rate limit exceeded` теперь диагностируется отдельно, но для стабильных прогонов нужен token.
 
 ## Changelog
 
 - 2026-03-13: исправлена pre-analysis индикация проектов. До первого AI-анализа teacher-only UI больше не интерпретирует дефолтные `false` в `project_state_json` как реальные `missing_memory_bank` / `missing_spec` / `missing_plan`; вместо этого список проектов, detail page, dashboard и weekly digest показывают статус `данные отсутствуют` до первого repo analysis.
 - 2026-03-13: починен student bind flow после Telegram invite. Student GitHub login теперь стартует с landing URL `/login?studentLinkToken=...`, но OAuth callback целенаправленно уходит в `/student/link?token=...`; login page также умеет подхватывать `callbackUrl` от `next-auth`/`middleware` и при уже активной сессии автоматически продолжает bind вместо возврата на экран входа.
-- 2026-03-13: AI-анализ проектов переведен на единый официальный OpenAI client. Вынесен server-only модуль вызова OpenAI Responses API, анализ теперь использует только `OPENAI_API_KEY` и `OPENAI_MODEL`, а архитектурная документация синхронизирована без изменения `docs/OAuth.md`.
+- 2026-03-13: AI-анализ проектов переведен с прямого OpenAI Responses API на Cloudflare Worker gateway. Добавлен подпроект `workers/ai-worker` с `GET /health`, `POST /chat`, token-protected доступом и Workers AI `@cf/openai/gpt-oss-120b`; серверный модуль приложения теперь использует `AI_GATEWAY_URL`, `AI_GATEWAY_TOKEN` и `AI_GATEWAY_MODEL`, а документация синхронизирована без изменения `docs/OAuth.md`.
+- 2026-03-13: Worker `projects-tracker-ai` задеплоен на `workers.dev`, локальный `.env` привязан к `AI_GATEWAY_URL` и `AI_GATEWAY_TOKEN`, а живой AI-report успешно создан для проекта `-PopFlix88`. Диагностика GitHub API усилена: `403 rate limit exceeded` больше не маскируется под `invalid_github_repo`.
+- 2026-03-13: после добавления рабочего `GITHUB_TOKEN` подтвержден authenticated GitHub rate limit `5000`, а teacher-only AI-analysis успешно догнан для `LinguaFlow` и `startlaunch`.
+- 2026-03-13: AI-отчеты ужаты под лимит Appwrite `report_payload_json <= 12000`. Вместо полного raw `memory_bank` в историю анализа теперь сохраняется compact preview snapshot, поэтому большие student repos больше не падают на записи отчета.
+- 2026-03-13: механизм процента проекта переведен на `## Project Deliverables` в `memory_bank/projectbrief.md`. Старый расчет по `activeContext.md` и `progress.md` удален из server-side analyzer; локальный `projectbrief.md` дополнен взвешенным backlog'ом на `100%` для реалистичной проверки прогресса.
+- 2026-03-13: teacher-only страница `/projects` очищена от ручного создания проекта. Источником новых проектов остается student-flow `/my-project`, а detail page `/projects/[projectId]` переделана в обзорный workspace с краткими preview из `memory_bank`, процентом выполнения, текущим контекстом, repo signals и историей AI-отчетов.
 - 2026-03-11: зафиксировано завершение ручного production smoke test teacher-only сценариев на Vercel. Подтверждены `/students`, `/attendance`, `/projects`, массовая Telegram-рассылка и teacher weekly digest; следующий шаг перенесен на 2026-03-12 для полного student-access smoke test.
 - 2026-03-11: локальный dev server переведен на `127.0.0.1:3300`. Диагностика показала, что в Windows порт `3100` входит в системный excluded TCP range `3068-3167`, поэтому bind на нем запрещен даже вне IPv6. Документация и memory bank синхронизированы.
 - 2026-03-13: выполнен минимальный polish страницы входа. На `/login` удалена вторичная ссылка `Архитектура`, а CTA `Войти через GitHub` переведен с самописного `button` на общий `Button` из UI-системы; `Biome` с автоисправлением и повторной проверкой для измененных TSX-файлов проходит успешно.
@@ -88,4 +94,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `a0d92a9c6a223f09727bba0b6bd3a36bdc78b2ba`
+- `last_checked_commit`: `52f081388852482a09d30305c4727a0b34e63221`
