@@ -95,7 +95,7 @@ export function MarkdownContent({
             />
           ),
           code: ({ className: codeClassName, children, ...props }) => {
-            const isBlock = Boolean(className?.includes("language-"));
+            const isBlock = Boolean(codeClassName?.includes("language-"));
 
             if (isBlock) {
               return (

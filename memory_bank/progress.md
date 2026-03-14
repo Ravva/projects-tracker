@@ -20,6 +20,7 @@
 
 ## Changelog
 
+- 2026-03-14: устранен production 500 на `/projects/[projectId]` после AI-анализа. Причина была в `src/components/ui/markdown-content.tsx`: renderer для `code` использовал несуществующую переменную `className` вместо `codeClassName`, поэтому любой markdown с inline code или code block ломал Server Components render. После исправления `bun run lint` и `bun run build` снова проходят.
 - 2026-03-14: teacher-only project detail page переведен с `Project brief` на `docs/README.md`, а крупные текстовые блоки (`docs/README.md`, `Product context`, `Active context`, `Progress notes`, `AI summary`, `next steps`) теперь рендерят Markdown через общий UI-компонент. Добавлены зависимости `react-markdown` и `remark-gfm`; `bun run lint` и `bun run build` проходят.
 - 2026-03-14: закрыта доработка `PT-07` для teacher-only project detail page. Полные `Project brief`, `Product context`, `Active context` и `Progress notes` теперь сохраняются целиком в сжатом виде внутри `project_ai_reports.report_payload_json -> inputSnapshotJson`; страница `/projects/[projectId]` читает полный snapshot, показывает увеличенные текстовые блоки и поднимает секцию `Прогресс и сигналы` в начало layout. `bun run lint` и `bun run build` проходят.
 - 2026-03-14: подтвержден полный production smoke test student-access сценария: `Telegram Start -> GitHub login -> bind -> выбор репозитория на /my-project`. Deliverable `PT-08` можно считать завершенным.
