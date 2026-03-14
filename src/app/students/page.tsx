@@ -140,7 +140,9 @@ export default async function StudentsPage() {
                           {student.telegramChatId || "chat id не заполнен"}
                         </div>
                       </TableCell>
-                      <TableCell>{student.projectsCount}</TableCell>
+                      <TableCell>
+                        {student.activeProjectsCount}/{student.projectsCount}
+                      </TableCell>
                       <TableCell>
                         <div className="space-y-2">
                           <StatusPill

@@ -1,6 +1,7 @@
 export type WeeklyState = "critical" | "warning" | "success";
 export type TelegramLinkStatus = "not_invited" | "awaiting_start" | "linked";
 export type AuthRole = "teacher" | "student" | "guest";
+export type ProjectStatus = "draft" | "active" | "completed";
 
 export type AuthenticatedSessionUser = {
   id: string;
@@ -33,6 +34,8 @@ export type StudentRecord = {
   attendanceRate: number;
   weeklyState: WeeklyState;
   projectsCount: number;
+  activeProjectsCount: number;
+  completedProjectsCount: number;
   lastActivity: string;
   aiSummary: string;
   notes: string;
@@ -124,7 +127,7 @@ export type ProjectRecord = ProjectRepositoryMetrics & {
   studentName: string;
   name: string;
   summary: string;
-  status: string;
+  status: ProjectStatus;
   risk: ProjectRisk;
   riskFlags: ProjectRisk[];
   hasAiAnalysisSnapshot: boolean;
@@ -152,7 +155,7 @@ export type ProjectInput = {
   name: string;
   summary: string;
   githubUrl: string;
-  status: string;
+  status: ProjectStatus;
   specMarkdown: string;
   planMarkdown: string;
 };

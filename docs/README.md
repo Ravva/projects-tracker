@@ -2,14 +2,14 @@
 
 ## Product Scope
 
-`Projects Tracker` - сервис для teacher control room и ограниченного student-access сценария выбора проекта.
+`Projects Tracker` - сервис для teacher control room и ограниченного student-access сценария выбора и ведения нескольких ученических проектов.
 
 MVP включает:
 
 - вход преподавателя через GitHub OAuth;
 - вход ученика через GitHub OAuth после подтверждения личности через Telegram;
 - teacher-only управление учениками, включая страницу редактирования ученика;
-- student-only выбор своего GitHub-репозитория на маршруте `/my-project`;
+- student-only просмотр своей истории проектов и выбор следующего GitHub-репозитория на маршруте `/my-project`;
 - ручное заполнение `telegram_chat_id` преподавателем и привязку через персональные Telegram `start`-ссылки;
 - недельные занятия по шаблону вторник/четверг/пятница;
 - CRUD проектов, GitHub sync и ручной AI-анализ;
@@ -22,7 +22,7 @@ MVP включает:
 
 ### Student Access
 
-Student-access строится на GitHub OAuth и стабильном `github_user_id`. После подтверждения через Telegram бот ученик получает одноразовую GitHub login-ссылку, связывает свой аккаунт с карточкой ученика и попадает на `/my-project`, где может выбрать только свой репозиторий из списка GitHub-репозиториев владельца. Редактирование ученических данных, посещаемости и ручных оценок остается за преподавателем.
+Student-access строится на GitHub OAuth и стабильном `github_user_id`. После подтверждения через Telegram бот ученик получает одноразовую GitHub login-ссылку, связывает свой аккаунт с карточкой ученика и попадает на `/my-project`, где видит текущий проект, историю завершенных проектов и может выбрать только свой следующий репозиторий из списка GitHub-репозиториев владельца. Новый проект разрешен только после перевода предыдущего в статус `completed`. Редактирование ученических данных, посещаемости и ручных оценок остается за преподавателем.
 
 Детальное ТЗ: [Student Project Access](./student-project-access.md).
 
@@ -61,9 +61,11 @@ Student-access строится на GitHub OAuth и стабильном `githu
 
 ### Projects
 
-- проект принадлежит ученику;
+- проект принадлежит ученику, при этом у одного ученика может быть несколько проектов;
+- в каждый момент времени у ученика допускается только один текущий проект со статусом `draft` или `active`; завершенные проекты хранятся со статусом `completed`;
 - репозиторий нормализуется в `owner/repo/default_branch`;
 - teacher вручную не создает проекты из `/projects`; новый проект появляется только из student-flow `/my-project` после GitHub bind и выбора репозитория;
+- teacher-only detail page проекта умеет переводить проект в `completed` и обратно в `active`, чтобы открывать ученику доступ к следующему проекту;
 - AI-анализ teacher-only проекта читает `memory_bank` и commit history прямо из student GitHub repository, а не полагается только на локально заполненные поля проекта;
 - вызов модели идет через отдельный Cloudflare Worker gateway с Workers AI `@cf/openai/gpt-oss-120b`; основное приложение обращается к нему только по `AI_GATEWAY_URL` и `AI_GATEWAY_TOKEN`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
 - `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; вес завершенных deliverables дает итоговый процент, а `activeContext.md` и `progress.md` больше не используются как источник процента;
@@ -112,7 +114,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - `/students/[studentId]` - teacher-only страница редактирования ученика.
 - `/auth/complete` - post-login resolver для teacher/student.
 - `/student/link` - защищенный bind route, который связывает GitHub-аккаунт ученика с карточкой по одноразовому token.
-- `/my-project` - student-only страница выбора GitHub-репозитория и создания draft-проекта.
+- `/my-project` - student-only страница истории проектов ученика, состояния текущего проекта и выбора следующего GitHub-репозитория.
 - `/api/telegram/webhook` - публичный route для Telegram Bot API, который обрабатывает `/start <token>` и сохраняет `telegram_chat_id` в карточку ученика.
 - `/attendance` - teacher-only weekly attendance workspace.
 - `/projects` - teacher-only список подключенных student-проектов без ручного создания.

@@ -230,8 +230,9 @@ export default async function StudentDetailsPage({
                 }
               />
               <div className="text-sm leading-6 text-muted-foreground">
-                Посещаемость этой недели: {student.attendanceRate}%. Проектов в
-                работе: {student.projectsCount}.
+                Посещаемость этой недели: {student.attendanceRate}%. Активных
+                проектов: {student.activeProjectsCount}, завершённых:{" "}
+                {student.completedProjectsCount}.
               </div>
             </CardContent>
           </Card>

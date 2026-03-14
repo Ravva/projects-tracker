@@ -19,12 +19,17 @@ import {
   getProjectRiskLabel,
   getProjectRiskTone,
 } from "@/lib/project-risk";
+import { getProjectStatusLabel, isProjectCurrent } from "@/lib/project-status";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { listProjects } from "@/lib/server/repositories/projects";
 
 export default async function ProjectsPage() {
   const teacher = await requireTeacherSession();
   const projects = await listProjects();
+  const currentProjects = projects.filter((project) =>
+    isProjectCurrent(project.status),
+  );
+  const completedProjects = projects.length - currentProjects.length;
 
   return (
     <TeacherShell
@@ -83,7 +88,9 @@ export default async function ProjectsPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{project.status}</TableCell>
+                      <TableCell>
+                        {getProjectStatusLabel(project.status)}
+                      </TableCell>
                       <TableCell>
                         <StatusPill
                           tone={getProjectRiskTone(project)}
@@ -116,9 +123,9 @@ export default async function ProjectsPage() {
                 GitHub metadata
               </div>
               <p className="mt-2 leading-6 text-muted-foreground">
-                Проекты создаются учеником через `/my-project` после GitHub bind
-                flow. Teacher-only workspace нужен для review, sync и AI-анализа
-                уже подключенных репозиториев.
+                У ученика может быть несколько проектов: один текущий и история
+                завершенных. Teacher-only workspace нужен для review, sync,
+                смены статуса и AI-анализа уже подключенных репозиториев.
               </p>
             </div>
             <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
@@ -131,6 +138,10 @@ export default async function ProjectsPage() {
                 `memory_bank`: что это за проект, какой у него прогресс и какой
                 сейчас текущий контекст.
               </p>
+            </div>
+            <div className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6 text-muted-foreground">
+              В работе сейчас {currentProjects.length} проект(а), завершено в
+              истории {completedProjects}.
             </div>
           </CardContent>
         </Card>

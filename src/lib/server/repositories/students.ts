@@ -2,6 +2,7 @@ import "server-only";
 
 import { ID, Query } from "node-appwrite";
 
+import { isProjectCurrent, normalizeProjectStatus } from "@/lib/project-status";
 import { getAppwriteConfig, getAppwriteDatabases } from "@/lib/server/appwrite";
 import { daysSince, normalizeWeekStart } from "@/lib/server/date-utils";
 import { mapStudentDocument, toStudentDocument } from "@/lib/server/mappers";
@@ -12,6 +13,8 @@ type StudentSummary = Pick<
   | "attendanceRate"
   | "weeklyState"
   | "projectsCount"
+  | "activeProjectsCount"
+  | "completedProjectsCount"
   | "lastActivity"
   | "aiSummary"
 >;
@@ -60,6 +63,8 @@ async function buildStudentSummaries(
     ]);
 
   const projectCountMap = new Map<string, number>();
+  const activeProjectCountMap = new Map<string, number>();
+  const completedProjectCountMap = new Map<string, number>();
   const lastActivityMap = new Map<string, string>();
   const aiSummaryMap = new Map<string, string>();
 
@@ -67,19 +72,52 @@ async function buildStudentSummaries(
     const studentId = String(
       (document as Record<string, unknown>).student_id ?? "",
     );
+    const status = normalizeProjectStatus(
+      (document as Record<string, unknown>).status ?? "draft",
+    );
+    const projectState = String(
+      (document as Record<string, unknown>).project_state_json ?? "",
+    );
 
     if (!studentId) {
       continue;
     }
 
     projectCountMap.set(studentId, (projectCountMap.get(studentId) ?? 0) + 1);
+    if (isProjectCurrent(status)) {
+      activeProjectCountMap.set(
+        studentId,
+        (activeProjectCountMap.get(studentId) ?? 0) + 1,
+      );
+    } else {
+      completedProjectCountMap.set(
+        studentId,
+        (completedProjectCountMap.get(studentId) ?? 0) + 1,
+      );
+    }
 
-    const aiSummary = String(
-      (document as Record<string, unknown>).ai_summary ?? "",
-    );
-    const lastCommitAt = String(
-      (document as Record<string, unknown>).last_commit_at ?? "",
-    );
+    let aiSummary = "";
+    let lastCommitAt = "";
+
+    try {
+      const parsedState = JSON.parse(projectState) as {
+        aiSummary?: unknown;
+      };
+      aiSummary = String(parsedState.aiSummary ?? "");
+    } catch {}
+
+    try {
+      const githubState = JSON.parse(
+        String((document as Record<string, unknown>).github_state_json ?? ""),
+      ) as {
+        lastCommitAt?: unknown;
+      };
+      lastCommitAt = String(githubState.lastCommitAt ?? "");
+    } catch {}
+
+    if (aiSummary && isProjectCurrent(status) && !aiSummaryMap.has(studentId)) {
+      aiSummaryMap.set(studentId, aiSummary);
+    }
 
     if (aiSummary && !aiSummaryMap.has(studentId)) {
       aiSummaryMap.set(studentId, aiSummary);
@@ -131,6 +169,8 @@ async function buildStudentSummaries(
           attendanceRate,
           weeklyState: buildWeeklyState(attendanceRate),
           projectsCount: projectCountMap.get(studentId) ?? 0,
+          activeProjectsCount: activeProjectCountMap.get(studentId) ?? 0,
+          completedProjectsCount: completedProjectCountMap.get(studentId) ?? 0,
           lastActivity,
           aiSummary:
             aiSummaryMap.get(studentId) ?? "AI summary пока не рассчитан.",

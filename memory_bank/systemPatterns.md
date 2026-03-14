@@ -26,15 +26,17 @@
 
 ## Student Project Selection Pattern
 
-- student page `/my-project` показывает только проекты текущего ученика и только его GitHub repositories;
+- student page `/my-project` показывает все проекты текущего ученика, отдельно выделяет текущий проект и историю завершенных;
 - список репозиториев читается напрямую из GitHub API по OAuth access token;
-- выбор репозитория создает draft-проект в `projects` со связкой `student_id + github_url`;
-- teacher review и AI-анализ остаются в teacher-only модуле `/projects`, но ручное создание проекта преподавателем не используется.
+- выбор репозитория создает новый `active`-проект в `projects` со связкой `student_id + github_url`, только если у ученика нет другого текущего проекта;
+- teacher review и AI-анализ остаются в teacher-only модуле `/projects`, но ручное создание проекта преподавателем не используется;
+- teacher переводит проект в `completed`, когда ученик завершил его, после чего student-flow разрешает выбрать следующий репозиторий.
 
 ## Project Review Pattern
 
 - `/projects` показывает только подключенные student-проекты и не содержит teacher-only форму ручного создания;
 - `/projects/[projectId]` — обзорная страница, а не primary edit-form;
+- detail page также управляет жизненным циклом проекта: teacher может пометить его завершенным или вернуть в работу;
 - detail page опирается на последний AI-report и полный snapshot `memory_bank`, чтобы показать:
   - что это за проект через `docs/README.md`;
   - какой у него процент выполнения;

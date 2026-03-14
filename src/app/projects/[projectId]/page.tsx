@@ -11,6 +11,7 @@ import { RunAiAnalysisButton } from "@/app/projects/[projectId]/run-ai-analysis-
 import {
   deleteProjectAction,
   runProjectAiAnalysisAction,
+  setProjectStatusAction,
   syncProjectAction,
 } from "@/app/projects/actions";
 import { StatusPill } from "@/components/app/status-pill";
@@ -24,6 +25,7 @@ import {
   getProjectRiskLabel,
   getProjectRiskTone,
 } from "@/lib/project-risk";
+import { getProjectStatusLabel, isProjectCurrent } from "@/lib/project-status";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { parseProjectAiInputSnapshot } from "@/lib/server/project-ai-report-snapshot";
 import {
@@ -175,6 +177,20 @@ export default async function ProjectDetailsPage({
             <input type="hidden" name="projectId" value={project.id} />
             <RunAiAnalysisButton />
           </form>
+          <form action={setProjectStatusAction}>
+            <input type="hidden" name="projectId" value={project.id} />
+            <input type="hidden" name="studentId" value={project.studentId} />
+            <input
+              type="hidden"
+              name="status"
+              value={isProjectCurrent(project.status) ? "completed" : "active"}
+            />
+            <Button variant="outline" className="rounded-xl bg-background/90">
+              {isProjectCurrent(project.status)
+                ? "Отметить завершенным"
+                : "Вернуть в работу"}
+            </Button>
+          </form>
         </>
       }
     >
@@ -209,7 +225,7 @@ export default async function ProjectDetailsPage({
                   />
                 </div>
                 <div className="mt-3 text-sm text-muted-foreground">
-                  Статус проекта: {project.status}
+                  Статус проекта: {getProjectStatusLabel(project.status)}
                 </div>
               </div>
               <div className={getSignalToneClasses(activityTone)}>

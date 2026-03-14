@@ -6,6 +6,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 
 ## Задача в работе
 
+- в работе: расширение project model под несколько проектов на одного ученика; нужно сохранить историю завершенных проектов, показать их состояния в teacher/student UI и не сломать текущий AI-analysis/review flow;
 - закрыто в текущей сессии: локальный dev startup на Windows стабилизирован переводом dev server на `127.0.0.1:3300`; `localhost` уводил bind в `::1`, а порт `3100` оказался запрещен системным excluded range;
 - удерживать teacher-only UI и документацию синхронизированными;
 - стабилизировать CRUD-потоки `students`, `attendance` и `projects` на реальных данных;
@@ -91,6 +92,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - вызов модели для teacher-only AI-анализа должен идти только через Cloudflare Worker gateway с Workers AI `@cf/openai/gpt-oss-120b` и server-side токеном `AI_GATEWAY_TOKEN`;
 - ручной override сбрасывается после следующего AI-анализа;
 - будущая привязка student-access должна строиться на `github_user_id`, а не на username.
+- у одного ученика может быть несколько проектов, но student-flow `/my-project` должен разрешать только один текущий проект одновременно; завершенные проекты остаются в истории и доступны teacher review.
 - production teacher-access должен опираться только на `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` допустим только как non-production fallback.
 - локальный dev server должен слушать `127.0.0.1:3300`, потому что `localhost` на Windows может уйти в IPv6 `::1`, а порт `3100` в текущей среде зарезервирован системой.
 - закрыто в текущей сессии: student bind flow после Telegram invite починен — login page теперь сохраняет и восстанавливает student callback, GitHub OAuth возвращает ученика в `/student/link`, а повторное открытие `/login` с активной сессией автоматически продолжает привязку вместо зависания на экране входа.

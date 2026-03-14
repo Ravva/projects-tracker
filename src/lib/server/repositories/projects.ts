@@ -5,6 +5,7 @@ import {
   normalizeProjectInput,
   normalizeProjectState,
 } from "@/lib/project-limits";
+import { isProjectCurrent, normalizeProjectStatus } from "@/lib/project-status";
 import {
   getAiGatewayModel,
   requestAiGatewayJsonObject,
@@ -30,6 +31,7 @@ import type {
   ProjectInput,
   ProjectRecord,
   ProjectRisk,
+  ProjectStatus,
 } from "@/lib/types";
 
 function hasProjectAiAnalysisSnapshot(
@@ -359,6 +361,14 @@ async function listProjectDocumentsByStudent(studentId: string) {
   return response.documents;
 }
 
+export async function listCurrentProjectsByStudentId(
+  studentId: string,
+): Promise<ProjectRecord[]> {
+  const projects = await listProjectsByStudentId(studentId);
+
+  return projects.filter((project) => isProjectCurrent(project.status));
+}
+
 export async function listProjects(): Promise<ProjectRecord[]> {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
@@ -522,6 +532,12 @@ export async function createStudentProjectFromGithubSelection(input: {
     throw new Error("Этот репозиторий уже выбран для текущего ученика.");
   }
 
+  if (existingProjects.some((project) => isProjectCurrent(project.status))) {
+    throw new Error(
+      "Сначала завершите текущий проект ученика, затем можно выбрать следующий репозиторий.",
+    );
+  }
+
   return appwrite.databases.createDocument(
     appwrite.databaseId,
     config.collections.projects,
@@ -532,12 +548,51 @@ export async function createStudentProjectFromGithubSelection(input: {
         name: input.repositoryName.trim() || `Проект ${input.studentName}`,
         summary: input.repositoryDescription.trim(),
         githubUrl: normalizedUrl,
-        status: "draft",
+        status: "active",
         specMarkdown: "",
         planMarkdown: "",
       }),
       github_state_json: buildGithubState(),
       project_state_json: buildProjectState(),
+    },
+  );
+}
+
+export async function setProjectStatus(
+  projectId: string,
+  nextStatus: ProjectStatus,
+) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+  const project = await getProject(projectId);
+
+  if (!appwrite || !config || !project) {
+    throw new Error("Проект не найден.");
+  }
+
+  const normalizedStatus = normalizeProjectStatus(nextStatus);
+
+  if (normalizedStatus === "active") {
+    const studentProjects = await listProjectsByStudentId(project.studentId);
+    const hasOtherCurrentProject = studentProjects.some(
+      (studentProject) =>
+        studentProject.id !== projectId &&
+        isProjectCurrent(studentProject.status),
+    );
+
+    if (hasOtherCurrentProject) {
+      throw new Error(
+        "У ученика уже есть другой текущий проект. Сначала завершите его или оставьте этот проект завершенным.",
+      );
+    }
+  }
+
+  return appwrite.databases.updateDocument(
+    appwrite.databaseId,
+    config.collections.projects,
+    projectId,
+    {
+      status: normalizedStatus,
     },
   );
 }

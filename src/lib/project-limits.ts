@@ -1,3 +1,4 @@
+import { normalizeProjectStatus } from "@/lib/project-status";
 import type { ProjectInput } from "@/lib/types";
 
 export const PROJECT_FIELD_LIMITS = {
@@ -27,7 +28,7 @@ export function normalizeProjectInput(input: ProjectInput): ProjectInput {
     name: trimToLimit(input.name, PROJECT_FIELD_LIMITS.name),
     summary: trimToLimit(input.summary, PROJECT_FIELD_LIMITS.summary),
     githubUrl: trimToLimit(input.githubUrl, PROJECT_FIELD_LIMITS.githubUrl),
-    status: input.status,
+    status: normalizeProjectStatus(input.status),
     specMarkdown: trimToLimit(
       input.specMarkdown,
       PROJECT_FIELD_LIMITS.specMarkdown,

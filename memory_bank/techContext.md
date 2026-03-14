@@ -36,6 +36,7 @@
   - `project_ai_reports`
 - схема поднимается идемпотентно через `bun run db:provision`;
 - индекс `students_by_github_link_token` нужен для student bind flow.
+- в `projects.status` используется lifecycle `draft | active | completed`; новый student project разрешается только при отсутствии другого текущего проекта у того же `student_id`.
 
 ## Deployment And Env
 

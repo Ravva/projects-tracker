@@ -40,6 +40,7 @@ import {
   getProjectRiskTone,
   isProjectInReviewZone,
 } from "@/lib/project-risk";
+import { getProjectStatusLabel, isProjectCurrent } from "@/lib/project-status";
 import { parseIsoDate } from "@/lib/server/date-utils";
 import { getCurrentAttendanceWeek } from "@/lib/server/repositories/attendance";
 import { listProjects } from "@/lib/server/repositories/projects";
@@ -78,6 +79,9 @@ export async function TeacherDashboard({
   );
   const riskyProjects = projects.filter((project) =>
     isProjectInReviewZone(project),
+  );
+  const currentProjects = projects.filter((project) =>
+    isProjectCurrent(project.status),
   );
   const filledChatIds = students.filter(
     (student) => student.telegramChatId,
@@ -170,7 +174,7 @@ export async function TeacherDashboard({
                   <span className="text-muted-foreground">
                     Проектов в работе
                   </span>
-                  <span className="font-medium">{projects.length}</span>
+                  <span className="font-medium">{currentProjects.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">
@@ -372,7 +376,7 @@ export async function TeacherDashboard({
                     <div className="flex items-start justify-between gap-3">
                       <div className="font-medium">{project.name}</div>
                       <Badge variant="outline" className="rounded-full">
-                        {project.status}
+                        {getProjectStatusLabel(project.status)}
                       </Badge>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">

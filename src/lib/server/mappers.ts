@@ -1,5 +1,6 @@
 import type { Models } from "node-appwrite";
 
+import { normalizeProjectStatus } from "@/lib/project-status";
 import { formatDateLabel } from "@/lib/server/date-utils";
 import type {
   AttendanceLessonRecord,
@@ -160,6 +161,8 @@ export function mapStudentDocument(
     attendanceRate: summary?.attendanceRate ?? 0,
     weeklyState: coerceWeeklyState(summary?.weeklyState),
     projectsCount: summary?.projectsCount ?? 0,
+    activeProjectsCount: summary?.activeProjectsCount ?? 0,
+    completedProjectsCount: summary?.completedProjectsCount ?? 0,
     lastActivity: summary?.lastActivity ?? "Нет активности",
     aiSummary: summary?.aiSummary ?? "AI summary пока не рассчитан.",
     notes: String(getField(document, "notes") ?? ""),
@@ -251,7 +254,7 @@ export function mapProjectDocument(
     studentName,
     name: String(getField(document, "name") ?? ""),
     summary: String(getField(document, "summary") ?? ""),
-    status: String(getField(document, "status") ?? "draft"),
+    status: normalizeProjectStatus(getField(document, "status")),
     risk: normalizeProjectRisk(projectState.primaryRisk),
     riskFlags,
     hasAiAnalysisSnapshot: Boolean(lastAiAnalysisAtRaw),

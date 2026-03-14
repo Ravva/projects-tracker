@@ -2,7 +2,7 @@
 
 ## Current Status
 
-Документация и архитектурный контур инициализированы. Локальный Git настроен и синхронизирован с удаленным репозиторием. Реализованы teacher control room, Appwrite schema provisioning, CRUD для `students` и `projects`, запись посещаемости и project detail actions. Дополнительно активирован первый student-access сценарий: bind GitHub-аккаунта по `github_user_id` после Telegram-подтверждения и student-only выбор проекта на `/my-project`. Teacher-only AI-анализ проектов теперь опирается на данные `memory_bank` и commit history student GitHub repository, а не только на локально заполненные поля проекта.
+Документация и архитектурный контур инициализированы. Локальный Git настроен и синхронизирован с удаленным репозиторием. Реализованы teacher control room, Appwrite schema provisioning, CRUD для `students` и `projects`, запись посещаемости и project detail actions. Дополнительно активирован student-access сценарий: bind GitHub-аккаунта по `github_user_id` после Telegram-подтверждения и student-only управление своей проектной линией на `/my-project`. Teacher-only AI-анализ проектов теперь опирается на данные `memory_bank` и commit history student GitHub repository, а не только на локально заполненные поля проекта.
 
 ## Known Issues
 
@@ -20,6 +20,7 @@
 
 ## Changelog
 
+- 2026-03-14: модель проектов расширена под несколько проектов на одного ученика. Student page `/my-project` теперь показывает текущий проект и историю завершенных, новый репозиторий разрешается выбирать только после завершения текущего, а teacher-only detail page проекта умеет переводить проект между статусами `active` и `completed`. Сводки по ученикам и teacher dashboard теперь различают активные и завершенные проекты. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, `bun run lint` и `bun run build` проходят.
 - 2026-03-14: обновлена общая button-система в `src/components/ui/button.tsx`. Базовые размеры увеличены, `default/outline/secondary/destructive` стали визуально выразительнее, а кнопки получили единый hover/active motion и тени. Изменение применяется централизованно ко всему UI, использующему общий `Button`. `bun run lint` и `bun run build` проходят.
 - 2026-03-14: доработан layout teacher-only project detail page. В карточке `Активность` последний коммит теперь показывается в часах, если с него прошло меньше 24 часов, иначе в днях; правая колонка (`AI summary`, `Следующие шаги`, `История AI-отчетов`) переведена на компактный стек без растягивания по высоте. `bun run lint` и `bun run build` проходят.
 - 2026-03-14: брендинг sidebar и favicon унифицирован. Иконка пункта меню `Контроль недели` переосмыслена как отдельный SVG-asset `public/weekly-control-logo.svg`; sidebar header теперь использует этот знак вместо старого `School01Icon`, а `src/app/layout.tsx` явно подключает тот же SVG как favicon/app icon.
@@ -102,4 +103,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `90a4441cfc49a1d5c20a3a35f8b76796d0e8cf74`
+- `last_checked_commit`: `9f66338f7548d767dc1dd38b387468c94a0cbe89`
