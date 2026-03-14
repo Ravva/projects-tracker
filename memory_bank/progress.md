@@ -20,6 +20,7 @@
 
 ## Changelog
 
+- 2026-03-14: брендинг sidebar и favicon унифицирован. Иконка пункта меню `Контроль недели` переосмыслена как отдельный SVG-asset `public/weekly-control-logo.svg`; sidebar header теперь использует этот знак вместо старого `School01Icon`, а `src/app/layout.tsx` явно подключает тот же SVG как favicon/app icon.
 - 2026-03-14: production 500 при `POST /projects/[projectId]` на запуске AI-анализа диагностирован как упор в лимит Appwrite для `project_ai_reports.report_payload_json`. Лимит схемы поднят с `12000` до `50000`, `scripts/provision-appwrite.ts` теперь обновляет существующие string-атрибуты по размеру, а `bun run db:provision` успешно применил изменение к текущей базе.
 - 2026-03-14: устранен production 500 на `/projects/[projectId]` после AI-анализа. Причина была в `src/components/ui/markdown-content.tsx`: renderer для `code` использовал несуществующую переменную `className` вместо `codeClassName`, поэтому любой markdown с inline code или code block ломал Server Components render. После исправления `bun run lint` и `bun run build` снова проходят.
 - 2026-03-14: teacher-only project detail page переведен с `Project brief` на `docs/README.md`, а крупные текстовые блоки (`docs/README.md`, `Product context`, `Active context`, `Progress notes`, `AI summary`, `next steps`) теперь рендерят Markdown через общий UI-компонент. Добавлены зависимости `react-markdown` и `remark-gfm`; `bun run lint` и `bun run build` проходят.

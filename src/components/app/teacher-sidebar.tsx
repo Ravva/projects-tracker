@@ -7,7 +7,6 @@ import {
   ChartUpIcon,
   Github01Icon,
   Notification01Icon,
-  School01Icon,
   Task01Icon,
   User02Icon,
 } from "@hugeicons/core-free-icons";
@@ -15,6 +14,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { BrandMark } from "@/components/app/brand-mark";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -70,8 +70,8 @@ export function TeacherSidebar({
           href="/"
           className="flex items-center gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/40 px-3 py-3"
         >
-          <div className="flex size-11 items-center justify-center rounded-2xl bg-[hsl(var(--status-calm))] text-white shadow-sm">
-            <HugeiconsIcon icon={School01Icon} size={22} strokeWidth={1.8} />
+          <div className="flex size-11 items-center justify-center rounded-2xl shadow-sm">
+            <BrandMark className="size-11 rounded-2xl" />
           </div>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
             <div className="truncate text-sm font-semibold text-sidebar-foreground">
