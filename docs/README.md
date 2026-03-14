@@ -101,7 +101,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - server-side repositories для `students`, `projects`, `attendance`;
 - Appwrite используется через server-only adapter;
 - схема Appwrite поднимается идемпотентным скриптом `bun run db:provision`;
-- `projects` и `project_ai_reports` используют компактные JSON-state поля; полный snapshot `memory_bank` в AI-отчетах хранится в сжатом виде внутри `report_payload_json`, чтобы detail page мог показывать полные `Project brief`, `Product context`, `Active context` и `Progress notes` без потери данных;
+- `projects` и `project_ai_reports` используют компактные JSON-state поля; полный snapshot `memory_bank` в AI-отчетах хранится в сжатом виде внутри `report_payload_json`, а размер атрибута `project_ai_reports.report_payload_json` расширен до `50000`, чтобы detail page мог показывать полные `Project brief`, `Product context`, `Active context` и `Progress notes` без потери данных;
 - при отсутствии Appwrite env-конфигурации репозитории возвращают пустые состояния;
 - пример переменных окружения хранится в `.env.example`.
 

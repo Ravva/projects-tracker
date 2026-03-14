@@ -341,7 +341,7 @@ const attributeDefinitions: AttributeDefinition[] = [
     type: "string",
     collectionId: collections.projectAiReports,
     key: "report_payload_json",
-    size: 12000,
+    size: 50000,
     required: false,
     xdefault: "{}",
   },
@@ -410,10 +410,12 @@ async function ensureCollection(collectionId: string, name: string) {
   }
 }
 
-async function listAttributeKeys(collectionId: string) {
+async function listAttributes(collectionId: string) {
   const response = await databases.listAttributes(databaseId, collectionId);
 
-  return new Set(response.attributes.map((attribute) => attribute.key));
+  return new Map(
+    response.attributes.map((attribute) => [attribute.key, attribute]),
+  );
 }
 
 async function waitForAttribute(collectionId: string, key: string) {
@@ -469,6 +471,52 @@ async function createAttribute(definition: AttributeDefinition) {
   );
 }
 
+async function updateAttributeIfNeeded(
+  definition: AttributeDefinition,
+  existingAttribute: {
+    key: string;
+    type?: string;
+    required?: boolean;
+    default?: unknown;
+    size?: unknown;
+  },
+) {
+  if (definition.type !== "string") {
+    return;
+  }
+
+  if (definition.xdefault === undefined) {
+    return;
+  }
+
+  const currentSize = Number(existingAttribute.size ?? 0);
+  const currentDefault =
+    existingAttribute.default === undefined
+      ? undefined
+      : String(existingAttribute.default);
+
+  if (
+    currentSize >= definition.size &&
+    existingAttribute.required === definition.required &&
+    currentDefault === definition.xdefault
+  ) {
+    return;
+  }
+
+  await databases.updateStringAttribute(
+    databaseId,
+    definition.collectionId,
+    definition.key,
+    definition.required,
+    definition.xdefault,
+    definition.size,
+  );
+  await waitForAttribute(definition.collectionId, definition.key);
+  console.log(
+    `Updated attribute ${definition.collectionId}.${definition.key} to size ${definition.size}`,
+  );
+}
+
 async function ensureAttributes() {
   const grouped = new Map<string, AttributeDefinition[]>();
 
@@ -479,10 +527,13 @@ async function ensureAttributes() {
   }
 
   for (const [collectionId, definitions] of grouped) {
-    const existingKeys = await listAttributeKeys(collectionId);
+    const existingAttributes = await listAttributes(collectionId);
 
     for (const definition of definitions) {
-      if (existingKeys.has(definition.key)) {
+      const existingAttribute = existingAttributes.get(definition.key);
+
+      if (existingAttribute) {
+        await updateAttributeIfNeeded(definition, existingAttribute);
         continue;
       }
 

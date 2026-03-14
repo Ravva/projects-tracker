@@ -209,7 +209,9 @@ export default async function ProjectDetailsPage({
                 <div className="mb-2 text-sm font-medium text-foreground">
                   docs/README.md
                 </div>
-                <MarkdownContent content={docsReadmePreview} />
+                <div className="app-scrollbar max-h-96 overflow-y-auto pr-2">
+                  <MarkdownContent content={docsReadmePreview} />
+                </div>
               </div>
               <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                 <div className="mb-2 text-sm font-medium text-foreground">

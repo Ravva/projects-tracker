@@ -10,7 +10,7 @@ export function MarkdownContent({
   content: string;
 }) {
   return (
-    <div className={cn("text-sm leading-7 text-muted-foreground", className)}>
+    <div className={cn("text-sm leading-5 text-muted-foreground", className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
