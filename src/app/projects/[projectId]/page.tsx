@@ -53,6 +53,38 @@ function getSignalToneClasses(
   );
 }
 
+function formatLastCommitLabel(
+  lastCommit: string,
+  lastCommitDaysAgo: number | null,
+) {
+  if (
+    !lastCommit ||
+    lastCommit === "Нет данных" ||
+    lastCommitDaysAgo === null
+  ) {
+    return "нет данных";
+  }
+
+  const lastCommitDate = new Date(lastCommit);
+
+  if (Number.isNaN(lastCommitDate.getTime())) {
+    return lastCommitDaysAgo < 1
+      ? "меньше суток назад"
+      : `${lastCommitDaysAgo} дн. назад`;
+  }
+
+  const diffHours = Math.max(
+    1,
+    Math.floor((Date.now() - lastCommitDate.getTime()) / (60 * 60 * 1000)),
+  );
+
+  if (diffHours < 24) {
+    return `${diffHours} ч. назад`;
+  }
+
+  return `${lastCommitDaysAgo} дн. назад`;
+}
+
 export default async function ProjectDetailsPage({
   params,
 }: {
@@ -113,6 +145,10 @@ export default async function ProjectDetailsPage({
       : project.lastCommitDaysAgo !== null && project.lastCommitDaysAgo <= 2
         ? "success"
         : "warning";
+  const lastCommitLabel = formatLastCommitLabel(
+    project.lastCommit,
+    project.lastCommitDaysAgo,
+  );
 
   return (
     <TeacherShell
@@ -187,7 +223,7 @@ export default async function ProjectDetailsPage({
                     Последний коммит:{" "}
                     {project.lastCommitDaysAgo === null
                       ? "нет данных"
-                      : `${project.lastCommitDaysAgo} дн. назад`}
+                      : lastCommitLabel}
                   </div>
                 </div>
               </div>
@@ -246,7 +282,7 @@ export default async function ProjectDetailsPage({
           </Card>
         </div>
 
-        <div className="grid gap-6">
+        <div className="grid content-start gap-6 self-start">
           <Card className="border-border/70 bg-card/88 shadow-none">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-base">

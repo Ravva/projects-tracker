@@ -26,6 +26,8 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - закрыто в текущей сессии: teacher-only project detail page переведен с блока `Project brief` на полный `docs/README.md`, а все крупные текстовые карточки обзора проекта теперь поддерживают markdown-разметку;
 - закрыто в текущей сессии: production 500 после запуска AI-анализа устранен — markdown renderer падал на inline/fenced `code`, потому что проверял несуществующую переменную `className` вместо `codeClassName`; server-side render detail page снова стабилен;
 - закрыто в текущей сессии: логотип проекта и favicon переведены на единый SVG-знак на базе иконки пункта меню `Контроль недели`; sidebar branding и browser icon теперь используют один и тот же asset;
+- закрыто в текущей сессии: teacher-only project detail page отполирован — в карточке `Активность` последний коммит теперь показывается в часах, если прошло меньше суток, а правая колонка (`AI summary`, `Следующие шаги`, `История AI-отчетов`) больше не растягивается по высоте и идет компактным стеком;
+- закрыто в текущей сессии: общая button-система обновлена через `src/components/ui/button.tsx` — кнопки стали крупнее, получили более выразительную форму, тени и единый hover/active-эффект без точечных правок по страницам;
 - закрыто в текущей сессии: живой AI-analysis успешно записан для всех трех подключенных student projects; итоговые состояния после прогона: `LinguaFlow` — `healthy`, `-PopFlix88` — `healthy`, `startlaunch` — `missing_memory_bank`;
 - закрыто в текущей сессии: production deployment на Vercel завершен, рабочий URL приложения — `https://projects-tracker-one.vercel.app`;
 - закрыто в текущей сессии: GitHub OAuth на Vercel стабилизирован, критичным env оказался корректный `NEXTAUTH_URL`;
