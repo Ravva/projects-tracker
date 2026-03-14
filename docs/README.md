@@ -101,7 +101,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - server-side repositories для `students`, `projects`, `attendance`;
 - Appwrite используется через server-only adapter;
 - схема Appwrite поднимается идемпотентным скриптом `bun run db:provision`;
-- `projects` и `project_ai_reports` используют компактные JSON-state поля, чтобы укладываться в лимиты Appwrite;
+- `projects` и `project_ai_reports` используют компактные JSON-state поля; полный snapshot `memory_bank` в AI-отчетах хранится в сжатом виде внутри `report_payload_json`, чтобы detail page мог показывать полные `Project brief`, `Product context`, `Active context` и `Progress notes` без потери данных;
 - при отсутствии Appwrite env-конфигурации репозитории возвращают пустые состояния;
 - пример переменных окружения хранится в `.env.example`.
 
@@ -116,7 +116,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - `/api/telegram/webhook` - публичный route для Telegram Bot API, который обрабатывает `/start <token>` и сохраняет `telegram_chat_id` в карточку ученика.
 - `/attendance` - teacher-only weekly attendance workspace.
 - `/projects` - teacher-only список подключенных student-проектов без ручного создания.
-- `/projects/[projectId]` - teacher-only обзор проекта: что это за проект, процент выполнения, текущий контекст из `memory_bank`, repo signals и история AI-отчетов.
+- `/projects/[projectId]` - teacher-only обзор проекта: сначала блок `Прогресс и сигналы`, затем полный `Project brief`, `Product context`, `Active context`, `Progress notes`, repo signals и история AI-отчетов.
 
 ## Local Development
 

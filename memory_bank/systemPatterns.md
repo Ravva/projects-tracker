@@ -35,7 +35,7 @@
 
 - `/projects` показывает только подключенные student-проекты и не содержит teacher-only форму ручного создания;
 - `/projects/[projectId]` — обзорная страница, а не primary edit-form;
-- detail page опирается на последний AI-report и краткие preview из `memory_bank`, чтобы показать:
+- detail page опирается на последний AI-report и полный snapshot `memory_bank`, чтобы показать:
   - что это за проект;
   - какой у него процент выполнения;
   - какой у него текущий контекст;
@@ -50,7 +50,8 @@
 - AI используется только для нормализации summary, risks и next steps поверх уже рассчитанного snapshot;
 - Vercel-приложение не ходит к модели напрямую: server-only клиент вызывает token-protected Cloudflare Worker `/chat`, а уже Worker обращается к Workers AI `@cf/openai/gpt-oss-120b` через binding `AI`;
 - до первого AI-анализа проект остается в нейтральном состоянии `данные отсутствуют`; флаги `missing_memory_bank`, `missing_spec` и `missing_plan` выставляются только после реального repo analysis;
-- агрегированные metrics пишутся в `projects.project_state_json`, а история запусков — в `project_ai_reports`.
+- агрегированные metrics пишутся в `projects.project_state_json`, а история запусков — в `project_ai_reports`;
+- полный текст `Project brief`, `Product context`, `Active context` и `Progress notes` внутри AI-отчета хранится в сжатом виде в `inputSnapshotJson`, чтобы detail page читал весь markdown и оставался в пределах лимита Appwrite.
 
 ## Data Isolation
 

@@ -19,6 +19,10 @@ import {
   mapProjectAiReportDocument,
   mapProjectDocument,
 } from "@/lib/server/mappers";
+import {
+  type ProjectAiInputSnapshot,
+  serializeProjectAiInputSnapshot,
+} from "@/lib/server/project-ai-report-snapshot";
 import { analyzeProjectRepository } from "@/lib/server/project-repository-analysis";
 import { listStudentNameMap } from "@/lib/server/repositories/students";
 import type {
@@ -233,12 +237,9 @@ function buildProjectStateFromProject(
   });
 }
 
-function trimReportText(value: string, limit: number) {
-  return value.trim().slice(0, limit);
-}
-
 function buildProjectReportPayload(input: {
   projectName: string;
+  projectSummary: string;
   github: {
     url: string;
     owner: string;
@@ -283,21 +284,18 @@ function buildProjectReportPayload(input: {
   risks: string[];
   nextSteps: string[];
 }) {
+  const inputSnapshot: ProjectAiInputSnapshot = {
+    name: input.projectName,
+    summary: input.projectSummary,
+    github: input.github,
+    repositorySignals: input.repositorySignals,
+    taskMetrics: input.taskMetrics,
+    taskHighlights: input.taskHighlights,
+    memoryBank: input.memoryBank,
+  };
+
   return JSON.stringify({
-    inputSnapshotJson: JSON.stringify({
-      name: input.projectName,
-      github: input.github,
-      repositorySignals: input.repositorySignals,
-      taskMetrics: input.taskMetrics,
-      taskHighlights: input.taskHighlights,
-      memoryBankPreview: {
-        projectBrief: trimReportText(input.memoryBank.projectBrief, 300),
-        productContext: trimReportText(input.memoryBank.productContext, 300),
-        activeContext: trimReportText(input.memoryBank.activeContext, 300),
-        progress: trimReportText(input.memoryBank.progress, 300),
-        docsReadme: trimReportText(input.memoryBank.docsReadme, 300),
-      },
-    }),
+    inputSnapshotJson: serializeProjectAiInputSnapshot(inputSnapshot),
     implementedItems: input.implementedItems,
     partialItems: input.partialItems,
     missingItems: input.missingItems,
@@ -778,7 +776,7 @@ export async function runProjectAiAnalysis(projectId: string) {
     defaultBranch: repositoryAnalysis.repository.defaultBranch,
     githubUrl: repositoryAnalysis.repository.htmlUrl,
   });
-  const inputSnapshot = {
+  const inputSnapshot: ProjectAiInputSnapshot = {
     name: project.name,
     summary: project.summary,
     github: {
@@ -845,6 +843,7 @@ export async function runProjectAiAnalysis(projectId: string) {
       completion_percent: completionPercent,
       report_payload_json: buildProjectReportPayload({
         projectName: project.name,
+        projectSummary: project.summary,
         github: inputSnapshot.github,
         repositorySignals: inputSnapshot.repositorySignals,
         taskMetrics: inputSnapshot.taskMetrics,

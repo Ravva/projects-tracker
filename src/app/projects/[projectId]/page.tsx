@@ -24,29 +24,12 @@ import {
   getProjectRiskTone,
 } from "@/lib/project-risk";
 import { requireTeacherSession } from "@/lib/server/auth";
+import { parseProjectAiInputSnapshot } from "@/lib/server/project-ai-report-snapshot";
 import {
   getProject,
   listProjectAiReports,
 } from "@/lib/server/repositories/projects";
 import { cn } from "@/lib/utils";
-
-type ProjectSnapshotPreview = {
-  memoryBankPreview?: {
-    projectBrief?: string;
-    productContext?: string;
-    activeContext?: string;
-    progress?: string;
-    docsReadme?: string;
-  };
-};
-
-function parseInputSnapshotPreview(rawJson: string) {
-  try {
-    return JSON.parse(rawJson) as ProjectSnapshotPreview;
-  } catch {
-    return {};
-  }
-}
 
 function extractTextOrFallback(value: string | undefined, fallback: string) {
   const normalized = value?.trim();
@@ -86,25 +69,25 @@ export default async function ProjectDetailsPage({
   }
 
   const latestReport = reports[0] ?? null;
-  const snapshotPreview = latestReport
-    ? parseInputSnapshotPreview(latestReport.inputSnapshotJson)
-    : {};
+  const snapshot = latestReport
+    ? parseProjectAiInputSnapshot(latestReport.inputSnapshotJson)
+    : null;
   const projectBriefPreview = extractTextOrFallback(
-    snapshotPreview.memoryBankPreview?.projectBrief,
+    snapshot?.memoryBank.projectBrief,
     project.summary || "Краткое описание проекта пока отсутствует.",
   );
   const productContextPreview = extractTextOrFallback(
-    snapshotPreview.memoryBankPreview?.productContext,
+    snapshot?.memoryBank.productContext,
     "Продуктовый контекст пока не извлечен из memory_bank.",
   );
   const activeContextPreview = extractTextOrFallback(
-    snapshotPreview.memoryBankPreview?.activeContext,
+    snapshot?.memoryBank.activeContext,
     project.hasAiAnalysisSnapshot
       ? "Текущий контекст не найден в последнем AI-snapshot."
       : "Сначала запустите AI-анализ, чтобы получить текущий контекст из memory_bank.",
   );
   const progressContextPreview = extractTextOrFallback(
-    snapshotPreview.memoryBankPreview?.progress,
+    snapshot?.memoryBank.progress,
     project.hasAiAnalysisSnapshot
       ? "Прогресс-пометки пока не найдены в последнем AI-snapshot."
       : "Сначала запустите AI-анализ, чтобы получить сигналы прогресса из memory_bank.",
@@ -160,36 +143,6 @@ export default async function ProjectDetailsPage({
         <div className="grid gap-6">
           <Card className="border-border/70 bg-card/88 shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-base">
-                Что это за проект
-                <StatusPill
-                  tone={getProjectRiskTone(project)}
-                  label={getProjectProgressLabel(project)}
-                />
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                <div className="mb-2 text-sm font-medium text-foreground">
-                  Project brief
-                </div>
-                <p className="text-sm leading-7 text-muted-foreground">
-                  {projectBriefPreview}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                <div className="mb-2 text-sm font-medium text-foreground">
-                  Product context
-                </div>
-                <p className="text-sm leading-7 text-muted-foreground">
-                  {productContextPreview}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-base">
                 <HugeiconsIcon icon={Task01Icon} size={18} strokeWidth={1.8} />
                 Прогресс и сигналы
@@ -240,27 +193,57 @@ export default async function ProjectDetailsPage({
 
           <Card className="border-border/70 bg-card/88 shadow-none">
             <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between text-base">
+                Что это за проект
+                <StatusPill
+                  tone={getProjectRiskTone(project)}
+                  label={getProjectProgressLabel(project)}
+                />
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="mb-2 text-sm font-medium text-foreground">
+                  Project brief
+                </div>
+                <div className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
+                  {projectBriefPreview}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <div className="mb-2 text-sm font-medium text-foreground">
+                  Product context
+                </div>
+                <div className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
+                  {productContextPreview}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card/88 shadow-none">
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-base">
                 <HugeiconsIcon icon={Note01Icon} size={18} strokeWidth={1.8} />
                 Текущий контекст
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4 xl:grid-cols-2">
+            <CardContent className="grid gap-4">
               <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                 <div className="mb-2 text-sm font-medium text-foreground">
                   Active context
                 </div>
-                <p className="text-sm leading-7 text-muted-foreground">
+                <div className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
                   {activeContextPreview}
-                </p>
+                </div>
               </div>
               <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                 <div className="mb-2 text-sm font-medium text-foreground">
                   Progress notes
                 </div>
-                <p className="text-sm leading-7 text-muted-foreground">
+                <div className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
                   {progressContextPreview}
-                </p>
+                </div>
               </div>
             </CardContent>
           </Card>

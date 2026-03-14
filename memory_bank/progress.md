@@ -12,15 +12,16 @@
 - даже после нормализации `project_state_json` нужно контролировать суммарный размер JSON при дальнейшем расширении AI summary и списков шагов.
 - для Telegram linking flow нужно сохранять синхронность `TELEGRAM_WEBHOOK_SECRET` между Vercel env и настройкой webhook у бота; при рассинхроне Telegram будет получать `401` от `/api/telegram/webhook`.
 - локальный `.env` не содержит `TELEGRAM_WEBHOOK_SECRET`, поэтому валидный production webhook smoke test с корректным секретом из терминала в этой среде недоступен.
-- в production/Appwrite коллекция `projects` сейчас пуста, поэтому teacher-only сценарии `/projects`, GitHub sync и AI-analysis пока можно проверить только на пустом состоянии или после появления хотя бы одного боевого проекта; проблема не в отсутствии Appwrite-коллекций или схемы.
+- в production/Appwrite коллекция `projects` зависит от student bind flow и выбора репозитория на `/my-project`, поэтому teacher-only сценарии `/projects`, GitHub sync и AI-analysis требуют хотя бы один подключенный student project; проблема не в отсутствии Appwrite-коллекций или схемы.
 - student-access bind flow теперь зависит от `NEXTAUTH_URL`: без корректного публичного URL Telegram-бот не сможет выдать рабочую GitHub login-ссылку после `Start`.
 - production teacher login теперь требует `TEACHER_GITHUB_USER_ID`; если переменная не задана, teacher-доступ считается не настроенным даже при наличии `TEACHER_GITHUB_LOGIN`.
-- полный production smoke test student-access сценария еще не пройден; он перенесен на 2026-03-12.
 - commit metrics сейчас считаются по выборке последних commit pages GitHub API, поэтому для очень больших репозиториев частота и количество отражают актуальное рабочее окно, а не бесконечную историю всего проекта.
 - без `GITHUB_TOKEN` teacher-only AI-analysis и GitHub sync быстро упираются в публичный rate limit GitHub API; временный `403 rate limit exceeded` теперь диагностируется отдельно, но для стабильных прогонов нужен token.
 
 ## Changelog
 
+- 2026-03-14: закрыта доработка `PT-07` для teacher-only project detail page. Полные `Project brief`, `Product context`, `Active context` и `Progress notes` теперь сохраняются целиком в сжатом виде внутри `project_ai_reports.report_payload_json -> inputSnapshotJson`; страница `/projects/[projectId]` читает полный snapshot, показывает увеличенные текстовые блоки и поднимает секцию `Прогресс и сигналы` в начало layout. `bun run lint` и `bun run build` проходят.
+- 2026-03-14: подтвержден полный production smoke test student-access сценария: `Telegram Start -> GitHub login -> bind -> выбор репозитория на /my-project`. Deliverable `PT-08` можно считать завершенным.
 - 2026-03-13: исправлена pre-analysis индикация проектов. До первого AI-анализа teacher-only UI больше не интерпретирует дефолтные `false` в `project_state_json` как реальные `missing_memory_bank` / `missing_spec` / `missing_plan`; вместо этого список проектов, detail page, dashboard и weekly digest показывают статус `данные отсутствуют` до первого repo analysis.
 - 2026-03-13: починен student bind flow после Telegram invite. Student GitHub login теперь стартует с landing URL `/login?studentLinkToken=...`, но OAuth callback целенаправленно уходит в `/student/link?token=...`; login page также умеет подхватывать `callbackUrl` от `next-auth`/`middleware` и при уже активной сессии автоматически продолжает bind вместо возврата на экран входа.
 - 2026-03-13: AI-анализ проектов переведен с прямого OpenAI Responses API на Cloudflare Worker gateway. Добавлен подпроект `workers/ai-worker` с `GET /health`, `POST /chat`, token-protected доступом и Workers AI `@cf/openai/gpt-oss-120b`; серверный модуль приложения теперь использует `AI_GATEWAY_URL`, `AI_GATEWAY_TOKEN` и `AI_GATEWAY_MODEL`, а документация синхронизирована без изменения `docs/OAuth.md`.
@@ -95,4 +96,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `52f081388852482a09d30305c4727a0b34e63221`
+- `last_checked_commit`: `e46d3657bc127d319f0375189a6ae3494995fb9e`
