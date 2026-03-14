@@ -36,10 +36,11 @@
 - `/projects` показывает только подключенные student-проекты и не содержит teacher-only форму ручного создания;
 - `/projects/[projectId]` — обзорная страница, а не primary edit-form;
 - detail page опирается на последний AI-report и полный snapshot `memory_bank`, чтобы показать:
-  - что это за проект;
+  - что это за проект через `docs/README.md`;
   - какой у него процент выполнения;
   - какой у него текущий контекст;
   - какие repo signals и next steps актуальны сейчас.
+- все крупные текстовые карточки на detail page рендерят Markdown, чтобы списки, заголовки, таблицы, ссылки и `code` из repo snapshot отображались без потери структуры.
 
 ## Project Analysis Pattern
 

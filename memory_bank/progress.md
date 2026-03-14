@@ -20,6 +20,7 @@
 
 ## Changelog
 
+- 2026-03-14: teacher-only project detail page переведен с `Project brief` на `docs/README.md`, а крупные текстовые блоки (`docs/README.md`, `Product context`, `Active context`, `Progress notes`, `AI summary`, `next steps`) теперь рендерят Markdown через общий UI-компонент. Добавлены зависимости `react-markdown` и `remark-gfm`; `bun run lint` и `bun run build` проходят.
 - 2026-03-14: закрыта доработка `PT-07` для teacher-only project detail page. Полные `Project brief`, `Product context`, `Active context` и `Progress notes` теперь сохраняются целиком в сжатом виде внутри `project_ai_reports.report_payload_json -> inputSnapshotJson`; страница `/projects/[projectId]` читает полный snapshot, показывает увеличенные текстовые блоки и поднимает секцию `Прогресс и сигналы` в начало layout. `bun run lint` и `bun run build` проходят.
 - 2026-03-14: подтвержден полный production smoke test student-access сценария: `Telegram Start -> GitHub login -> bind -> выбор репозитория на /my-project`. Deliverable `PT-08` можно считать завершенным.
 - 2026-03-13: исправлена pre-analysis индикация проектов. До первого AI-анализа teacher-only UI больше не интерпретирует дефолтные `false` в `project_state_json` как реальные `missing_memory_bank` / `missing_spec` / `missing_plan`; вместо этого список проектов, detail page, dashboard и weekly digest показывают статус `данные отсутствуют` до первого repo analysis.
@@ -96,4 +97,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `e46d3657bc127d319f0375189a6ae3494995fb9e`
+- `last_checked_commit`: `90a4441cfc49a1d5c20a3a35f8b76796d0e8cf74`

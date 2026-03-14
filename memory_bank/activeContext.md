@@ -23,6 +23,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - закрыто в текущей сессии: в локальный `.env` добавлен рабочий `GITHUB_TOKEN`, после чего teacher-only GitHub API перешел на лимит `5000` запросов и live AI-analysis удалось повторно прогнать без упора в публичный лимит;
 - закрыто в текущей сессии: Appwrite-лимит `report_payload_json <= 12000` учтен для AI-отчетов — длинные `memory_bank` теперь сохраняются в compact preview-формате, поэтому большие student repos больше не ломают запись `project_ai_reports`;
 - закрыто в текущей сессии: teacher-only project detail page теперь показывает полный `Project brief`, `Product context`, `Active context` и `Progress notes` из последнего AI-report; snapshot `memory_bank` сохраняется полностью в сжатом виде внутри `report_payload_json.inputSnapshotJson`, а секция `Прогресс и сигналы` перенесена в начало страницы;
+- закрыто в текущей сессии: teacher-only project detail page переведен с блока `Project brief` на полный `docs/README.md`, а все крупные текстовые карточки обзора проекта теперь поддерживают markdown-разметку;
 - закрыто в текущей сессии: живой AI-analysis успешно записан для всех трех подключенных student projects; итоговые состояния после прогона: `LinguaFlow` — `healthy`, `-PopFlix88` — `healthy`, `startlaunch` — `missing_memory_bank`;
 - закрыто в текущей сессии: production deployment на Vercel завершен, рабочий URL приложения — `https://projects-tracker-one.vercel.app`;
 - закрыто в текущей сессии: GitHub OAuth на Vercel стабилизирован, критичным env оказался корректный `NEXTAUTH_URL`;

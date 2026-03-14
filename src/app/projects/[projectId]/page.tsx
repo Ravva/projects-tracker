@@ -17,6 +17,7 @@ import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MarkdownContent } from "@/components/ui/markdown-content";
 import {
   getProjectBooleanMetricLabel,
   getProjectProgressLabel,
@@ -72,9 +73,11 @@ export default async function ProjectDetailsPage({
   const snapshot = latestReport
     ? parseProjectAiInputSnapshot(latestReport.inputSnapshotJson)
     : null;
-  const projectBriefPreview = extractTextOrFallback(
-    snapshot?.memoryBank.projectBrief,
-    project.summary || "Краткое описание проекта пока отсутствует.",
+  const docsReadmePreview = extractTextOrFallback(
+    snapshot?.memoryBank.docsReadme,
+    project.hasAiAnalysisSnapshot
+      ? "Архитектурный `docs/README.md` не найден в последнем AI-snapshot."
+      : "Сначала запустите AI-анализ, чтобы получить `docs/README.md` из репозитория проекта.",
   );
   const productContextPreview = extractTextOrFallback(
     snapshot?.memoryBank.productContext,
@@ -204,19 +207,15 @@ export default async function ProjectDetailsPage({
             <CardContent className="grid gap-4">
               <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                 <div className="mb-2 text-sm font-medium text-foreground">
-                  Project brief
+                  docs/README.md
                 </div>
-                <div className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
-                  {projectBriefPreview}
-                </div>
+                <MarkdownContent content={docsReadmePreview} />
               </div>
               <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                 <div className="mb-2 text-sm font-medium text-foreground">
                   Product context
                 </div>
-                <div className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
-                  {productContextPreview}
-                </div>
+                <MarkdownContent content={productContextPreview} />
               </div>
             </CardContent>
           </Card>
@@ -233,17 +232,13 @@ export default async function ProjectDetailsPage({
                 <div className="mb-2 text-sm font-medium text-foreground">
                   Active context
                 </div>
-                <div className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
-                  {activeContextPreview}
-                </div>
+                <MarkdownContent content={activeContextPreview} />
               </div>
               <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                 <div className="mb-2 text-sm font-medium text-foreground">
                   Progress notes
                 </div>
-                <div className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
-                  {progressContextPreview}
-                </div>
+                <MarkdownContent content={progressContextPreview} />
               </div>
             </CardContent>
           </Card>
@@ -262,7 +257,7 @@ export default async function ProjectDetailsPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
-              <p className="leading-7 text-muted-foreground">{aiSummaryText}</p>
+              <MarkdownContent content={aiSummaryText} />
               <div className="grid gap-3 rounded-2xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
                 <div className="font-medium text-foreground">
                   Репозиторий и memory signals
@@ -324,7 +319,7 @@ export default async function ProjectDetailsPage({
                     key={step}
                     className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6 text-muted-foreground"
                   >
-                    {step}
+                    <MarkdownContent content={step} />
                   </div>
                 ))
               ) : (
@@ -361,9 +356,9 @@ export default async function ProjectDetailsPage({
                       {report.hasSpec ? "да" : "нет"} • План:{" "}
                       {report.hasPlan ? "да" : "нет"}
                     </div>
-                    <p className="mt-2 leading-6 text-muted-foreground">
-                      {report.summary}
-                    </p>
+                    <div className="mt-2">
+                      <MarkdownContent content={report.summary} />
+                    </div>
                   </div>
                 ))
               ) : (
