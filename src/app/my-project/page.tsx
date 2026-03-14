@@ -1,13 +1,20 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { chooseStudentProjectAction } from "@/app/my-project/actions";
+import { CopyProjectSetupPrompt } from "@/app/my-project/copy-project-setup-prompt";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getProjectRiskLabel } from "@/lib/project-risk";
 import { getProjectStatusLabel, isProjectCurrent } from "@/lib/project-status";
-import { requireStudentSession } from "@/lib/server/auth";
+import {
+  getCurrentAuthRole,
+  requireAuthenticatedSession,
+  requireStudentSession,
+} from "@/lib/server/auth";
 import { listGithubRepositoriesForStudent } from "@/lib/server/github";
 import { listProjectsByStudentId } from "@/lib/server/repositories/projects";
+import type { ProjectRecord } from "@/lib/types";
 
 function formatUpdatedAt(value: string) {
   const parsed = new Date(value);
@@ -22,12 +29,137 @@ function formatUpdatedAt(value: string) {
   }).format(parsed);
 }
 
-export default async function MyProjectPage() {
-  const student = await requireStudentSession();
-  const [projects, repositories] = await Promise.all([
-    listProjectsByStudentId(student.studentId),
-    listGithubRepositoriesForStudent(student.githubAccessToken),
-  ]);
+const PREVIEW_PROJECTS: ProjectRecord[] = [
+  {
+    id: "preview-active-project",
+    studentId: "preview-student",
+    studentName: "Превью ученика",
+    name: "LinguaFlow",
+    summary: "Учебный проект с AI-практикой и memory_bank.",
+    status: "active",
+    risk: "healthy",
+    riskFlags: [],
+    hasAiAnalysisSnapshot: true,
+    progress: 72,
+    aiCompletionPercent: 72,
+    manualCompletionPercent: null,
+    manualOverrideEnabled: false,
+    manualOverrideNote: "",
+    lastCommit: "2026-03-14T10:00:00.000Z",
+    lastCommitSha: "previewsha1",
+    lastSyncAt: "2026-03-14T10:00:00.000Z",
+    lastAiAnalysisAt: "2026-03-14T10:15:00.000Z",
+    githubUrl: "https://github.com/example/linguaflow",
+    githubOwner: "example",
+    githubRepo: "linguaflow",
+    defaultBranch: "main",
+    specMarkdown: "",
+    planMarkdown: "",
+    aiSummary: "Превью активного проекта с корректной структурой memory_bank.",
+    nextSteps: ["Дописать deliverables", "Обновить progress.md"],
+    hasRepository: true,
+    hasMemoryBank: true,
+    hasSpec: true,
+    hasPlan: true,
+    trackedTasksTotal: 10,
+    trackedTasksCompleted: 7,
+    trackedTasksInProgress: 2,
+    trackedTasksPending: 1,
+    commitCount: 14,
+    commitsPerWeek: 5,
+    lastCommitDaysAgo: 0,
+    isAbandoned: false,
+  },
+  {
+    id: "preview-completed-project",
+    studentId: "preview-student",
+    studentName: "Превью ученика",
+    name: "StartLaunch",
+    summary: "Завершённый учебный проект.",
+    status: "completed",
+    risk: "healthy",
+    riskFlags: [],
+    hasAiAnalysisSnapshot: true,
+    progress: 100,
+    aiCompletionPercent: 100,
+    manualCompletionPercent: null,
+    manualOverrideEnabled: false,
+    manualOverrideNote: "",
+    lastCommit: "2026-02-28T10:00:00.000Z",
+    lastCommitSha: "previewsha2",
+    lastSyncAt: "2026-02-28T10:00:00.000Z",
+    lastAiAnalysisAt: "2026-02-28T10:15:00.000Z",
+    githubUrl: "https://github.com/example/startlaunch",
+    githubOwner: "example",
+    githubRepo: "startlaunch",
+    defaultBranch: "main",
+    specMarkdown: "",
+    planMarkdown: "",
+    aiSummary: "Превью завершённого проекта в истории ученика.",
+    nextSteps: [],
+    hasRepository: true,
+    hasMemoryBank: true,
+    hasSpec: true,
+    hasPlan: true,
+    trackedTasksTotal: 8,
+    trackedTasksCompleted: 8,
+    trackedTasksInProgress: 0,
+    trackedTasksPending: 0,
+    commitCount: 19,
+    commitsPerWeek: 2,
+    lastCommitDaysAgo: 14,
+    isAbandoned: false,
+  },
+];
+
+const PREVIEW_REPOSITORIES = [
+  {
+    id: "preview-repo-1",
+    name: "next-step-project",
+    fullName: "example/next-step-project",
+    url: "https://github.com/example/next-step-project",
+    description: "Следующий репозиторий для нового проекта.",
+    updatedAt: "2026-03-13T09:00:00.000Z",
+    defaultBranch: "main",
+  },
+  {
+    id: "preview-repo-2",
+    name: "experimental-app",
+    fullName: "example/experimental-app",
+    url: "https://github.com/example/experimental-app",
+    description: "Репозиторий для второй идеи ученика.",
+    updatedAt: "2026-03-12T15:30:00.000Z",
+    defaultBranch: "main",
+  },
+];
+
+export default async function MyProjectPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ preview?: string }>;
+}) {
+  const role = await getCurrentAuthRole();
+  const sessionUser = await requireAuthenticatedSession();
+  const { preview } = await searchParams;
+  const isTeacherPreview = role === "teacher" && preview === "teacher";
+
+  if (role === "teacher" && !isTeacherPreview) {
+    redirect("/");
+  }
+
+  const student = isTeacherPreview
+    ? {
+        ...sessionUser,
+        studentId: "preview-student",
+        studentName: "Превью ученика",
+      }
+    : await requireStudentSession();
+  const [projects, repositories] = isTeacherPreview
+    ? [PREVIEW_PROJECTS, PREVIEW_REPOSITORIES]
+    : await Promise.all([
+        listProjectsByStudentId(student.studentId),
+        listGithubRepositoriesForStudent(student.githubAccessToken),
+      ]);
   const selectedUrls = new Set(projects.map((project) => project.githubUrl));
   const currentProjects = projects.filter((project) =>
     isProjectCurrent(project.status),
@@ -42,7 +174,7 @@ export default async function MyProjectPage() {
       <div className="mx-auto max-w-6xl space-y-6">
         <section className="rounded-[2rem] border border-border/70 bg-card/88 p-8 shadow-none">
           <div className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
-            Student access
+            {isTeacherPreview ? "Teacher preview" : "Student access"}
           </div>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight">
             Ваши проекты
@@ -52,7 +184,97 @@ export default async function MyProjectPage() {
             в Projects Tracker. Новый репозиторий можно начать только после
             завершения текущего проекта преподавателем.
           </p>
+          {isTeacherPreview ? (
+            <div className="mt-4 rounded-2xl border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] px-4 py-3 text-sm text-foreground">
+              Это teacher-only предпросмотр student-экрана на демо-данных.
+              Реальные student-проверки авторизации и привязки не изменены.
+            </div>
+          ) : null}
         </section>
+
+        <Card className="overflow-hidden border-[hsl(var(--status-warning)/0.28)] bg-[linear-gradient(135deg,hsl(var(--status-warning)/0.16),hsl(var(--status-calm)/0.1)_52%,hsl(var(--background)))] shadow-none">
+          <CardHeader>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div className="space-y-3">
+                <div className="inline-flex w-fit rounded-full border border-[hsl(var(--status-warning)/0.28)] bg-background/70 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--status-warning))]">
+                  Project readiness
+                </div>
+                <div className="space-y-2">
+                  <CardTitle className="text-xl leading-tight">
+                    Подготовьте репозиторий, чтобы AI-анализ был точным
+                  </CardTitle>
+                  <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
+                    Projects Tracker оценивает проект по структуре{" "}
+                    <code>memory_bank</code> и правилам из{" "}
+                    <code>AGENTS.md</code>. Если репозиторий не подготовлен,
+                    процент выполнения и проектные сигналы будут искажены.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm leading-7 text-muted-foreground">
+            <div className="grid gap-3 lg:grid-cols-3">
+              <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
+                <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-[hsl(var(--status-warning)/0.14)] font-semibold text-[hsl(var(--status-warning))]">
+                  1
+                </div>
+                <div className="font-medium text-foreground">
+                  Добавьте AGENTS.md
+                </div>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Создайте в корне проекта файл <code>AGENTS.md</code> и
+                  вставьте в него актуальную базовую инструкцию для ИИ.
+                </p>
+                <Link
+                  href="https://digital-ai-news.vercel.app/posts/176383d1-3711-4b37-be5e-9ea0a985d381"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Открыть базовую инструкцию
+                </Link>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
+                <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-[hsl(var(--status-calm)/0.14)] font-semibold text-[hsl(var(--status-calm))]">
+                  2
+                </div>
+                <div className="font-medium text-foreground">
+                  Настройте Memory Bank
+                </div>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Подготовьте структуру <code>memory_bank</code>, чтобы анализ
+                  проекта читал реальный контекст, deliverables и прогресс.
+                </p>
+                <Link
+                  href="https://digital-ai-news.vercel.app/posts/fb6be397-2bde-4c72-8baa-b82ecbe475d5"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Открыть инструкцию по Memory Bank
+                </Link>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
+                <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-primary/12 font-semibold text-primary">
+                  3
+                </div>
+                <div className="font-medium text-foreground">
+                  Запустите подготовку проекта
+                </div>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  После настройки отправьте ИИ отдельный промпт, чтобы он
+                  проверил структуру, обновил Memory Bank и закоммитил
+                  изменения.
+                </p>
+              </div>
+            </div>
+            <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              Готовый промпт
+            </div>
+            <CopyProjectSetupPrompt />
+          </CardContent>
+        </Card>
 
         <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
           <Card className="border-border/70 bg-card/88 shadow-none">
@@ -188,13 +410,15 @@ export default async function MyProjectPage() {
                           <Button
                             type="submit"
                             className="rounded-xl"
-                            disabled={disabled}
+                            disabled={disabled || isTeacherPreview}
                           >
                             {alreadySelected
                               ? "Уже в истории"
                               : !canChooseNextProject
                                 ? "Сначала завершите текущий"
-                                : "Начать следующий проект"}
+                                : isTeacherPreview
+                                  ? "Недоступно в preview"
+                                  : "Начать следующий проект"}
                           </Button>
                         </form>
                       </div>

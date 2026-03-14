@@ -7,6 +7,10 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 ## Задача в работе
 
 - в работе: расширение project model под несколько проектов на одного ученика; нужно сохранить историю завершенных проектов, показать их состояния в teacher/student UI и не сломать текущий AI-analysis/review flow;
+- в работе: усиление student-flow `/my-project` инструкцией по `AGENTS.md` и настройке `memory_bank`, чтобы ученик до выбора репозитория видел, как подготовить проект к корректному AI-анализу;
+- в работе: teacher-only preview режим для `/my-project` и `/student/link`, чтобы student UI можно было безопасно просматривать из teacher-сессии без ослабления реального student-access контроля;
+- в работе: polish student-flow `/my-project` — prompt подготовки репозитория вынесен из сырого `pre`-блока в отдельный CTA-блок с копированием по клику;
+- в работе: visual polish instructional block на `/my-project`, чтобы подготовка `AGENTS.md` и `memory_bank` воспринималась как product onboarding, а не как техдок;
 - закрыто в текущей сессии: локальный dev startup на Windows стабилизирован переводом dev server на `127.0.0.1:3300`; `localhost` уводил bind в `::1`, а порт `3100` оказался запрещен системным excluded range;
 - удерживать teacher-only UI и документацию синхронизированными;
 - стабилизировать CRUD-потоки `students`, `attendance` и `projects` на реальных данных;

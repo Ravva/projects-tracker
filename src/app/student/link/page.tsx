@@ -38,16 +38,65 @@ const ERROR_COPY: Record<
 export default async function StudentLinkPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string; preview?: string }>;
 }) {
   const role = await getCurrentAuthRole();
+  const sessionUser = await requireAuthenticatedSession();
+  const { token, preview } = await searchParams;
+  const isTeacherPreview = role === "teacher" && preview === "teacher";
 
-  if (role === "teacher") {
+  if (role === "teacher" && !isTeacherPreview) {
     redirect("/");
   }
 
-  const sessionUser = await requireAuthenticatedSession();
-  const { token } = await searchParams;
+  if (isTeacherPreview) {
+    return (
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--status-calm)/0.12),transparent_28%),radial-gradient(circle_at_top_right,hsl(var(--status-warning)/0.12),transparent_22%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--background-secondary)))] px-5 py-10">
+        <div className="mx-auto max-w-2xl">
+          <Card className="border-border/70 bg-card/88 shadow-none">
+            <CardHeader>
+              <CardTitle className="text-xl">GitHub-аккаунт привязан</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-muted-foreground">
+              <div className="rounded-2xl border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] px-4 py-3 text-foreground">
+                Это teacher-only предпросмотр экрана успешной student-привязки.
+              </div>
+              <p>
+                Карточка Превью ученика успешно связана с GitHub-аккаунтом @
+                {sessionUser.githubLogin}.
+              </p>
+              <p>
+                Перед выбором проекта подготовьте репозиторий: создайте в корне
+                файл <code>AGENTS.md</code>, добавьте в него обновленную базовую
+                инструкцию для ИИ и настройте <code>memory_bank</code>. Без
+                этого AI-анализ и проектные сигналы будут неточными.
+              </p>
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6">
+                <Link
+                  href="https://digital-ai-news.vercel.app/posts/fb6be397-2bde-4c72-8baa-b82ecbe475d5"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  Открыть инструкцию по настройке Memory Bank
+                </Link>
+              </div>
+              <Button
+                asChild
+                variant="outline"
+                className="rounded-xl border-[hsl(var(--status-calm)/0.24)] bg-background/80 shadow-none hover:border-[hsl(var(--status-calm)/0.4)] hover:bg-[hsl(var(--status-calm)/0.08)]"
+              >
+                <Link href="/my-project?preview=teacher">
+                  Открыть экран выбора проекта
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    );
+  }
+
   const result = await claimStudentGithubLinkByToken({
     token: token ?? "",
     githubUserId: sessionUser.githubId,
@@ -68,6 +117,22 @@ export default async function StudentLinkPage({
                   ? `Аккаунт GitHub уже был связан с карточкой ${result.studentName}.`
                   : `Карточка ${result.studentName} успешно связана с GitHub-аккаунтом @${sessionUser.githubLogin}.`}
               </p>
+              <p>
+                Перед выбором проекта подготовьте репозиторий: создайте в корне
+                файл <code>AGENTS.md</code>, добавьте в него обновленную базовую
+                инструкцию для ИИ и настройте <code>memory_bank</code>. Без
+                этого AI-анализ и проектные сигналы будут неточными.
+              </p>
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6">
+                <Link
+                  href="https://digital-ai-news.vercel.app/posts/fb6be397-2bde-4c72-8baa-b82ecbe475d5"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  Открыть инструкцию по настройке Memory Bank
+                </Link>
+              </div>
               <Button asChild className="rounded-xl">
                 <Link href="/my-project">Перейти к выбору проекта</Link>
               </Button>
