@@ -214,7 +214,7 @@ export default async function MyProjectPage({
             </div>
           </CardHeader>
           <CardContent className="space-y-4 text-sm leading-7 text-muted-foreground">
-            <div className="grid gap-3 lg:grid-cols-3">
+            <div className="grid gap-3 lg:grid-cols-2">
               <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
                 <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-[hsl(var(--status-warning)/0.14)] font-semibold text-[hsl(var(--status-warning))]">
                   1
@@ -240,11 +240,12 @@ export default async function MyProjectPage({
                   2
                 </div>
                 <div className="font-medium text-foreground">
-                  Настройте Memory Bank
+                  Запустите готовый промпт
                 </div>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Подготовьте структуру <code>memory_bank</code>, чтобы анализ
-                  проекта читал реальный контекст, deliverables и прогресс.
+                  После добавления <code>AGENTS.md</code> отправьте ИИ готовый
+                  промпт. Он сам проверит структуру <code>Memory Bank</code>,
+                  обновит её при необходимости и выполнит commit/push.
                 </p>
                 <Link
                   href="https://digital-ai-news.vercel.app/posts/fb6be397-2bde-4c72-8baa-b82ecbe475d5"
@@ -252,21 +253,8 @@ export default async function MyProjectPage({
                   rel="noreferrer"
                   className="mt-3 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
                 >
-                  Открыть инструкцию по Memory Bank
+                  Посмотреть, как устроен Memory Bank
                 </Link>
-              </div>
-              <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
-                <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-primary/12 font-semibold text-primary">
-                  3
-                </div>
-                <div className="font-medium text-foreground">
-                  Запустите подготовку проекта
-                </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  После настройки отправьте ИИ отдельный промпт, чтобы он
-                  проверил структуру, обновил Memory Bank и закоммитил
-                  изменения.
-                </p>
               </div>
             </div>
             <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
