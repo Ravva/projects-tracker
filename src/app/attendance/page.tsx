@@ -2,7 +2,7 @@ import { clearAttendanceAction } from "@/app/attendance/actions";
 import { AttendanceGridClient } from "@/app/attendance/attendance-grid-client";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { formatWeekRangeLabel } from "@/lib/server/date-utils";
 import {
@@ -40,9 +40,6 @@ export default async function AttendancePage({
     >
       <section>
         <Card className="border-border/70 bg-card/88 shadow-none">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Weekly attendance grid</CardTitle>
-          </CardHeader>
           <CardContent>
             <AttendanceGridClient
               lessons={lessons}

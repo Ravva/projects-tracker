@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { saveAttendanceAction } from "@/app/attendance/actions";
-import { StatusPill } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -32,21 +31,12 @@ const WEEKDAY_COLUMNS: Array<{
   { code: "fri", label: "Пятница" },
 ];
 
-const STATE_ORDER: AttendanceState[] = ["unmarked", "present", "absent"];
+const STATE_ORDER: AttendanceState[] = ["unmarked", "absent", "present"];
 
 const STATE_LABELS: Record<AttendanceState, string> = {
-  unmarked: "-",
-  present: "Был",
-  absent: "Не был",
-};
-
-const STATE_STYLES: Record<AttendanceState, string> = {
-  unmarked:
-    "border-border bg-background text-muted-foreground hover:bg-muted/50",
-  present:
-    "border-transparent bg-[hsl(var(--status-success)/0.16)] text-[hsl(var(--status-success))] hover:bg-[hsl(var(--status-success)/0.22)]",
-  absent:
-    "border-transparent bg-[hsl(var(--status-critical)/0.14)] text-[hsl(var(--status-critical))] hover:bg-[hsl(var(--status-critical)/0.2)]",
+  unmarked: "Нет данных",
+  present: "Присутствовал",
+  absent: "Отсутствовал",
 };
 
 function getNextState(state: AttendanceState) {
@@ -56,27 +46,39 @@ function getNextState(state: AttendanceState) {
 }
 
 function buildWeeklyState(attendanceRate: number): WeeklyState {
-  if (attendanceRate < 25) {
+  if (attendanceRate <= 0) {
     return "critical";
   }
 
-  if (attendanceRate < 75) {
+  if (attendanceRate < 100) {
     return "warning";
   }
 
   return "success";
 }
 
-function buildWeeklyStateLabel(weeklyState: WeeklyState) {
+function getAttendanceDotClassName(state: AttendanceState) {
+  if (state === "absent") {
+    return "bg-[hsl(var(--status-critical))] shadow-[0_0_0_1px_hsl(var(--status-critical)/0.24)]";
+  }
+
+  if (state === "present") {
+    return "bg-[hsl(var(--status-success))] shadow-[0_0_0_1px_hsl(var(--status-success)/0.22)]";
+  }
+
+  return "bg-background shadow-[0_0_0_1px_hsl(var(--border))]";
+}
+
+function getWeeklyStatusDotClassName(weeklyState: WeeklyState) {
   if (weeklyState === "critical") {
-    return "риск";
+    return "bg-[hsl(var(--status-critical))] shadow-[0_0_0_1px_hsl(var(--status-critical)/0.24)]";
   }
 
   if (weeklyState === "warning") {
-    return "в работе";
+    return "bg-[hsl(var(--status-warning))] shadow-[0_0_0_1px_hsl(var(--status-warning)/0.24)]";
   }
 
-  return "норма";
+  return "bg-[hsl(var(--status-success))] shadow-[0_0_0_1px_hsl(var(--status-success)/0.22)]";
 }
 
 function buildInitialState(rows: AttendanceGridRow[]) {
@@ -119,6 +121,10 @@ export function AttendanceGridClient({
     ),
   );
 
+  useEffect(() => {
+    setDraftStates(buildInitialState(rows));
+  }, [rows]);
+
   const handleCellToggle = (studentId: string, lessonId: string) => {
     setDraftStates((current) => {
       const studentStates = current[studentId] ?? {};
@@ -131,6 +137,28 @@ export function AttendanceGridClient({
           [lessonId]: getNextState(currentState),
         },
       };
+    });
+  };
+
+  const handleColumnToggle = (lessonId: string) => {
+    setDraftStates((current) => {
+      const columnStates = rows.map(
+        (row) => current[row.student.id]?.[lessonId] ?? "unmarked",
+      );
+      const allSame = columnStates.every((state) => state === columnStates[0]);
+      const nextState = allSame
+        ? getNextState(columnStates[0] ?? "unmarked")
+        : "absent";
+
+      return Object.fromEntries(
+        rows.map((row) => [
+          row.student.id,
+          {
+            ...(current[row.student.id] ?? {}),
+            [lessonId]: nextState,
+          },
+        ]),
+      );
     });
   };
 
@@ -210,16 +238,36 @@ export function AttendanceGridClient({
           после нажатия «Сохранить изменения».
         </div>
       ) : null}
-      <Table className="mt-4">
+      <Table className="mt-4 w-auto min-w-[34rem]">
         <TableHeader>
           <TableRow>
-            <TableHead>Ученик</TableHead>
-            {WEEKDAY_COLUMNS.map((column) => (
-              <TableHead key={column.code} className="text-center">
-                {column.label}
-              </TableHead>
-            ))}
-            <TableHead className="text-center">Статус недели</TableHead>
+            <TableHead className="w-[18rem] text-sm">Ученик</TableHead>
+            {WEEKDAY_COLUMNS.map((column) => {
+              const lesson = lessonsByWeekday.get(column.code);
+
+              return (
+                <TableHead
+                  key={column.code}
+                  className="w-24 px-1 text-center text-sm"
+                >
+                  {lesson ? (
+                    <button
+                      type="button"
+                      className="inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-center text-sm transition-colors hover:bg-accent/25"
+                      disabled={isPending || !hasRows}
+                      onClick={() => handleColumnToggle(lesson.id)}
+                    >
+                      {column.label}
+                    </button>
+                  ) : (
+                    column.label
+                  )}
+                </TableHead>
+              );
+            })}
+            <TableHead className="w-24 px-1 text-center text-sm">
+              Статус недели
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -248,16 +296,16 @@ export function AttendanceGridClient({
 
               return (
                 <TableRow key={row.student.id}>
-                  <TableCell className="font-medium">
-                    {row.student.firstName} {row.student.lastName}
+                  <TableCell className="py-2 text-sm font-medium">
+                    {row.student.lastName} {row.student.firstName}
                   </TableCell>
                   {WEEKDAY_COLUMNS.map((column) => {
                     const lesson = lessonsByWeekday.get(column.code);
 
                     if (!lesson) {
                       return (
-                        <TableCell key={column.code}>
-                          <div className="text-center text-sm text-muted-foreground">
+                        <TableCell key={column.code} className="px-1 py-2">
+                          <div className="text-center text-base text-muted-foreground">
                             -
                           </div>
                         </TableCell>
@@ -267,28 +315,38 @@ export function AttendanceGridClient({
                     const currentState = studentStates[lesson.id] ?? "unmarked";
 
                     return (
-                      <TableCell key={column.code}>
+                      <TableCell key={column.code} className="px-1 py-2">
                         <div className="flex justify-center">
-                          <Button
+                          <button
                             type="button"
-                            variant="outline"
                             disabled={isPending}
-                            className={`min-w-20 rounded-xl border text-xs font-medium ${STATE_STYLES[currentState]}`}
+                            aria-label={STATE_LABELS[currentState]}
+                            className="inline-flex items-center justify-center rounded-full p-1.5 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
+                            title={STATE_LABELS[currentState]}
                             onClick={() =>
                               handleCellToggle(row.student.id, lesson.id)
                             }
                           >
-                            {STATE_LABELS[currentState]}
-                          </Button>
+                            <span
+                              className={`inline-flex size-4 rounded-full ${getAttendanceDotClassName(currentState)}`}
+                            />
+                          </button>
                         </div>
                       </TableCell>
                     );
                   })}
-                  <TableCell className="text-center">
-                    <StatusPill
-                      tone={weeklyState}
-                      label={buildWeeklyStateLabel(weeklyState)}
-                    />
+                  <TableCell className="px-1 py-2 text-center">
+                    <span
+                      className="inline-flex items-center"
+                      title={`Статус недели: ${attendanceRate}%`}
+                    >
+                      <span
+                        className={`inline-flex size-4 rounded-full ${getWeeklyStatusDotClassName(weeklyState)}`}
+                      />
+                      <span className="sr-only">
+                        Статус недели {attendanceRate}%
+                      </span>
+                    </span>
                   </TableCell>
                 </TableRow>
               );

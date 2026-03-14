@@ -8,6 +8,7 @@ import { sendBulkStudentNotificationAction } from "@/app/students/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FeedbackModal } from "@/components/ui/feedback-modal";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import type {
   BulkNotificationResult,
   BulkNotificationStudent,
@@ -141,45 +142,37 @@ export function BulkNotificationCard({ students }: BulkNotificationCardProps) {
               {readyCount}.
             </p>
 
-            <div className="mt-4 max-h-72 space-y-2 overflow-y-auto pr-1">
-              {students.map((student) => {
-                const isReady = Boolean(student.telegramChatId);
-                const isSelected = selectedSet.has(student.id);
+            <div className="app-scrollbar mt-4 max-h-72 overflow-y-auto pr-1">
+              <Table>
+                <TableBody>
+                  {students.map((student) => {
+                    const isSelected = selectedSet.has(student.id);
 
-                return (
-                  <label
-                    key={student.id}
-                    className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border/70 bg-card/70 p-3 transition-colors hover:bg-accent/30"
-                  >
-                    <input
-                      type="checkbox"
-                      className="mt-1 size-4 rounded border-border text-primary"
-                      checked={isSelected}
-                      onChange={() => toggleStudent(student.id)}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium">
-                        {student.lastName} {student.firstName}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {student.telegramUsername ||
-                          "Telegram username не указан"}
-                      </div>
-                      <div
-                        className={`mt-1 text-xs ${
-                          isReady
-                            ? "text-[hsl(var(--status-success))]"
-                            : "text-muted-foreground"
-                        }`}
+                    return (
+                      <TableRow
+                        key={student.id}
+                        className="cursor-pointer bg-transparent transition-colors hover:bg-accent/20"
+                        onClick={() => toggleStudent(student.id)}
                       >
-                        {isReady
-                          ? `chat id: ${student.telegramChatId}`
-                          : "chat id не заполнен, карточка будет пропущена"}
-                      </div>
-                    </div>
-                  </label>
-                );
-              })}
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            aria-label={`Выбрать ${student.lastName} ${student.firstName}`}
+                            className="size-4 cursor-pointer rounded-[0.3rem] border-border bg-background align-middle accent-primary shadow-[0_1px_2px_hsl(var(--foreground)/0.08)] transition-[border-color,box-shadow,opacity] outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+                            checked={isSelected}
+                            style={{ accentColor: "hsl(var(--primary))" }}
+                            onChange={() => toggleStudent(student.id)}
+                            onClick={(event) => event.stopPropagation()}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {student.lastName} {student.firstName}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </div>
           </div>
 

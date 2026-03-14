@@ -7,7 +7,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 
 import { createStudentAction } from "@/app/students/actions";
-import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,18 @@ import { requireTeacherSession } from "@/lib/server/auth";
 import { listStudents } from "@/lib/server/repositories/students";
 import { BulkNotificationCard } from "./bulk-notification-card";
 import { ImportStudentsButton } from "./import-button";
+
+function getAttendanceBadgeClassName(attendanceRate: number) {
+  if (attendanceRate <= 0) {
+    return "bg-[hsl(var(--destructive))] shadow-[0_0_0_1px_hsl(var(--destructive)/0.22)]";
+  }
+
+  if (attendanceRate < 100) {
+    return "bg-[hsl(var(--status-warning))] shadow-[0_0_0_1px_hsl(var(--status-warning)/0.22)]";
+  }
+
+  return "bg-[hsl(var(--status-success))] shadow-[0_0_0_1px_hsl(var(--status-success)/0.2)]";
+}
 
 export default async function StudentsPage() {
   const teacher = await requireTeacherSession();
@@ -54,23 +65,6 @@ export default async function StudentsPage() {
             <CardTitle className="text-base">Список учеников</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-[1fr_180px_180px]">
-              <Input
-                placeholder="Поиск по имени, GitHub или Telegram"
-                className="rounded-xl bg-background/80"
-              />
-              <Input
-                value="Текущая неделя"
-                readOnly
-                className="rounded-xl bg-background/80"
-              />
-              <Input
-                value="Teacher view"
-                readOnly
-                className="rounded-xl bg-background/80"
-              />
-            </div>
-
             <Table>
               <TableHeader>
                 <TableRow>
@@ -144,21 +138,17 @@ export default async function StudentsPage() {
                         {student.activeProjectsCount}/{student.projectsCount}
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-2">
-                          <StatusPill
-                            tone={student.weeklyState}
-                            label={
-                              student.weeklyState === "critical"
-                                ? "риск"
-                                : student.weeklyState === "warning"
-                                  ? "в работе"
-                                  : "норма"
-                            }
+                        <span
+                          className="inline-flex items-center"
+                          title={`${student.attendanceRate}%`}
+                        >
+                          <span
+                            className={`inline-flex size-3 rounded-full ${getAttendanceBadgeClassName(student.attendanceRate)}`}
                           />
-                          <div className="text-sm text-muted-foreground">
-                            {student.attendanceRate}% нормы
-                          </div>
-                        </div>
+                          <span className="sr-only">
+                            Посещаемость {student.attendanceRate}%
+                          </span>
+                        </span>
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

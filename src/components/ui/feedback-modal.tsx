@@ -2,7 +2,8 @@
 
 import { Alert02Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 
@@ -40,50 +41,65 @@ export function FeedbackModal({
   onClose,
   footer,
 }: FeedbackModalProps) {
-  if (!open) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+
+    return () => {
+      setIsMounted(false);
+    };
+  }, []);
+
+  if (!open || !isMounted) {
     return null;
   }
 
   const config = toneConfig[tone];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[120]">
       <button
         type="button"
         aria-label="Закрыть модальное окно"
-        className="absolute inset-0 bg-background/55 backdrop-blur-sm"
+        className="absolute inset-0 bg-background/88 backdrop-blur-xl"
         onClick={onClose}
       />
-      <div
-        role="dialog"
-        aria-modal="true"
-        className={`relative w-full max-w-md overflow-hidden rounded-[2rem] border bg-card text-card-foreground shadow-2xl ${config.borderClassName}`}
-      >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-primary/12 via-primary/6 to-transparent" />
-        <div className="relative space-y-5 p-6">
-          <div className="flex items-start gap-4">
-            <div
-              className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${config.iconClassName}`}
-            >
-              <HugeiconsIcon icon={config.icon} size={24} strokeWidth={1.8} />
+      <div className="relative z-10 grid min-h-dvh place-items-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          className={`relative w-full max-w-md overflow-hidden rounded-[2rem] border bg-card text-card-foreground shadow-[0_28px_90px_hsl(var(--foreground)/0.32)] ${config.borderClassName}`}
+        >
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-primary/12 via-primary/6 to-transparent" />
+          <div className="relative space-y-5 p-6">
+            <div className="flex items-start gap-4">
+              <div
+                className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${config.iconClassName}`}
+              >
+                <HugeiconsIcon icon={config.icon} size={24} strokeWidth={1.8} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold tracking-tight">
+                  {title}
+                </h3>
+                <p className="text-sm leading-6 whitespace-pre-line text-muted-foreground">
+                  {description}
+                </p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
-              <p className="text-sm leading-6 text-muted-foreground">
-                {description}
-              </p>
-            </div>
-          </div>
 
-          <div className="flex justify-end gap-2">
-            {footer ?? (
-              <Button type="button" className="rounded-xl" onClick={onClose}>
-                Понятно
-              </Button>
-            )}
+            <div className="flex justify-end gap-2">
+              {footer ?? (
+                <Button type="button" className="rounded-xl" onClick={onClose}>
+                  Понятно
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

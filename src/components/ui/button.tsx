@@ -10,7 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-[0_10px_24px_hsl(var(--primary)/0.2)] hover:bg-primary/88 hover:shadow-[0_14px_30px_hsl(var(--primary)/0.26)]",
+          "bg-primary text-primary-foreground shadow-[0_0_0_1px_hsl(var(--primary)/0.12),0_0_28px_hsl(var(--primary)/0.22)] hover:bg-primary/88 hover:shadow-[0_0_0_1px_hsl(var(--primary)/0.16),0_0_34px_hsl(var(--primary)/0.28)]",
         outline:
           "border-border bg-background/80 text-foreground hover:border-primary/25 hover:bg-accent/70 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:bg-input/30",
         secondary:
@@ -18,7 +18,7 @@ const buttonVariants = cva(
         ghost:
           "bg-transparent shadow-none hover:bg-muted hover:text-foreground hover:shadow-none aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-[0_10px_24px_hsl(var(--destructive)/0.22)] hover:bg-destructive/90 hover:shadow-[0_14px_30px_hsl(var(--destructive)/0.28)] focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+          "bg-destructive text-destructive-foreground shadow-[0_0_0_1px_hsl(var(--destructive)/0.14),0_0_28px_hsl(var(--destructive)/0.24)] hover:bg-destructive/90 hover:shadow-[0_0_0_1px_hsl(var(--destructive)/0.18),0_0_34px_hsl(var(--destructive)/0.3)] focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
