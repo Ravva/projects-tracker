@@ -7,6 +7,7 @@
     "ai:deploy": "bunx wrangler deploy -c workers/ai-worker/wrangler.toml",
     "ai:dev": "bunx wrangler dev -c workers/ai-worker/wrangler.toml",
     "ai:whoami": "bunx wrangler whoami",
+    "appwrite:keepalive": "bun run scripts/appwrite-console-heartbeat.ts",
     "build": "next build",
     "deploy": "bunx vercel deploy --prod",
     "start": "next start",

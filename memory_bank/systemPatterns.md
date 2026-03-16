@@ -28,7 +28,9 @@
 
 - student page `/my-project` показывает все проекты текущего ученика, отдельно выделяет текущий проект и историю завершенных;
 - список репозиториев читается напрямую из GitHub API по OAuth access token;
-- выбор репозитория создает новый `active`-проект в `projects` со связкой `student_id + github_url`, только если у ученика нет другого текущего проекта;
+- выбор репозитория создает новый `draft`-проект в `projects` со связкой `student_id + github_url`, только если у ученика нет другого текущего проекта;
+- создание и смена статуса текущего проекта сериализуются per-student lock через Appwrite-коллекцию `project_selection_locks`, чтобы параллельные запросы не нарушали инвариант `один текущий проект`;
+- после teacher-only AI-анализа проект автоматически повышается из `draft` в `active`, если подтверждены `hasRepository`, `hasMemoryBank`, `hasSpec` и `hasPlan`;
 - teacher review и AI-анализ остаются в teacher-only модуле `/projects`, но ручное создание проекта преподавателем не используется;
 - teacher переводит проект в `completed`, когда ученик завершил его, после чего student-flow разрешает выбрать следующий репозиторий.
 
@@ -64,3 +66,11 @@
   - claim одноразового GitHub bind token;
   - выбор проекта только для `student_id` текущего ученика;
 - `projects` и `project_ai_reports` остаются на компактных JSON-state полях из-за лимитов Appwrite.
+
+## Appwrite Anti-Pause Pattern
+
+- для `Appwrite Cloud Free` нельзя полагаться на API traffic как на защиту от pause, потому что Appwrite привязывает inactivity rule к Console activity;
+- в репозитории подготовлен только operational workflow, а не bypass:
+  - команда `bun run appwrite:keepalive` строит прямой URL в Console по `APPWRITE_ENDPOINT` и `APPWRITE_PROJECT_ID`;
+  - команда открывает браузер и сохраняет локальный heartbeat в `.codex/appwrite-console-heartbeat.json`;
+  - следующую проверку рекомендуется делать максимум через `6` дней.

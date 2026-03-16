@@ -1,6 +1,6 @@
 import "server-only";
 
-import { ID, Query } from "node-appwrite";
+import { AppwriteException, ID, Query } from "node-appwrite";
 import {
   normalizeProjectInput,
   normalizeProjectState,
@@ -33,6 +33,114 @@ import type {
   ProjectRisk,
   ProjectStatus,
 } from "@/lib/types";
+
+const PROJECT_SELECTION_LOCK_TTL_MS = 2 * 60 * 1000;
+
+function buildProjectSelectionLockId(studentId: string) {
+  return `student-project-selection:${studentId}`;
+}
+
+function getProjectSelectionLockExpiry() {
+  return new Date(Date.now() + PROJECT_SELECTION_LOCK_TTL_MS).toISOString();
+}
+
+function isLockExpired(expiresAt: string) {
+  const expiresAtTime = new Date(expiresAt).getTime();
+
+  return Number.isNaN(expiresAtTime) || expiresAtTime <= Date.now();
+}
+
+async function acquireProjectSelectionLock(studentId: string) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    throw new Error("Appwrite не настроен.");
+  }
+
+  const lockId = buildProjectSelectionLockId(studentId);
+  const lockPayload = {
+    student_id: studentId,
+    expires_at: getProjectSelectionLockExpiry(),
+  };
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await appwrite.databases.createDocument(
+        appwrite.databaseId,
+        config.collections.projectSelectionLocks,
+        lockId,
+        lockPayload,
+      );
+
+      return {
+        release: async () => {
+          try {
+            await appwrite.databases.deleteDocument(
+              appwrite.databaseId,
+              config.collections.projectSelectionLocks,
+              lockId,
+            );
+          } catch {}
+        },
+      };
+    } catch (error) {
+      const isConflict =
+        error instanceof AppwriteException &&
+        (error.code === 409 || error.type.includes("already_exists"));
+
+      if (!isConflict) {
+        throw error;
+      }
+
+      try {
+        const existingLock = await appwrite.databases.getDocument(
+          appwrite.databaseId,
+          config.collections.projectSelectionLocks,
+          lockId,
+        );
+        const expiresAt = String(
+          (existingLock as Record<string, unknown>).expires_at ?? "",
+        );
+
+        if (!isLockExpired(expiresAt) || attempt > 0) {
+          throw new Error(
+            "Выбор или смена статуса проекта уже обрабатывается. Повторите через несколько секунд.",
+          );
+        }
+
+        await appwrite.databases.deleteDocument(
+          appwrite.databaseId,
+          config.collections.projectSelectionLocks,
+          lockId,
+        );
+      } catch (lockError) {
+        if (lockError instanceof Error) {
+          throw lockError;
+        }
+
+        throw new Error(
+          "Не удалось получить блокировку выбора проекта. Повторите через несколько секунд.",
+        );
+      }
+    }
+  }
+
+  throw new Error(
+    "Не удалось получить блокировку выбора проекта. Повторите через несколько секунд.",
+  );
+}
+
+function shouldPromoteProjectToActive(input: {
+  hasRepository: boolean;
+  hasMemoryBank: boolean;
+  hasSpec: boolean;
+  hasPlan: boolean;
+}) {
+  return (
+    input.hasRepository && input.hasMemoryBank && input.hasSpec && input.hasPlan
+  );
+}
 
 function hasProjectAiAnalysisSnapshot(
   project: Pick<ProjectRecord, "hasAiAnalysisSnapshot">,
@@ -521,41 +629,46 @@ export async function createStudentProjectFromGithubSelection(input: {
   if (!parseGithubUrl(normalizedUrl)) {
     throw new Error("Выбран некорректный GitHub URL.");
   }
+  const lock = await acquireProjectSelectionLock(input.studentId);
 
-  const existingProjects = await listProjectsByStudentId(input.studentId);
+  try {
+    const existingProjects = await listProjectsByStudentId(input.studentId);
 
-  if (
-    existingProjects.some(
-      (project) => project.githubUrl.trim() === normalizedUrl,
-    )
-  ) {
-    throw new Error("Этот репозиторий уже выбран для текущего ученика.");
-  }
+    if (
+      existingProjects.some(
+        (project) => project.githubUrl.trim() === normalizedUrl,
+      )
+    ) {
+      throw new Error("Этот репозиторий уже выбран для текущего ученика.");
+    }
 
-  if (existingProjects.some((project) => isProjectCurrent(project.status))) {
-    throw new Error(
-      "Сначала завершите текущий проект ученика, затем можно выбрать следующий репозиторий.",
+    if (existingProjects.some((project) => isProjectCurrent(project.status))) {
+      throw new Error(
+        "Сначала завершите текущий проект ученика, затем можно выбрать следующий репозиторий.",
+      );
+    }
+
+    return await appwrite.databases.createDocument(
+      appwrite.databaseId,
+      config.collections.projects,
+      ID.unique(),
+      {
+        ...buildProjectPayload({
+          studentId: input.studentId,
+          name: input.repositoryName.trim() || `Проект ${input.studentName}`,
+          summary: input.repositoryDescription.trim(),
+          githubUrl: normalizedUrl,
+          status: "draft",
+          specMarkdown: "",
+          planMarkdown: "",
+        }),
+        github_state_json: buildGithubState(),
+        project_state_json: buildProjectState(),
+      },
     );
+  } finally {
+    await lock.release();
   }
-
-  return appwrite.databases.createDocument(
-    appwrite.databaseId,
-    config.collections.projects,
-    ID.unique(),
-    {
-      ...buildProjectPayload({
-        studentId: input.studentId,
-        name: input.repositoryName.trim() || `Проект ${input.studentName}`,
-        summary: input.repositoryDescription.trim(),
-        githubUrl: normalizedUrl,
-        status: "active",
-        specMarkdown: "",
-        planMarkdown: "",
-      }),
-      github_state_json: buildGithubState(),
-      project_state_json: buildProjectState(),
-    },
-  );
 }
 
 export async function setProjectStatus(
@@ -571,30 +684,35 @@ export async function setProjectStatus(
   }
 
   const normalizedStatus = normalizeProjectStatus(nextStatus);
+  const lock = await acquireProjectSelectionLock(project.studentId);
 
-  if (normalizedStatus === "active") {
-    const studentProjects = await listProjectsByStudentId(project.studentId);
-    const hasOtherCurrentProject = studentProjects.some(
-      (studentProject) =>
-        studentProject.id !== projectId &&
-        isProjectCurrent(studentProject.status),
-    );
-
-    if (hasOtherCurrentProject) {
-      throw new Error(
-        "У ученика уже есть другой текущий проект. Сначала завершите его или оставьте этот проект завершенным.",
+  try {
+    if (normalizedStatus === "active") {
+      const studentProjects = await listProjectsByStudentId(project.studentId);
+      const hasOtherCurrentProject = studentProjects.some(
+        (studentProject) =>
+          studentProject.id !== projectId &&
+          isProjectCurrent(studentProject.status),
       );
-    }
-  }
 
-  return appwrite.databases.updateDocument(
-    appwrite.databaseId,
-    config.collections.projects,
-    projectId,
-    {
-      status: normalizedStatus,
-    },
-  );
+      if (hasOtherCurrentProject) {
+        throw new Error(
+          "У ученика уже есть другой текущий проект. Сначала завершите его или оставьте этот проект завершенным.",
+        );
+      }
+    }
+
+    return await appwrite.databases.updateDocument(
+      appwrite.databaseId,
+      config.collections.projects,
+      projectId,
+      {
+        status: normalizedStatus,
+      },
+    );
+  } finally {
+    await lock.release();
+  }
 }
 
 export async function updateProject(projectId: string, input: ProjectInput) {
@@ -884,6 +1002,17 @@ export async function runProjectAiAnalysis(projectId: string) {
   });
   const risks = Array.isArray(parsed.risks) ? parsed.risks : [];
   const nextSteps = Array.isArray(parsed.next_steps) ? parsed.next_steps : [];
+  const nextProjectStatus =
+    project.status === "completed"
+      ? "completed"
+      : shouldPromoteProjectToActive({
+            hasRepository: repositoryAnalysis.repository.hasRepository,
+            hasMemoryBank: repositoryAnalysis.metrics.hasMemoryBank,
+            hasSpec: repositoryAnalysis.metrics.hasSpec,
+            hasPlan: repositoryAnalysis.metrics.hasPlan,
+          })
+        ? "active"
+        : "draft";
 
   await appwrite.databases.createDocument(
     appwrite.databaseId,
@@ -918,6 +1047,7 @@ export async function runProjectAiAnalysis(projectId: string) {
     config.collections.projects,
     projectId,
     {
+      status: nextProjectStatus,
       github_url: repositoryAnalysis.repository.htmlUrl,
       github_state_json: buildGithubState({
         owner: repositoryAnalysis.repository.owner,

@@ -22,6 +22,9 @@ const collections = {
   lessons: process.env.APPWRITE_LESSONS_COLLECTION_ID ?? "lessons",
   attendance: process.env.APPWRITE_ATTENDANCE_COLLECTION_ID ?? "attendance",
   projects: process.env.APPWRITE_PROJECTS_COLLECTION_ID ?? "projects",
+  projectSelectionLocks:
+    process.env.APPWRITE_PROJECT_SELECTION_LOCKS_COLLECTION_ID ??
+    "project_selection_locks",
   projectAiReports:
     process.env.APPWRITE_PROJECT_AI_REPORTS_COLLECTION_ID ??
     "project_ai_reports",
@@ -295,6 +298,20 @@ const attributeDefinitions: AttributeDefinition[] = [
   },
   {
     type: "string",
+    collectionId: collections.projectSelectionLocks,
+    key: "student_id",
+    size: 255,
+    required: true,
+  },
+  {
+    type: "string",
+    collectionId: collections.projectSelectionLocks,
+    key: "expires_at",
+    size: 255,
+    required: true,
+  },
+  {
+    type: "string",
     collectionId: collections.projectAiReports,
     key: "project_id",
     size: 255,
@@ -377,6 +394,12 @@ const indexDefinitions: IndexDefinition[] = [
     key: "projects_by_student",
     attributes: ["student_id", "$updatedAt"],
     orders: [OrderBy.Asc, OrderBy.Desc],
+  },
+  {
+    collectionId: collections.projectSelectionLocks,
+    key: "project_selection_locks_by_student",
+    attributes: ["student_id"],
+    orders: [OrderBy.Asc],
   },
   {
     collectionId: collections.projectAiReports,
@@ -585,6 +608,10 @@ await ensureCollection(collections.students, "Students");
 await ensureCollection(collections.lessons, "Lessons");
 await ensureCollection(collections.attendance, "Attendance");
 await ensureCollection(collections.projects, "Projects");
+await ensureCollection(
+  collections.projectSelectionLocks,
+  "Project Selection Locks",
+);
 await ensureCollection(collections.projectAiReports, "Project AI Reports");
 await ensureAttributes();
 await ensureIndexes();

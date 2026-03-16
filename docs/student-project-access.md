@@ -18,7 +18,8 @@
 4. Бот отправляет ученику ссылку на GitHub login.
 5. После GitHub OAuth маршрут `/student/link` связывает ученика по стабильному `github_user_id`.
 6. Ученик попадает на `/my-project` и видит только свои GitHub-репозитории.
-7. Выбранный репозиторий создается как draft-проект в `projects`.
+7. Выбранный репозиторий создается как `draft`-проект в `projects`.
+8. После teacher-only AI-анализа проект автоматически переводится в `active`, если в репозитории найдены `memory_bank`, осмысленные `spec/plan` и валидный repository snapshot.
 
 ## Ограничения доступа
 
@@ -34,7 +35,8 @@
 - student определяется поиском в Appwrite `students.github_user_id`;
 - для bind flow в `students` добавлены поля `github_link_token` и `github_link_expires_at`;
 - список student repositories читается из GitHub API по OAuth access token;
-- student может создать проект только из собственного GitHub repository list.
+- student может создать проект только из собственного GitHub repository list;
+- выбор нового проекта сериализуется per-student блокировкой, чтобы два параллельных запроса не создали несколько текущих проектов одновременно.
 
 ## Не входит в текущий этап
 

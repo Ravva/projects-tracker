@@ -12,11 +12,30 @@ type AppwriteConfig = {
     lessons: string;
     attendance: string;
     projects: string;
+    projectSelectionLocks: string;
     projectAiReports: string;
   };
 };
 
 const DEFAULT_DATABASE_ID = "projects-tracker";
+
+export function buildAppwriteConsoleProjectUrl(
+  endpoint: string,
+  projectId: string,
+) {
+  const url = new URL(endpoint);
+
+  url.search = "";
+  url.hash = "";
+
+  if (/\/v1\/?$/.test(url.pathname)) {
+    url.pathname = url.pathname.replace(/\/v1\/?$/, "/console/");
+  } else {
+    url.pathname = `${url.pathname.replace(/\/+$/, "")}/console/`;
+  }
+
+  return new URL(`project-${projectId}`, url).toString();
+}
 
 export function getAppwriteConfig(): AppwriteConfig | null {
   const endpoint = process.env.APPWRITE_ENDPOINT;
@@ -38,6 +57,9 @@ export function getAppwriteConfig(): AppwriteConfig | null {
       lessons: process.env.APPWRITE_LESSONS_COLLECTION_ID ?? "lessons",
       attendance: process.env.APPWRITE_ATTENDANCE_COLLECTION_ID ?? "attendance",
       projects: process.env.APPWRITE_PROJECTS_COLLECTION_ID ?? "projects",
+      projectSelectionLocks:
+        process.env.APPWRITE_PROJECT_SELECTION_LOCKS_COLLECTION_ID ??
+        "project_selection_locks",
       projectAiReports:
         process.env.APPWRITE_PROJECT_AI_REPORTS_COLLECTION_ID ??
         "project_ai_reports",
@@ -65,4 +87,14 @@ export function getAppwriteDatabases() {
 
 export function isAppwriteConfigured() {
   return getAppwriteConfig() !== null;
+}
+
+export function getAppwriteConsoleProjectUrl() {
+  const config = getAppwriteConfig();
+
+  if (!config) {
+    return null;
+  }
+
+  return buildAppwriteConsoleProjectUrl(config.endpoint, config.projectId);
 }

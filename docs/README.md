@@ -65,6 +65,8 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - в каждый момент времени у ученика допускается только один текущий проект со статусом `draft` или `active`; завершенные проекты хранятся со статусом `completed`;
 - репозиторий нормализуется в `owner/repo/default_branch`;
 - teacher вручную не создает проекты из `/projects`; новый проект появляется только из student-flow `/my-project` после GitHub bind и выбора репозитория;
+- выбор следующего проекта сериализуется per-student lock в Appwrite, чтобы параллельные запросы не создали несколько текущих проектов одновременно;
+- после выбора репозитория student-проект создается в статусе `draft`; в `active` он переводится автоматически после teacher-only AI-анализа, если репозиторий доступен и в нем найдены `memory_bank`, осмысленные `spec` и `plan`;
 - teacher-only detail page проекта умеет переводить проект в `completed` и обратно в `active`, чтобы открывать ученику доступ к следующему проекту;
 - AI-анализ teacher-only проекта читает `memory_bank` и commit history прямо из student GitHub repository, а не полагается только на локально заполненные поля проекта;
 - вызов модели идет через отдельный Cloudflare Worker gateway с Workers AI `@cf/openai/gpt-oss-120b`; основное приложение обращается к нему только по `AI_GATEWAY_URL` и `AI_GATEWAY_TOKEN`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
@@ -103,13 +105,16 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - server-side repositories для `students`, `projects`, `attendance`;
 - Appwrite используется через server-only adapter;
 - схема Appwrite поднимается идемпотентным скриптом `bun run db:provision`;
+- для сериализации выбора текущего student-проекта используется отдельная коллекция `project_selection_locks`;
 - `projects` и `project_ai_reports` используют компактные JSON-state поля; полный snapshot `memory_bank` в AI-отчетах хранится в сжатом виде внутри `report_payload_json`, а размер атрибута `project_ai_reports.report_payload_json` расширен до `50000`, чтобы detail page мог показывать полные `Project brief`, `Product context`, `Active context` и `Progress notes` без потери данных;
 - при отсутствии Appwrite env-конфигурации репозитории возвращают пустые состояния;
+- operational note: для Appwrite Cloud Free действует риск авто-паузы после 7 дней без Console activity; локальный anti-pause workflow описан в [Appwrite Anti-Pause](./appwrite-anti-pause.md);
 - пример переменных окружения хранится в `.env.example`.
 
 ## Current Routes
 
 - `/` - teacher dashboard с app shell, weekly focus, KPI, risk table, AI summaries и кнопкой ручной отправки weekly digest в Telegram преподавателя.
+- `/` - teacher dashboard с app shell, weekly focus, KPI, risk table, AI summaries, кнопкой ручной отправки weekly digest в Telegram преподавателя и быстрым переходом в `Appwrite Console` для anti-pause workflow.
 - `/students` - teacher-only список учеников.
 - `/students/[studentId]` - teacher-only страница редактирования ученика.
 - `/auth/complete` - post-login resolver для teacher/student.

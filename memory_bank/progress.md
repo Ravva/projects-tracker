@@ -7,6 +7,7 @@
 ## Known Issues
 
 - в рабочем дереве присутствует локальный `.env`, поэтому он должен оставаться вне версии;
+- для `Appwrite Cloud Free` автоматическая профилактика паузы через API не выглядит надежной, потому что Appwrite описывает inactivity rule через Console activity; текущая защита остается operational-процессом, а не техническим bypass;
 - в локальной Windows-среде порт `3100` входит в системный excluded TCP range `3068-3167`, поэтому `bun dev` на нем не стартует даже при bind на `127.0.0.1`;
 - лимиты Appwrite на размер строковых атрибутов требуют держать `projects` и `project_ai_reports` в компактной JSON-state схеме;
 - даже после нормализации `project_state_json` нужно контролировать суммарный размер JSON при дальнейшем расширении AI summary и списков шагов.
@@ -20,6 +21,9 @@
 
 ## Changelog
 
+- 2026-03-16: снят race-condition multi-project сценария. В Appwrite-конфиг и `scripts/provision-appwrite.ts` добавлена коллекция `project_selection_locks`, а `src/lib/server/repositories/projects.ts` теперь берет per-student lock перед созданием нового проекта и переводом проекта в `active`. Одновременно student-проект переведен на стартовый статус `draft`; после teacher-only AI-анализа он автоматически повышается в `active`, если в репозитории подтверждены `hasRepository`, `hasMemoryBank`, `hasSpec` и `hasPlan`. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, `bun run lint` и `bun run build` проходят.
+- 2026-03-16: подготовлен anti-pause workflow для Appwrite Cloud Free. Добавлен `scripts/appwrite-console-heartbeat.ts` и команда `bun run appwrite:keepalive`, которая открывает текущий Appwrite project Console и пишет локальный heartbeat в `.codex/appwrite-console-heartbeat.json`. Также создан `docs/appwrite-anti-pause.md`, а `docs/README.md` и `memory_bank` синхронизированы с новым operational-паттерном. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, повторный `bun run lint` проходит.
+- 2026-03-16: teacher dashboard получил быстрый anti-pause CTA. В `src/lib/server/appwrite.ts` вынесен helper прямого `Appwrite Console` URL, `scripts/appwrite-console-heartbeat.ts` переведен на его повторное использование, а в `src/components/app/teacher-dashboard.tsx` добавлена кнопка `Appwrite Console` в верхнюю action-панель. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, `bun run lint` проходит.
 - 2026-03-14: страница `/attendance` переведена на более компактный визуальный язык. В `src/app/attendance/attendance-grid-client.tsx` текстовые кнопки состояний заменены на цветные кружки (`нет данных` — белый, `отсутствовал` — красный, `присутствовал` — зеленый), заголовки дней недели стали кликабельными и массово переключают весь столбец по циклу `unmarked -> absent -> present`, а столбец `Статус недели` теперь тоже рисуется кружком с желтым состоянием при частичном выполнении weekly-нормы. Измененный не-Markdown файл прогнан через `bunx biome check --write`, `bun run lint` проходит.
 - 2026-03-14: на странице `/attendance` убран дублирующий внутренний заголовок `Weekly attendance grid` из карточки-обертки. В `src/app/attendance/page.tsx` оставлен только page-level заголовок `Attendance`, чтобы UI не повторялся по вертикали. Измененный не-Markdown файл прогнан через `bunx biome check --write`, `bun run lint` проходит.
 - 2026-03-14: таблица `/attendance` дополнительно уплотнена и сужена. В `src/app/attendance/attendance-grid-client.tsx` уменьшены ширины weekday-колонок и внутренние отступы ячеек, при этом шрифт заголовков и имен учеников слегка увеличен для лучшей читаемости. Измененный не-Markdown файл прогнан через `bunx biome check --write`, `bun run lint` проходит.
@@ -129,4 +133,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `9b23b964aeb6a6c67bc6edd0f916e2cfd3ff77bc`
+- `last_checked_commit`: `06bb2430c15cac80383d61a0718ffb02c3d3da13`

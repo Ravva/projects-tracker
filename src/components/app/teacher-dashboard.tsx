@@ -41,6 +41,7 @@ import {
   isProjectInReviewZone,
 } from "@/lib/project-risk";
 import { getProjectStatusLabel, isProjectCurrent } from "@/lib/project-status";
+import { getAppwriteConsoleProjectUrl } from "@/lib/server/appwrite";
 import { parseIsoDate } from "@/lib/server/date-utils";
 import { getCurrentAttendanceWeek } from "@/lib/server/repositories/attendance";
 import { listProjects } from "@/lib/server/repositories/projects";
@@ -73,6 +74,7 @@ export async function TeacherDashboard({
   ]);
   const attendanceLessons = attendanceWeek.lessons;
   const nearestLesson = getNearestLesson(attendanceLessons);
+  const appwriteConsoleUrl = getAppwriteConsoleProjectUrl();
 
   const studentsNeedingAttention = students.filter(
     (student) => student.weeklyState !== "success",
@@ -109,6 +111,17 @@ export async function TeacherDashboard({
           >
             <Link href="/attendance">Открыть attendance</Link>
           </Button>
+          {appwriteConsoleUrl ? (
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-xl bg-background/90"
+            >
+              <a href={appwriteConsoleUrl} target="_blank" rel="noreferrer">
+                Appwrite Console
+              </a>
+            </Button>
+          ) : null}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="rounded-xl">Быстрые действия</Button>
