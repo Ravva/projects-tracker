@@ -141,11 +141,11 @@ const PREVIEW_REPOSITORIES: GithubRepositoryOption[] = [
 export default async function MyProjectPage({
   searchParams,
 }: {
-  searchParams: Promise<{ preview?: string }>;
+  searchParams: Promise<{ error?: string; preview?: string; success?: string }>;
 }) {
   const role = await getCurrentAuthRole();
   const sessionUser = await requireAuthenticatedSession();
-  const { preview } = await searchParams;
+  const { error, preview, success } = await searchParams;
   const isTeacherPreview = role === "teacher" && preview === "teacher";
 
   if (role === "teacher" && !isTeacherPreview) {
@@ -214,6 +214,16 @@ export default async function MyProjectPage({
             <div className="mt-4 rounded-2xl border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] px-4 py-3 text-sm text-foreground">
               Это teacher-only предпросмотр student-экрана на демо-данных.
               Реальные student-проверки авторизации и привязки не изменены.
+            </div>
+          ) : null}
+          {error ? (
+            <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          ) : null}
+          {success === "project-created" ? (
+            <div className="mt-4 rounded-2xl border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] px-4 py-3 text-sm text-foreground">
+              Репозиторий успешно привязан к новому проекту.
             </div>
           ) : null}
         </section>
