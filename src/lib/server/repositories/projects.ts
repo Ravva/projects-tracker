@@ -1,5 +1,6 @@
 import "server-only";
 
+import crypto from "node:crypto";
 import { AppwriteException, ID, Query } from "node-appwrite";
 import {
   normalizeProjectInput,
@@ -37,7 +38,13 @@ import type {
 const PROJECT_SELECTION_LOCK_TTL_MS = 2 * 60 * 1000;
 
 function buildProjectSelectionLockId(studentId: string) {
-  return `student-project-selection:${studentId}`;
+  const digest = crypto
+    .createHash("sha256")
+    .update(studentId.trim())
+    .digest("hex")
+    .slice(0, 32);
+
+  return `psl_${digest}`;
 }
 
 function getProjectSelectionLockExpiry() {
