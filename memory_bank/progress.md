@@ -21,6 +21,7 @@
 
 ## Changelog
 
+- 2026-03-17: устранено server-side падение student-flow `/my-project` при ошибке загрузки GitHub-репозиториев ученика. В `src/app/my-project/page.tsx` загрузка student repositories переведена на безопасный `try/catch`: список проектов из Appwrite продолжает рендериться, ошибка GitHub логируется на сервере, а UI показывает понятное пустое состояние вместо production `500`. Измененный не-Markdown файл прогнан через `bunx biome check --write`, общий `bun run lint` проходит; `bun run build` по-прежнему падает на несвязанной проблеме резолва зависимостей `react-markdown` и `remark-gfm` в `src/components/ui/markdown-content.tsx`.
 - 2026-03-16: снят race-condition multi-project сценария. В Appwrite-конфиг и `scripts/provision-appwrite.ts` добавлена коллекция `project_selection_locks`, а `src/lib/server/repositories/projects.ts` теперь берет per-student lock перед созданием нового проекта и переводом проекта в `active`. Одновременно student-проект переведен на стартовый статус `draft`; после teacher-only AI-анализа он автоматически повышается в `active`, если в репозитории подтверждены `hasRepository`, `hasMemoryBank`, `hasSpec` и `hasPlan`. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, `bun run lint` и `bun run build` проходят.
 - 2026-03-16: подготовлен anti-pause workflow для Appwrite Cloud Free. Добавлен `scripts/appwrite-console-heartbeat.ts` и команда `bun run appwrite:keepalive`, которая открывает текущий Appwrite project Console и пишет локальный heartbeat в `.codex/appwrite-console-heartbeat.json`. Также создан `docs/appwrite-anti-pause.md`, а `docs/README.md` и `memory_bank` синхронизированы с новым operational-паттерном. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, повторный `bun run lint` проходит.
 - 2026-03-16: teacher dashboard получил быстрый anti-pause CTA. В `src/lib/server/appwrite.ts` вынесен helper прямого `Appwrite Console` URL, `scripts/appwrite-console-heartbeat.ts` переведен на его повторное использование, а в `src/components/app/teacher-dashboard.tsx` добавлена кнопка `Appwrite Console` в верхнюю action-панель. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, `bun run lint` проходит.
@@ -133,4 +134,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `06bb2430c15cac80383d61a0718ffb02c3d3da13`
+- `last_checked_commit`: `85c40d298637230bcfee29f5fddfa1b096ad07bc`

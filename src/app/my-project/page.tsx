@@ -12,7 +12,10 @@ import {
   requireAuthenticatedSession,
   requireStudentSession,
 } from "@/lib/server/auth";
-import { listGithubRepositoriesForStudent } from "@/lib/server/github";
+import {
+  type GithubRepositoryOption,
+  listGithubRepositoriesForStudent,
+} from "@/lib/server/github";
 import { listProjectsByStudentId } from "@/lib/server/repositories/projects";
 import type { ProjectRecord } from "@/lib/types";
 
@@ -112,24 +115,26 @@ const PREVIEW_PROJECTS: ProjectRecord[] = [
   },
 ];
 
-const PREVIEW_REPOSITORIES = [
+const PREVIEW_REPOSITORIES: GithubRepositoryOption[] = [
   {
-    id: "preview-repo-1",
+    id: 1,
     name: "next-step-project",
     fullName: "example/next-step-project",
     url: "https://github.com/example/next-step-project",
     description: "Следующий репозиторий для нового проекта.",
     updatedAt: "2026-03-13T09:00:00.000Z",
     defaultBranch: "main",
+    private: false,
   },
   {
-    id: "preview-repo-2",
+    id: 2,
     name: "experimental-app",
     fullName: "example/experimental-app",
     url: "https://github.com/example/experimental-app",
     description: "Репозиторий для второй идеи ученика.",
     updatedAt: "2026-03-12T15:30:00.000Z",
     defaultBranch: "main",
+    private: false,
   },
 ];
 
@@ -154,12 +159,33 @@ export default async function MyProjectPage({
         studentName: "Превью ученика",
       }
     : await requireStudentSession();
-  const [projects, repositories] = isTeacherPreview
-    ? [PREVIEW_PROJECTS, PREVIEW_REPOSITORIES]
-    : await Promise.all([
-        listProjectsByStudentId(student.studentId),
-        listGithubRepositoriesForStudent(student.githubAccessToken),
-      ]);
+  let projects: ProjectRecord[] = [];
+  let repositories: GithubRepositoryOption[] = PREVIEW_REPOSITORIES;
+  let repositoryLoadError = "";
+
+  if (isTeacherPreview) {
+    projects = PREVIEW_PROJECTS;
+  } else {
+    projects = await listProjectsByStudentId(student.studentId);
+
+    try {
+      repositories = await listGithubRepositoriesForStudent(
+        student.githubAccessToken,
+      );
+    } catch (error) {
+      repositoryLoadError =
+        error instanceof Error && error.message.trim()
+          ? error.message.trim()
+          : "Не удалось получить список GitHub-репозиториев.";
+      repositories = [];
+
+      console.error("[my-project] Failed to load student repositories", {
+        studentId: student.studentId,
+        githubLogin: student.githubLogin,
+        error,
+      });
+    }
+  }
   const selectedUrls = new Set(projects.map((project) => project.githubUrl));
   const currentProjects = projects.filter((project) =>
     isProjectCurrent(project.status),
@@ -354,7 +380,13 @@ export default async function MyProjectPage({
                   перевести текущий проект в статус «завершен».
                 </div>
               ) : null}
-              {repositories.length > 0 ? (
+              {repositoryLoadError ? (
+                <div className="rounded-2xl border border-dashed border-border/70 bg-background/50 p-5 text-muted-foreground">
+                  {repositoryLoadError} Проверьте, что вход выполнен через
+                  корректный GitHub-аккаунт и у приложения есть доступ к
+                  репозиториям владельца.
+                </div>
+              ) : repositories.length > 0 ? (
                 repositories.map((repository) => {
                   const alreadySelected = selectedUrls.has(repository.url);
                   const disabled = alreadySelected || !canChooseNextProject;
