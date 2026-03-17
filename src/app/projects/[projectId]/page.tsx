@@ -269,7 +269,9 @@ export default async function ProjectDetailsPage({
                 <div className="mb-2 text-sm font-medium text-foreground">
                   Product context
                 </div>
-                <MarkdownContent content={productContextPreview} />
+                <div className="app-scrollbar max-h-96 overflow-y-auto pr-2">
+                  <MarkdownContent content={productContextPreview} />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -286,13 +288,17 @@ export default async function ProjectDetailsPage({
                 <div className="mb-2 text-sm font-medium text-foreground">
                   Active context
                 </div>
-                <MarkdownContent content={activeContextPreview} />
+                <div className="app-scrollbar max-h-96 overflow-y-auto pr-2">
+                  <MarkdownContent content={activeContextPreview} />
+                </div>
               </div>
               <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                 <div className="mb-2 text-sm font-medium text-foreground">
                   Progress notes
                 </div>
-                <MarkdownContent content={progressContextPreview} />
+                <div className="app-scrollbar max-h-96 overflow-y-auto pr-2">
+                  <MarkdownContent content={progressContextPreview} />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -311,7 +317,9 @@ export default async function ProjectDetailsPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
-              <MarkdownContent content={aiSummaryText} />
+              <div className="app-scrollbar max-h-96 overflow-y-auto pr-2">
+                <MarkdownContent content={aiSummaryText} />
+              </div>
               <div className="grid gap-3 rounded-2xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
                 <div className="font-medium text-foreground">
                   Репозиторий и memory signals
