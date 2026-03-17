@@ -89,11 +89,14 @@ function formatLastCommitLabel(
 
 export default async function ProjectDetailsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string }>;
+  searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const teacher = await requireTeacherSession();
   const { projectId } = await params;
+  const { error, success } = await searchParams;
   const [project, reports] = await Promise.all([
     getProject(projectId),
     listProjectAiReports(projectId),
@@ -194,6 +197,16 @@ export default async function ProjectDetailsPage({
         </>
       }
     >
+      {error ? (
+        <div className="mb-6 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      ) : null}
+      {success === "analysis-complete" ? (
+        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+          AI-анализ завершен, данные проекта обновлены.
+        </div>
+      ) : null}
       <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="grid gap-6">
           <Card className="border-border/70 bg-card/88 shadow-none">

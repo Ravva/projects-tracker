@@ -15,6 +15,27 @@ function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+function buildProjectDetailsRedirect(
+  projectId: string,
+  searchParams: Record<string, string>,
+) {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(searchParams)) {
+    const normalized = value.trim();
+
+    if (!normalized) {
+      continue;
+    }
+
+    params.set(key, normalized);
+  }
+
+  const query = params.toString();
+
+  return query ? `/projects/${projectId}?${query}` : `/projects/${projectId}`;
+}
+
 export async function deleteProjectAction(formData: FormData) {
   await requireTeacherSession();
 
@@ -44,11 +65,30 @@ export async function runProjectAiAnalysisAction(formData: FormData) {
 
   const projectId = readString(formData, "projectId");
 
-  await runProjectAiAnalysis(projectId);
+  try {
+    await runProjectAiAnalysis(projectId);
+  } catch (error) {
+    const message =
+      error instanceof Error && error.message.trim()
+        ? error.message.trim()
+        : "Не удалось завершить AI-анализ проекта.";
+
+    redirect(
+      buildProjectDetailsRedirect(projectId, {
+        error: message,
+      }),
+    );
+  }
 
   revalidatePath("/projects");
   revalidatePath(`/projects/${projectId}`);
   revalidatePath("/");
+
+  redirect(
+    buildProjectDetailsRedirect(projectId, {
+      success: "analysis-complete",
+    }),
+  );
 }
 
 export async function setProjectStatusAction(formData: FormData) {

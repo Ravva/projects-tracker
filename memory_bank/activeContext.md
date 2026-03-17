@@ -7,6 +7,8 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 ## Задача в работе
 
 - в работе: расширение project model под несколько проектов на одного ученика; нужно сохранить историю завершенных проектов, показать их состояния в teacher/student UI и не сломать текущий AI-analysis/review flow;
+- закрыто в текущей сессии: server-side нормализация project risk flags больше не удерживает устаревший `missing_plan` после успешного AI-анализа; teacher-only project detail теперь не должен одновременно показывать `План: есть` в AI summary и риск `нет плана` в карточке сигналов;
+- закрыто в текущей сессии: teacher-only запуск AI-анализа на `/projects/[projectId]` после multi-project flow больше не должен уводить UI в generic production digest; server action теперь переводит ошибки в контролируемый redirect с banner-сообщением, а первый AI-analysis для `draft`-проекта корректно считает risk flags как post-analysis snapshot вместо ложного `healthy`;
 - в работе: усиление student-flow `/my-project` инструкцией по `AGENTS.md` и настройке `memory_bank`, чтобы ученик до выбора репозитория видел, как подготовить проект к корректному AI-анализу;
 - в работе: teacher-only preview режим для `/my-project` и `/student/link`, чтобы student UI можно было безопасно просматривать из teacher-сессии без ослабления реального student-access контроля;
 - в работе: polish student-flow `/my-project` — prompt подготовки репозитория вынесен из сырого `pre`-блока в отдельный CTA-блок с копированием по клику;

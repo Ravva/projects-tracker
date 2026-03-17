@@ -275,12 +275,9 @@ function normalizeProjectRiskFlags(project: ProjectRecord) {
   }
 
   for (const flag of project.riskFlags) {
-    if (flag === "stale_repo") {
-      flags.add("abandoned");
-      continue;
+    if (flag === "invalid_github_repo") {
+      flags.add(flag);
     }
-
-    flags.add(flag);
   }
 
   return [...flags];
@@ -932,6 +929,7 @@ export async function runProjectAiAnalysis(projectId: string) {
   const completionPercent = repositoryAnalysis.metrics.completionPercent;
   const nextRiskFlags = normalizeProjectRiskFlags({
     ...project,
+    hasAiAnalysisSnapshot: true,
     riskFlags: project.riskFlags.filter(
       (flag) => flag !== "invalid_github_repo" && flag !== "stale_repo",
     ),
