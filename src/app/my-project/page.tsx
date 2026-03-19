@@ -60,6 +60,11 @@ const PREVIEW_PROJECTS: ProjectRecord[] = [
     planMarkdown: "",
     aiSummary: "Превью активного проекта с корректной структурой memory_bank.",
     nextSteps: ["Дописать deliverables", "Обновить progress.md"],
+    syncStatus: "synced",
+    syncStatusReason: "Локальный snapshot совпадает с GitHub default branch.",
+    aiStatus: "up_to_date",
+    remoteLastCommit: "2026-03-14T10:00:00.000Z",
+    remoteLastCommitSha: "previewsha1",
     hasRepository: true,
     hasMemoryBank: true,
     hasSpec: true,
@@ -100,6 +105,11 @@ const PREVIEW_PROJECTS: ProjectRecord[] = [
     planMarkdown: "",
     aiSummary: "Превью завершённого проекта в истории ученика.",
     nextSteps: [],
+    syncStatus: "synced",
+    syncStatusReason: "Локальный snapshot совпадает с GitHub default branch.",
+    aiStatus: "up_to_date",
+    remoteLastCommit: "2026-02-28T10:00:00.000Z",
+    remoteLastCommitSha: "previewsha2",
     hasRepository: true,
     hasMemoryBank: true,
     hasSpec: true,
@@ -141,11 +151,16 @@ const PREVIEW_REPOSITORIES: GithubRepositoryOption[] = [
 export default async function MyProjectPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; preview?: string; success?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    notice?: string;
+    preview?: string;
+    success?: string;
+  }>;
 }) {
   const role = await getCurrentAuthRole();
   const sessionUser = await requireAuthenticatedSession();
-  const { error, preview, success } = await searchParams;
+  const { error, notice, preview, success } = await searchParams;
   const isTeacherPreview = role === "teacher" && preview === "teacher";
 
   if (role === "teacher" && !isTeacherPreview) {
@@ -223,7 +238,13 @@ export default async function MyProjectPage({
           ) : null}
           {success === "project-created" ? (
             <div className="mt-4 rounded-2xl border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] px-4 py-3 text-sm text-foreground">
-              Репозиторий успешно привязан к новому проекту.
+              Репозиторий успешно привязан к новому проекту, AI-анализ запущен
+              автоматически.
+            </div>
+          ) : null}
+          {notice ? (
+            <div className="mt-4 rounded-2xl border border-[hsl(var(--status-warning)/0.3)] bg-[hsl(var(--status-warning)/0.08)] px-4 py-3 text-sm text-foreground">
+              {notice}
             </div>
           ) : null}
         </section>

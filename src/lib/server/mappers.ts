@@ -291,6 +291,11 @@ export function mapProjectDocument(
     planMarkdown: String(getField(document, "plan_markdown") ?? ""),
     aiSummary: String(projectState.aiSummary ?? ""),
     nextSteps: parseStringList(projectState.nextSteps),
+    syncStatus: "unknown",
+    syncStatusReason: "",
+    aiStatus: lastAiAnalysisAtRaw ? "up_to_date" : "not_started",
+    remoteLastCommit: "",
+    remoteLastCommitSha: "",
   };
 }
 

@@ -30,7 +30,7 @@
 - список репозиториев читается напрямую из GitHub API по OAuth access token;
 - выбор репозитория создает новый `draft`-проект в `projects` со связкой `student_id + github_url`, только если у ученика нет другого текущего проекта;
 - создание и смена статуса текущего проекта сериализуются per-student lock через Appwrite-коллекцию `project_selection_locks`, чтобы параллельные запросы не нарушали инвариант `один текущий проект`;
-- после teacher-only AI-анализа проект автоматически повышается из `draft` в `active`, если подтверждены `hasRepository`, `hasMemoryBank`, `hasSpec` и `hasPlan`;
+- после выбора репозитория в student-flow teacher-side AI-анализ запускается автоматически; проект повышается из `draft` в `active`, если подтверждены `hasRepository`, `hasMemoryBank`, `hasSpec` и `hasPlan`;
 - teacher review и AI-анализ остаются в teacher-only модуле `/projects`, но ручное создание проекта преподавателем не используется;
 - teacher переводит проект в `completed`, когда ученик завершил его, после чего student-flow разрешает выбрать следующий репозиторий.
 
@@ -48,7 +48,8 @@
 
 ## Project Analysis Pattern
 
-- teacher-only AI-анализ проекта запускается из `/projects/[projectId]`;
+- teacher-only AI-анализ проекта можно запускать вручную из `/projects/[projectId]`, но он также стартует автоматически после создания нового student-проекта и после `GitHub sync`;
+- teacher-only список `/projects` дополнительно делает live-check последнего commit default branch в GitHub и сравнивает его с сохраненным `lastCommitSha`, чтобы отделять актуальные snapshots от проектов, которым нужен `sync`;
 - backend читает `memory_bank/projectbrief.md`, `productContext.md`, `activeContext.md`, `progress.md` и опциональный `docs/README.md` прямо из student GitHub repository;
 - `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; deliverables без валидной суммы весов `100` не участвуют в расчете процента;
 - commit metrics и флаг `abandoned` считаются по истории коммитов default branch;

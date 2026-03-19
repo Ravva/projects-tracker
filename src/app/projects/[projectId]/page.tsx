@@ -26,6 +26,13 @@ import {
   getProjectRiskTone,
 } from "@/lib/project-risk";
 import { getProjectStatusLabel, isProjectCurrent } from "@/lib/project-status";
+import {
+  getProjectAiStatusLabel,
+  getProjectAiStatusTone,
+  getProjectSyncStatusLabel,
+  getProjectSyncStatusTone,
+  projectNeedsSync,
+} from "@/lib/project-sync";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { parseProjectAiInputSnapshot } from "@/lib/server/project-ai-report-snapshot";
 import {
@@ -92,11 +99,11 @@ export default async function ProjectDetailsPage({
   searchParams,
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; notice?: string; success?: string }>;
 }) {
   const teacher = await requireTeacherSession();
   const { projectId } = await params;
-  const { error, success } = await searchParams;
+  const { error, notice, success } = await searchParams;
   const [project, reports] = await Promise.all([
     getProject(projectId),
     listProjectAiReports(projectId),
@@ -207,6 +214,16 @@ export default async function ProjectDetailsPage({
           AI-анализ завершен, данные проекта обновлены.
         </div>
       ) : null}
+      {success === "sync-complete" ? (
+        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+          GitHub sync выполнен, AI-анализ обновлен автоматически.
+        </div>
+      ) : null}
+      {notice ? (
+        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-warning)/0.3)] bg-[hsl(var(--status-warning)/0.08)] px-4 py-3 text-sm text-foreground">
+          {notice}
+        </div>
+      ) : null}
       <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="grid gap-6">
           <Card className="border-border/70 bg-card/88 shadow-none">
@@ -254,6 +271,47 @@ export default async function ProjectDetailsPage({
                       ? "нет данных"
                       : lastCommitLabel}
                   </div>
+                </div>
+              </div>
+              <div
+                className={getSignalToneClasses(
+                  getProjectSyncStatusTone(project.syncStatus),
+                )}
+              >
+                <div className="text-sm font-medium text-foreground">
+                  Repo sync
+                </div>
+                <div className="mt-3">
+                  <StatusPill
+                    tone={getProjectSyncStatusTone(project.syncStatus)}
+                    label={getProjectSyncStatusLabel(project.syncStatus)}
+                  />
+                </div>
+                <div className="mt-3 text-sm text-muted-foreground">
+                  {project.syncStatusReason ||
+                    "Статус синхронизации пока не определен."}
+                </div>
+              </div>
+              <div
+                className={getSignalToneClasses(
+                  getProjectAiStatusTone(project.aiStatus),
+                )}
+              >
+                <div className="text-sm font-medium text-foreground">
+                  AI status
+                </div>
+                <div className="mt-3">
+                  <StatusPill
+                    tone={getProjectAiStatusTone(project.aiStatus)}
+                    label={getProjectAiStatusLabel(project.aiStatus)}
+                  />
+                </div>
+                <div className="mt-3 text-sm text-muted-foreground">
+                  {projectNeedsSync(project)
+                    ? "В репозитории есть новые коммиты, поэтому текущий AI-отчет уже устарел."
+                    : project.hasAiAnalysisSnapshot
+                      ? "Последний AI-снимок соответствует текущему snapshot репозитория."
+                      : "AI-анализ еще не запускался для этого проекта."}
                 </div>
               </div>
             </CardContent>

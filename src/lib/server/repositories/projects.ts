@@ -435,6 +435,101 @@ function isGithubRateLimitError(error: unknown) {
   return error instanceof GithubRequestError && error.isRateLimit;
 }
 
+function getProjectBaseRecord(project: ProjectRecord) {
+  const riskFlags = normalizeProjectRiskFlags(project);
+
+  return {
+    ...project,
+    riskFlags,
+    risk: primaryRiskFromFlags(riskFlags, {
+      hasAiAnalysisSnapshot: hasProjectAiAnalysisSnapshot(project),
+    }),
+  };
+}
+
+async function enrichProjectRepositoryStatus(
+  project: ProjectRecord,
+): Promise<ProjectRecord> {
+  const parsed = parseGithubUrl(project.githubUrl);
+
+  if (!parsed) {
+    return {
+      ...project,
+      syncStatus: "unavailable",
+      syncStatusReason: "Некорректный GitHub URL.",
+      aiStatus: project.hasAiAnalysisSnapshot
+        ? "status_unknown"
+        : "not_started",
+    };
+  }
+
+  try {
+    const metadata = await getGithubRepositoryMetadata(
+      parsed.owner,
+      parsed.repo,
+    );
+    const commitData = await listGithubRepositoryCommits(
+      parsed.owner,
+      parsed.repo,
+      metadata.defaultBranch,
+      {
+        maxPages: 1,
+        perPage: 1,
+      },
+    );
+    const lastCommit = commitData[0];
+    const remoteLastCommitSha = lastCommit?.sha ?? "";
+    const remoteLastCommit = lastCommit?.committedAt ?? "";
+    const hasSyncSnapshot = Boolean(project.lastCommitSha.trim());
+    const hasRepositoryUpdates =
+      Boolean(remoteLastCommitSha) &&
+      (!hasSyncSnapshot || remoteLastCommitSha !== project.lastCommitSha);
+
+    return {
+      ...project,
+      syncStatus: hasRepositoryUpdates
+        ? "sync_needed"
+        : hasSyncSnapshot
+          ? "synced"
+          : "unknown",
+      syncStatusReason: hasRepositoryUpdates
+        ? "В GitHub есть новые коммиты относительно сохраненного snapshot."
+        : hasSyncSnapshot
+          ? "Локальный snapshot совпадает с GitHub default branch."
+          : "Проект еще не синхронизировался с GitHub.",
+      aiStatus: !project.hasAiAnalysisSnapshot
+        ? "not_started"
+        : hasRepositoryUpdates
+          ? "outdated"
+          : "up_to_date",
+      remoteLastCommit,
+      remoteLastCommitSha,
+      defaultBranch: metadata.defaultBranch,
+    };
+  } catch (error) {
+    const reason = isGithubRateLimitError(error)
+      ? "Не удалось проверить GitHub: превышен rate limit."
+      : "Не удалось проверить актуальность репозитория в GitHub.";
+
+    return {
+      ...project,
+      syncStatus: "unavailable",
+      syncStatusReason: reason,
+      aiStatus: project.hasAiAnalysisSnapshot
+        ? "status_unknown"
+        : "not_started",
+    };
+  }
+}
+
+async function enrichProjectsRepositoryStatus(projects: ProjectRecord[]) {
+  return Promise.all(
+    projects.map(async (project) =>
+      enrichProjectRepositoryStatus(getProjectBaseRecord(project)),
+    ),
+  );
+}
+
 async function listProjectDocuments() {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
@@ -495,24 +590,17 @@ export async function listProjects(): Promise<ProjectRecord[]> {
       listStudentNameMap(),
     ]);
 
-    return documents.map((document) => {
+    const projects = documents.map((document) => {
       const studentId = String(
         (document as Record<string, unknown>).student_id ?? "",
       );
-      const project = mapProjectDocument(
+      return mapProjectDocument(
         document,
         studentNameMap.get(studentId) ?? "Неизвестный ученик",
       );
-      const riskFlags = normalizeProjectRiskFlags(project);
-
-      return {
-        ...project,
-        riskFlags,
-        risk: primaryRiskFromFlags(riskFlags, {
-          hasAiAnalysisSnapshot: hasProjectAiAnalysisSnapshot(project),
-        }),
-      };
     });
+
+    return enrichProjectsRepositoryStatus(projects);
   } catch {
     return [];
   }
@@ -534,21 +622,14 @@ export async function listProjectsByStudentId(
       listStudentNameMap(),
     ]);
 
-    return documents.map((document) => {
-      const project = mapProjectDocument(
+    const projects = documents.map((document) =>
+      mapProjectDocument(
         document,
         studentNameMap.get(studentId) ?? "Неизвестный ученик",
-      );
-      const riskFlags = normalizeProjectRiskFlags(project);
+      ),
+    );
 
-      return {
-        ...project,
-        riskFlags,
-        risk: primaryRiskFromFlags(riskFlags, {
-          hasAiAnalysisSnapshot: hasProjectAiAnalysisSnapshot(project),
-        }),
-      };
-    });
+    return enrichProjectsRepositoryStatus(projects);
   } catch {
     return [];
   }
@@ -580,15 +661,7 @@ export async function getProject(
       document,
       studentNameMap.get(studentId) ?? "Неизвестный ученик",
     );
-    const riskFlags = normalizeProjectRiskFlags(project);
-
-    return {
-      ...project,
-      riskFlags,
-      risk: primaryRiskFromFlags(riskFlags, {
-        hasAiAnalysisSnapshot: hasProjectAiAnalysisSnapshot(project),
-      }),
-    };
+    return enrichProjectRepositoryStatus(getProjectBaseRecord(project));
   } catch {
     return null;
   }

@@ -9,14 +9,14 @@
 - hero-блок с пояснением student-access сценария;
 - список уже выбранных проектов текущего ученика;
 - список GitHub-репозиториев владельца, полученных по OAuth access token;
-- кнопка `Выбрать проект`, которая создает draft-проект через server action.
+- кнопка `Выбрать проект`, которая создает draft-проект через server action и сразу запускает teacher-side AI-анализ.
 
 ## Данные и поток
 
 - доступ требует `requireStudentSession`;
 - текущие student projects читаются через `listProjectsByStudentId`;
 - GitHub repositories читаются через `listGithubRepositoriesForStudent`;
-- выбор репозитория вызывает `chooseStudentProjectAction`, которая создает проект только для текущего `student_id`.
+- выбор репозитория вызывает `chooseStudentProjectAction`, которая создает проект только для текущего `student_id` и пытается сразу собрать первый AI-snapshot.
 
 ## Ограничения UX
 

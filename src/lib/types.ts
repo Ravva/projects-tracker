@@ -2,6 +2,16 @@ export type WeeklyState = "critical" | "warning" | "success";
 export type TelegramLinkStatus = "not_invited" | "awaiting_start" | "linked";
 export type AuthRole = "teacher" | "student" | "guest";
 export type ProjectStatus = "draft" | "active" | "completed";
+export type ProjectSyncStatus =
+  | "unknown"
+  | "synced"
+  | "sync_needed"
+  | "unavailable";
+export type ProjectAiStatus =
+  | "not_started"
+  | "up_to_date"
+  | "outdated"
+  | "status_unknown";
 
 export type AuthenticatedSessionUser = {
   id: string;
@@ -148,6 +158,11 @@ export type ProjectRecord = ProjectRepositoryMetrics & {
   planMarkdown: string;
   aiSummary: string;
   nextSteps: string[];
+  syncStatus: ProjectSyncStatus;
+  syncStatusReason: string;
+  aiStatus: ProjectAiStatus;
+  remoteLastCommit: string;
+  remoteLastCommitSha: string;
 };
 
 export type ProjectInput = {

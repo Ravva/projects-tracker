@@ -7,6 +7,8 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 ## Задача в работе
 
 - закрыто в текущей сессии: parser `Project Deliverables` стал устойчивее к декоративным префиксам и суффиксам вокруг канонических статусов `completed`, `in_progress`, `pending`, `blocked`, чтобы teacher-only AI-analysis не обнулял прогресс у student-репозиториев из-за markdown-оформления таблицы;
+- закрыто в текущей сессии: автоматический запуск AI-анализа добавлен при создании нового student-проекта и после `GitHub sync`, чтобы teacher-only review получал свежий snapshot без отдельного ручного шага;
+- закрыто в текущей сессии: teacher-only список `/projects` теперь явно показывает свежие изменения в GitHub-репозитории, состояние `нужен sync` и актуальность AI-анализа, чтобы stale snapshots были видны без открытия detail page;
 - в работе: расширение project model под несколько проектов на одного ученика; нужно сохранить историю завершенных проектов, показать их состояния в teacher/student UI и не сломать текущий AI-analysis/review flow;
 - закрыто в текущей сессии: server-side нормализация project risk flags больше не удерживает устаревший `missing_plan` после успешного AI-анализа; teacher-only project detail теперь не должен одновременно показывать `План: есть` в AI summary и риск `нет плана` в карточке сигналов;
 - закрыто в текущей сессии: teacher-only запуск AI-анализа на `/projects/[projectId]` после multi-project flow больше не должен уводить UI в generic production digest; server action теперь переводит ошибки в контролируемый redirect с banner-сообщением, а первый AI-analysis для `draft`-проекта корректно считает risk flags как post-analysis snapshot вместо ложного `healthy`;
