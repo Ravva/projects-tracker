@@ -69,6 +69,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - после выбора репозитория student-проект создается в статусе `draft`, и teacher-side AI-анализ запускается автоматически сразу после привязки; в `active` проект переводится автоматически, если репозиторий доступен и в нем найдены `memory_bank`, осмысленные `spec` и `plan`;
 - teacher-only действие `GitHub sync` теперь сразу повторяет AI-анализ после обновления metadata и последнего commit, чтобы detail page не зависела от отдельного ручного прогона;
 - teacher-only список `/projects` выполняет live-проверку default branch в GitHub и явно показывает два статуса: нужен ли `sync` и актуален ли текущий AI-report;
+- teacher-only список `/projects` поддерживает пакетную кнопку `Синхронизировать все`, которая для всех stale-проектов последовательно запускает `GitHub sync`, а затем автоматический AI-анализ;
 - teacher-only detail page проекта умеет переводить проект в `completed` и обратно в `active`, чтобы открывать ученику доступ к следующему проекту;
 - AI-анализ teacher-only проекта читает `memory_bank` и commit history прямо из student GitHub repository, а не полагается только на локально заполненные поля проекта;
 - вызов модели идет через отдельный Cloudflare Worker gateway с Workers AI `@cf/openai/gpt-oss-120b`; основное приложение обращается к нему только по `AI_GATEWAY_URL` и `AI_GATEWAY_TOKEN`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;

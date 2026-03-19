@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { projectNeedsSync } from "@/lib/project-sync";
 import { requireTeacherSession } from "@/lib/server/auth";
 import {
   deleteProject,
+  listProjects,
   runProjectAiAnalysis,
   setProjectStatus,
   syncProjectGithub,
@@ -131,6 +133,69 @@ export async function syncProjectAction(formData: FormData) {
               }
             : {}),
         }),
+  );
+}
+
+export async function syncAllProjectsAction() {
+  await requireTeacherSession();
+
+  const projects = await listProjects();
+  const projectsToSync = projects.filter((project) =>
+    projectNeedsSync(project),
+  );
+
+  if (projectsToSync.length === 0) {
+    redirect(
+      buildProjectsListRedirect({
+        notice:
+          "Все проекты уже синхронизированы, новые коммиты в GitHub не обнаружены.",
+      }),
+    );
+  }
+
+  let synced = 0;
+  let analysisWarnings = 0;
+  const failedProjects: string[] = [];
+
+  for (const project of projectsToSync) {
+    try {
+      await syncProjectGithub(project.id);
+      synced += 1;
+    } catch (error) {
+      failedProjects.push(
+        `${project.name}: ${getErrorMessage(error, "не удалось выполнить GitHub sync")}`,
+      );
+      continue;
+    }
+
+    try {
+      await runProjectAiAnalysis(project.id);
+    } catch (error) {
+      analysisWarnings += 1;
+      failedProjects.push(
+        `${project.name}: AI-анализ не завершился (${getErrorMessage(error, "ошибка AI-анализа")})`,
+      );
+    }
+  }
+
+  revalidatePath("/projects");
+  revalidatePath("/");
+
+  const resultSummary = `Обновлено ${synced} из ${projectsToSync.length} проект(ов).`;
+  const noticeParts = [
+    analysisWarnings > 0
+      ? `Для ${analysisWarnings} проект(ов) GitHub sync прошёл, но AI-анализ завершился с предупреждением.`
+      : "",
+    failedProjects.length > 0
+      ? `Детали: ${failedProjects.slice(0, 3).join(" | ")}`
+      : "",
+  ].filter(Boolean);
+
+  redirect(
+    buildProjectsListRedirect({
+      success: "sync-all-complete",
+      notice: [resultSummary, ...noticeParts].join(" "),
+    }),
   );
 }
 

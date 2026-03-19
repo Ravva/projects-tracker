@@ -1,7 +1,10 @@
 import { Github01Icon, Note01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
-import { syncProjectAction } from "@/app/projects/actions";
+import {
+  syncAllProjectsAction,
+  syncProjectAction,
+} from "@/app/projects/actions";
 import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
@@ -58,14 +61,26 @@ export default async function ProjectsPage({
       teacherName={teacher.name}
       teacherEmail={teacher.email}
       actions={
-        <StatusPill
-          tone={projectsNeedingSync > 0 ? "warning" : "success"}
-          label={
-            projectsNeedingSync > 0
-              ? `${projectsNeedingSync} нужен sync`
-              : "repo актуальны"
-          }
-        />
+        <div className="flex items-center gap-3">
+          <StatusPill
+            tone={projectsNeedingSync > 0 ? "warning" : "success"}
+            label={
+              projectsNeedingSync > 0
+                ? `${projectsNeedingSync} нужен sync`
+                : "repo актуальны"
+            }
+          />
+          <form action={syncAllProjectsAction}>
+            <Button
+              type="submit"
+              variant="outline"
+              className="rounded-xl bg-background/90"
+              disabled={projectsNeedingSync === 0}
+            >
+              Синхронизировать все
+            </Button>
+          </form>
+        </div>
       }
     >
       {error ? (
@@ -77,6 +92,11 @@ export default async function ProjectsPage({
         <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
           GitHub sync и автоматический AI-анализ завершены
           {projectId ? " для выбранного проекта" : ""}.
+        </div>
+      ) : null}
+      {success === "sync-all-complete" ? (
+        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+          Пакетная синхронизация завершена.
         </div>
       ) : null}
       {notice ? (
