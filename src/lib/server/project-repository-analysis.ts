@@ -117,14 +117,21 @@ function extractMarkdownSection(content: string | null, heading: string) {
 
 function normalizeDeliverableStatus(value: string) {
   const normalized = value.trim().toLowerCase();
+  const statusMatch = normalized.match(
+    /\b(completed|in_progress|pending|blocked)\b/,
+  );
+
+  if (!statusMatch) {
+    return null;
+  }
 
   if (
-    normalized === "completed" ||
-    normalized === "in_progress" ||
-    normalized === "pending" ||
-    normalized === "blocked"
+    statusMatch[1] === "completed" ||
+    statusMatch[1] === "in_progress" ||
+    statusMatch[1] === "pending" ||
+    statusMatch[1] === "blocked"
   ) {
-    return normalized;
+    return statusMatch[1];
   }
 
   return null;
