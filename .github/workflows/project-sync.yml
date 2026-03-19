@@ -1,0 +1,33 @@
+name: Project Sync
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync-projects:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger production project sync
+        env:
+          PROJECT_SYNC_CRON_SECRET: ${{ secrets.PROJECT_SYNC_CRON_SECRET }}
+          PROJECT_SYNC_ENDPOINT_URL: ${{ secrets.PROJECT_SYNC_ENDPOINT_URL }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${PROJECT_SYNC_CRON_SECRET}" ]; then
+            echo "Missing secret PROJECT_SYNC_CRON_SECRET"
+            exit 1
+          fi
+
+          if [ -z "${PROJECT_SYNC_ENDPOINT_URL}" ]; then
+            echo "Missing secret PROJECT_SYNC_ENDPOINT_URL"
+            exit 1
+          fi
+
+          curl --fail-with-body \
+            --request GET \
+            --header "Authorization: Bearer ${PROJECT_SYNC_CRON_SECRET}" \
+            --header "Accept: application/json" \
+            "${PROJECT_SYNC_ENDPOINT_URL}"

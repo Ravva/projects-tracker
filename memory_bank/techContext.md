@@ -61,6 +61,8 @@
   - `AI_GATEWAY_TOKEN`
   - `AI_GATEWAY_MODEL`
   - `GITHUB_TOKEN` желателен для стабильного teacher-only AI-analysis и GitHub sync без упора в публичный rate limit
+  - `PROJECT_SYNC_CRON_SECRET` для защищенного route, который вызывается GitHub Actions
+- GitHub Actions workflow `project-sync.yml` использует repository secret `PROJECT_SYNC_ENDPOINT_URL` для production endpoint и `PROJECT_SYNC_CRON_SECRET` для авторизации фонового запуска.
 
 ## Ограничения
 

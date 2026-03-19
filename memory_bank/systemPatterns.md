@@ -51,6 +51,7 @@
 - teacher-only AI-анализ проекта можно запускать вручную из `/projects/[projectId]`, но он также стартует автоматически после создания нового student-проекта и после `GitHub sync`;
 - teacher-only список `/projects` дополнительно делает live-check последнего commit default branch в GitHub и сравнивает его с сохраненным `lastCommitSha`, чтобы отделять актуальные snapshots от проектов, которым нужен `sync`;
 - пакетная teacher-only команда `Синхронизировать все` на `/projects` обрабатывает только проекты со статусом `sync_needed`, чтобы не делать лишние GitHub/API-вызовы по уже актуальным snapshot'ам;
+- GitHub Actions workflow `.github/workflows/project-sync.yml` каждые 4 часа по UTC вызывает production route `/api/github-actions/project-sync`; route авторизуется через `PROJECT_SYNC_CRON_SECRET` и переиспользует тот же server-side batch helper, что и teacher-only кнопка массовой синхронизации;
 - backend читает `memory_bank/projectbrief.md`, `productContext.md`, `activeContext.md`, `progress.md` и опциональный `docs/README.md` прямо из student GitHub repository;
 - `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; deliverables без валидной суммы весов `100` не участвуют в расчете процента;
 - commit metrics и флаг `abandoned` считаются по истории коммитов default branch;
