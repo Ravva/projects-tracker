@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { getStudent } from "@/lib/server/repositories/students";
 import { getStudentTelegramInviteLink } from "@/lib/server/telegram-linking";
+import { GithubLinkCard } from "./github-link-card";
 import { NotificationCard } from "./notification-card";
 import { TelegramLinkCard } from "./telegram-link-card";
 
@@ -207,6 +208,13 @@ export default async function StudentDetailsPage({
             inviteLink={telegramInviteLink}
             telegramChatId={student.telegramChatId}
             linkedAt={student.telegramLinkedAt}
+          />
+
+          <GithubLinkCard
+            studentId={student.id}
+            githubUsername={student.githubUsername}
+            githubUserId={student.githubUserId}
+            telegramChatId={student.telegramChatId}
           />
 
           <NotificationCard

@@ -9,6 +9,7 @@ import {
   claimStudentGithubIdentity,
   getStudent,
   getStudentByGithubUserId,
+  resetStudentGithubIdentity,
 } from "@/lib/server/repositories/students";
 import { sendTelegramMessage } from "@/lib/server/telegram";
 
@@ -194,6 +195,53 @@ export async function issueStudentTelegramInvite(studentId: string) {
     link: await buildTelegramInviteLink(token),
     token,
     studentName: buildStudentName(student.firstName, student.lastName),
+  };
+}
+
+export async function issueStudentGithubLink(
+  studentId: string,
+  options?: { resetCurrentIdentity?: boolean },
+) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+  const student = await getStudent(studentId);
+
+  if (!appwrite || !config || !student) {
+    throw new Error("Карточка ученика не найдена.");
+  }
+
+  if (!student.telegramChatId) {
+    throw new Error(
+      "Сначала привяжите Telegram chat id. Без этого перевыпуск GitHub-ссылки небезопасен.",
+    );
+  }
+
+  if (!APP_BASE_URL) {
+    throw new Error(
+      "NEXTAUTH_URL не настроен. Невозможно выпустить GitHub-ссылку для ученика.",
+    );
+  }
+
+  if (options?.resetCurrentIdentity) {
+    await resetStudentGithubIdentity(studentId);
+  }
+
+  const token = createTelegramLinkToken();
+
+  await appwrite.databases.updateDocument(
+    appwrite.databaseId,
+    config.collections.students,
+    studentId,
+    {
+      github_link_token: token,
+      github_link_expires_at: createGithubLinkExpiryIso(),
+    },
+  );
+
+  return {
+    link: buildStudentGithubLinkUrl(token),
+    studentName: buildStudentName(student.firstName, student.lastName),
+    resetApplied: Boolean(options?.resetCurrentIdentity),
   };
 }
 

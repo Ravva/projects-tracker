@@ -15,7 +15,10 @@ import {
   sendTelegramMessage,
   TELEGRAM_CHAT_ID_PATTERN,
 } from "@/lib/server/telegram";
-import { issueStudentTelegramInvite } from "@/lib/server/telegram-linking";
+import {
+  issueStudentGithubLink,
+  issueStudentTelegramInvite,
+} from "@/lib/server/telegram-linking";
 import type { BulkNotificationResult } from "@/lib/types";
 
 function readString(formData: FormData, key: string) {
@@ -59,6 +62,23 @@ export async function issueStudentTelegramInviteAction(studentId: string) {
 
   revalidatePath("/students");
   revalidatePath(`/students/${studentId}`);
+
+  return issued;
+}
+
+export async function issueStudentGithubLinkAction(
+  studentId: string,
+  resetCurrentIdentity = false,
+) {
+  await requireTeacherSession();
+
+  const issued = await issueStudentGithubLink(studentId, {
+    resetCurrentIdentity,
+  });
+
+  revalidatePath("/students");
+  revalidatePath(`/students/${studentId}`);
+  revalidatePath("/");
 
   return issued;
 }

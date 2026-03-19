@@ -10,6 +10,7 @@ import {
   buildStudentGithubLoginPath,
 } from "@/lib/server/telegram-linking";
 import { LoginButton } from "./login-button";
+import { StudentBindSessionCard } from "./student-bind-session-card";
 
 export default async function LoginPage({
   searchParams,
@@ -41,31 +42,28 @@ export default async function LoginPage({
     normalizedStudentLinkToken || callbackStudentLinkToken;
   const isStudentBindFlow = Boolean(effectiveStudentLinkToken);
   const resolvedCallbackUrl = normalizedCallbackUrl || fallbackCallbackUrl;
-
-  if (session?.user) {
-    if (effectiveStudentLinkToken) {
-      redirect(buildStudentGithubCallbackPath(effectiveStudentLinkToken));
-    }
-
-    const role = await getCurrentAuthRole();
-
-    if (role === "teacher") {
-      redirect("/");
-    }
-
-    if (role === "student") {
-      redirect("/my-project");
-    }
-
-    redirect("/auth/complete");
-  }
-
   const oauthCallbackUrl = isStudentBindFlow
     ? buildStudentGithubCallbackPath(effectiveStudentLinkToken)
     : resolvedCallbackUrl;
   const studentLoginPath = effectiveStudentLinkToken
     ? buildStudentGithubLoginPath(effectiveStudentLinkToken)
     : "";
+
+  if (session?.user) {
+    if (!effectiveStudentLinkToken) {
+      const role = await getCurrentAuthRole();
+
+      if (role === "teacher") {
+        redirect("/");
+      }
+
+      if (role === "student") {
+        redirect("/my-project");
+      }
+
+      redirect("/auth/complete");
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--status-calm)/0.12),transparent_28%),radial-gradient(circle_at_top_right,hsl(var(--status-warning)/0.12),transparent_22%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--background-secondary)))] px-5 py-10">
@@ -85,13 +83,24 @@ export default async function LoginPage({
 
           <div className="mt-8 flex flex-wrap gap-3">
             {authConfiguration.isConfigured ? (
-              <LoginButton callbackUrl={oauthCallbackUrl} />
+              <LoginButton
+                callbackUrl={oauthCallbackUrl}
+                forceAccountSelection={isStudentBindFlow}
+              />
             ) : (
               <span className="inline-flex cursor-not-allowed items-center rounded-xl bg-muted px-4 py-2 text-sm font-medium text-muted-foreground">
                 OAuth не настроен
               </span>
             )}
           </div>
+
+          {session?.user && isStudentBindFlow ? (
+            <StudentBindSessionCard
+              callbackPath={oauthCallbackUrl}
+              currentGithubLogin={session.user.githubLogin ?? "unknown"}
+              studentLoginPath={studentLoginPath}
+            />
+          ) : null}
 
           {error ? (
             <div className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">

@@ -290,6 +290,27 @@ export async function claimStudentGithubIdentity(input: {
   );
 }
 
+export async function resetStudentGithubIdentity(studentId: string) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    throw new Error("Appwrite не настроен.");
+  }
+
+  return appwrite.databases.updateDocument(
+    appwrite.databaseId,
+    config.collections.students,
+    studentId,
+    {
+      github_user_id: "",
+      github_username: "",
+      github_link_token: "",
+      github_link_expires_at: "",
+    },
+  );
+}
+
 export async function createStudent(input: StudentInput) {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
