@@ -130,6 +130,8 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - `/attendance/report` - teacher-only printable attendance report view с кнопками возврата, печати и сохранения PDF.
 - `/attendance/report/share` - публичный signed route для родителей без авторизации; показывает тот же attendance report по share-ссылке со сроком жизни 1 год.
 - `/projects` - teacher-only список подключенных student-проектов без ручного создания.
+- `/projects/report` - teacher-only printable project report view с кнопкой возврата, печати и сохранения PDF.
+- `/project-report/share` - публичный signed route для родителей без авторизации; показывает project report по share-ссылке со сроком жизни 1 год.
 - `/projects/[projectId]` - teacher-only обзор проекта: сначала блок `Прогресс и сигналы`, затем полный `docs/README.md`, `Product context`, `Active context`, `Progress notes`, repo signals и история AI-отчетов; крупные текстовые карточки страницы рендерят Markdown-разметку.
 
 ## Local Development

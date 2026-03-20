@@ -495,7 +495,7 @@ async function enrichProjectRepositoryStatus(
       syncStatusReason: hasRepositoryUpdates
         ? "В GitHub есть новые коммиты относительно сохраненного snapshot."
         : hasSyncSnapshot
-          ? "Локальный snapshot совпадает с GitHub default branch."
+          ? ""
           : "Проект еще не синхронизировался с GitHub.",
       aiStatus: !project.hasAiAnalysisSnapshot
         ? "not_started"
