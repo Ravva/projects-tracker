@@ -4,6 +4,12 @@ import { PrintReportButton } from "@/app/attendance/report/print-report-button";
 import { Button } from "@/components/ui/button";
 import type { AttendanceReportData } from "@/lib/server/attendance-report";
 
+const WEEKDAY_SHORT_LABELS: Record<string, string> = {
+  Вторник: "Вт",
+  Четверг: "Чт",
+  Пятница: "Пт",
+};
+
 function getStateDotClassName(
   state: "present" | "absent" | "unmarked" | "critical" | "warning" | "success",
 ) {
@@ -88,7 +94,9 @@ export function AttendanceReportView({
           <div className="mt-3 border-t border-border/70 pt-5 text-xl leading-10 text-foreground/90 print:text-black">
             {report.lessons.map((lesson) => (
               <div key={`${lesson.weekdayLabel}-${lesson.dateLabel}`}>
-                {lesson.weekdayLabel.slice(0, 2)}: {lesson.dateLabel}
+                {WEEKDAY_SHORT_LABELS[lesson.weekdayLabel] ??
+                  lesson.weekdayLabel}
+                : {lesson.dateLabel}
               </div>
             ))}
           </div>
