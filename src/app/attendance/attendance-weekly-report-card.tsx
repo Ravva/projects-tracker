@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,49 +12,39 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export function AttendanceWeeklyReportCard({ markdown }: { markdown: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(markdown);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
-  };
-
+export function AttendanceWeeklyReportCard({
+  weekStart,
+}: {
+  weekStart: string;
+}) {
   return (
     <Card className="border-border/70 bg-card/88 shadow-none">
       <CardHeader>
         <div>
-          <CardTitle>Отчет для Telegram</CardTitle>
+          <CardTitle>PDF-вид отчета</CardTitle>
           <CardDescription>
-            Готовый plain text weekly attendance report для копирования и ручной
-            отправки в Telegram без markdown-таблиц.
+            Отдельная teacher-only страница с A4-like версткой для демонстрации
+            родителям и печати через `Сохранить как PDF`.
           </CardDescription>
         </div>
         <CardAction>
           <Button
-            type="button"
+            asChild
             variant="outline"
             className="rounded-xl bg-background/90"
-            onClick={handleCopy}
           >
-            {copied ? "Скопировано" : "Скопировать отчет"}
+            <Link href={`/attendance/report?weekStart=${weekStart}`}>
+              Открыть PDF-вид
+            </Link>
           </Button>
         </CardAction>
       </CardHeader>
       <CardContent>
         <p className="mb-3 text-xs text-muted-foreground">
-          Отчет собирается из сохраненных данных недели в Telegram-friendly
-          plain text. Если в таблице есть несохраненные изменения, сначала
-          нажмите «Сохранить изменения».
+          Страница рендерит аккуратный отчет с таблицей, цветными индикаторами и
+          блоком `Зона внимания`. Если в журнале есть несохраненные изменения,
+          сначала нажмите «Сохранить изменения».
         </p>
-        <textarea
-          readOnly
-          value={markdown}
-          title="Кликните, чтобы скопировать отчет"
-          className="min-h-80 w-full cursor-copy rounded-2xl border border-border/70 bg-background/80 px-4 py-3 font-mono text-xs leading-6 text-foreground outline-none"
-          onClick={handleCopy}
-        />
       </CardContent>
     </Card>
   );
