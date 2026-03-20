@@ -48,6 +48,18 @@ function getWeeklyStatusDot(state: WeeklyStatusState) {
   return "🟢";
 }
 
+function getAttentionToneDot(attendanceRate: number) {
+  if (attendanceRate <= 0) {
+    return "🔴";
+  }
+
+  if (attendanceRate <= 50) {
+    return "🟡";
+  }
+
+  return "🟢";
+}
+
 export function buildAttendanceWeeklyMarkdownReport(
   attendanceWeek: AttendanceWeekRecord,
 ) {
@@ -79,11 +91,7 @@ export function buildAttendanceWeeklyMarkdownReport(
   const lines = [
     `# Отчет по посещаемости`,
     "",
-    `**Неделя:** ${weekRange}`,
-    `**Учеников:** ${attendanceWeek.rows.length}`,
-    `**Средняя посещаемость:** ${averageAttendance}%`,
-    `**Требуют внимания:** ${attendanceWeek.studentsNeedingAttention.length}`,
-    `**Отмечены в журнале:** ${markedStudents}/${attendanceWeek.rows.length}`,
+    `Неделя: ${weekRange}. Учеников: ${attendanceWeek.rows.length}. Средняя посещаемость: ${averageAttendance}%. Требуют внимания: ${attendanceWeek.studentsNeedingAttention.length}. Отмечены в журнале: ${markedStudents}/${attendanceWeek.rows.length}.`,
   ];
 
   if (attendanceWeek.lessons.length > 0) {
@@ -143,10 +151,12 @@ export function buildAttendanceWeeklyMarkdownReport(
     lines.push("");
     lines.push("## Зона внимания");
     lines.push(
-      ...attendanceWeek.studentsNeedingAttention.map(
-        (student) =>
-          `- ${student.lastName} ${student.firstName} — ${student.attendanceRate}%`,
-      ),
+      ...attendanceWeek.studentsNeedingAttention
+        .toSorted((left, right) => left.attendanceRate - right.attendanceRate)
+        .map(
+          (student) =>
+            `- ${getAttentionToneDot(student.attendanceRate)} ${student.lastName} ${student.firstName} — ${student.attendanceRate}%`,
+        ),
     );
   }
 
