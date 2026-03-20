@@ -20,6 +20,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - в работе: teacher-only preview режим для `/my-project` и `/student/link`, чтобы student UI можно было безопасно просматривать из teacher-сессии без ослабления реального student-access контроля;
 - в работе: polish student-flow `/my-project` — prompt подготовки репозитория вынесен из сырого `pre`-блока в отдельный CTA-блок с копированием по клику;
 - в работе: visual polish instructional block на `/my-project`, чтобы подготовка `AGENTS.md` и `memory_bank` воспринималась как product onboarding, а не как техдок;
+- закрыто в текущей сессии: teacher-only страница `/attendance` получила Markdown-отчет за выбранную неделю с кнопкой копирования; преподаватель теперь может взять готовую сводку по занятиям и ученикам и вручную отправить ее в Telegram без отдельной сборки текста;
 - закрыто в текущей сессии: локальный dev startup на Windows стабилизирован переводом dev server на `127.0.0.1:3300`; `localhost` уводил bind в `::1`, а порт `3100` оказался запрещен системным excluded range;
 - удерживать teacher-only UI и документацию синхронизированными;
 - стабилизировать CRUD-потоки `students`, `attendance` и `projects` на реальных данных;

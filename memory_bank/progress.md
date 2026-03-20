@@ -22,6 +22,7 @@
 
 ## Changelog
 
+- 2026-03-20: на teacher-only странице `/attendance` добавлен отдельный Markdown-отчет за выбранную неделю. Новый server-only helper `src/lib/server/attendance-weekly-report.ts` собирает сводку по неделе, списку занятий, пометкам по каждому ученику и зоне внимания, а `src/app/attendance/attendance-weekly-report-card.tsx` показывает готовый текст с кнопкой копирования для ручной отправки в Telegram. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, а `bun run build` проходит.
 - 2026-03-19: фоновая синхронизация проектов переведена на GitHub Actions. Добавлен общий helper `src/lib/server/project-sync-batch.ts`, который переиспользуют teacher-only кнопка `Синхронизировать все` и новый защищенный route `src/app/api/github-actions/project-sync/route.ts`. Создан workflow `.github/workflows/project-sync.yml` с `schedule` каждые 4 часа по UTC и `workflow_dispatch`; авторизация route идет через `PROJECT_SYNC_CRON_SECRET`, а endpoint для workflow задается секретом `PROJECT_SYNC_ENDPOINT_URL`. Обновлены `.env.example`, архитектурная документация и memory bank.
 - 2026-03-20: автоматический batch `GitHub sync + AI` через GitHub Actions переведен из режима `schedule` в ручной `workflow_dispatch`. Причина: Cloudflare Workers AI на Free-плане исчерпывает дневную квоту `10,000 neurons/day`, поэтому регулярный запуск каждые 4 часа стал неустойчивым. Защищенный route `/api/github-actions/project-sync` и сам workflow сохранены для ручного запуска по требованию; teacher-side кнопка `Синхронизировать все` тоже остается рабочим ручным сценарием. Markdown-документация и memory bank синхронизированы.
 - 2026-03-19: устранен сценарий, в котором после teacher-side отвязки ученик все равно повторно привязывал старый GitHub ID из уже открытой OAuth-сессии. В `src/app/login/page.tsx` student bind flow больше не делает автоматический redirect на `/student/link`, если у браузера уже есть сессия; вместо этого показывается подтверждение текущего аккаунта и явное действие `Выйти и сменить аккаунт`. В `src/app/login/login-button.tsx` для student bind flow включен OAuth-параметр `prompt=select_account`, а новый client-компонент `src/app/login/student-bind-session-card.tsx` позволяет безопасно сбросить локальную сессию и повторить вход по той же student-ссылке. Измененные не-Markdown файлы прогнаны через `bunx biome check --write` и повторную проверку Biome; `bun run build` проходит.
@@ -147,4 +148,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `8803a7cc1110dd687c5294cc568e4b05cd070f5d`
+- `last_checked_commit`: `3f1556c2aebfb59d97379dca795445ab13f09acd`
