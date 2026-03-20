@@ -39,7 +39,7 @@ export default async function ProjectsPage({
   );
   const rows = students.map((student) => ({
     studentId: student.id,
-    studentName: `${student.lastName}, ${student.firstName}`,
+    studentName: `${student.lastName} ${student.firstName}`,
     project: currentProjectsByStudentId.get(student.id) ?? null,
   }));
   const sharePath = buildProjectReportSharePath(

@@ -32,20 +32,23 @@ export interface ProjectsTableRowData {
 
 function formatLastCommitLabel(value: string) {
   if (!value || value === "Нет данных") {
-    return "Последние изменения: нет данных";
+    return "нет данных";
   }
 
   const parsed = new Date(value);
 
   if (Number.isNaN(parsed.getTime())) {
-    return "Последние изменения: нет данных";
+    return "нет данных";
   }
 
-  return `Последние изменения: ${new Intl.DateTimeFormat("ru-RU", {
-    dateStyle: "medium",
-    timeStyle: "short",
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
     timeZone: "Europe/Moscow",
-  }).format(parsed)}`;
+  }).format(parsed);
 }
 
 function RowLink({
@@ -77,8 +80,9 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Фамилия, имя</TableHead>
+            <TableHead>Ученик</TableHead>
             <TableHead>Проект</TableHead>
+            <TableHead>Последнее изменение</TableHead>
             <TableHead>Статус</TableHead>
             <TableHead>Repo sync</TableHead>
             <TableHead>AI</TableHead>
@@ -89,7 +93,7 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
         <TableBody>
           <TableRow>
             <TableCell
-              colSpan={7}
+              colSpan={8}
               className="py-10 text-center text-muted-foreground"
             >
               Appwrite не настроен или коллекция `projects` пока пуста.
@@ -104,8 +108,9 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Фамилия, имя</TableHead>
+          <TableHead>Ученик</TableHead>
           <TableHead>Проект</TableHead>
+          <TableHead>Последнее изменение</TableHead>
           <TableHead>Статус</TableHead>
           <TableHead>Repo sync</TableHead>
           <TableHead>AI</TableHead>
@@ -125,6 +130,11 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
               >
                 <TableCell className="font-medium">
                   <div className="px-4 py-4">{row.studentName}</div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">
+                    отсутствует
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="px-4 py-4 text-muted-foreground">
@@ -169,14 +179,16 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
               <TableCell>
                 <RowLink href={href}>
                   <div className="font-medium">{project.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {formatLastCommitLabel(project.lastCommit)}
-                  </div>
                   {project.syncStatusReason ? (
                     <div className="text-xs text-muted-foreground">
                       {project.syncStatusReason}
                     </div>
                   ) : null}
+                </RowLink>
+              </TableCell>
+              <TableCell className="p-0">
+                <RowLink href={href} padded={false}>
+                  {formatLastCommitLabel(project.lastCommit)}
                 </RowLink>
               </TableCell>
               <TableCell className="p-0">
