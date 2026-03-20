@@ -4,6 +4,7 @@ import { formatWeekRangeLabel } from "@/lib/server/date-utils";
 import type { AttendanceWeekRecord } from "@/lib/types";
 
 type AttendanceState = "present" | "absent" | "unmarked";
+type WeeklyStatusState = "critical" | "warning" | "success";
 
 const LESSON_LABELS: Record<string, string> = {
   tue: "Вт",
@@ -11,16 +12,40 @@ const LESSON_LABELS: Record<string, string> = {
   fri: "Пт",
 };
 
-function getStateLabel(state: AttendanceState) {
+function getStateDot(state: AttendanceState) {
   if (state === "present") {
-    return "был";
+    return "🟢";
   }
 
   if (state === "absent") {
-    return "не был";
+    return "🔴";
   }
 
-  return "нет данных";
+  return "⚪";
+}
+
+function getWeeklyStatusState(attendanceRate: number): WeeklyStatusState {
+  if (attendanceRate <= 0) {
+    return "critical";
+  }
+
+  if (attendanceRate < 100) {
+    return "warning";
+  }
+
+  return "success";
+}
+
+function getWeeklyStatusDot(state: WeeklyStatusState) {
+  if (state === "critical") {
+    return "🔴";
+  }
+
+  if (state === "warning") {
+    return "🟡";
+  }
+
+  return "🟢";
 }
 
 export function buildAttendanceWeeklyMarkdownReport(
@@ -78,6 +103,12 @@ export function buildAttendanceWeeklyMarkdownReport(
   if (attendanceWeek.rows.length === 0) {
     lines.push("- Данные недоступны.");
   } else {
+    const lessonsByWeekday = new Map(
+      attendanceWeek.lessons.map((lesson) => [lesson.weekdayCode, lesson]),
+    );
+
+    lines.push("| Ученик | Вторник | Четверг | Пятница | Статус недели |");
+    lines.push("| --- | --- | --- | --- | --- |");
     lines.push(
       ...attendanceWeek.rows.map((row) => {
         const presentCount = attendanceWeek.lessons.reduce(
@@ -87,14 +118,23 @@ export function buildAttendanceWeeklyMarkdownReport(
         );
         const attendanceRate =
           requiredMin > 0 ? Math.round((presentCount / requiredMin) * 100) : 0;
-        const lessonParts = attendanceWeek.lessons.map((lesson) => {
-          const lessonLabel = LESSON_LABELS[lesson.weekdayCode] ?? lesson.title;
-          const state = row.lessonStates[lesson.id] ?? "unmarked";
+        const weeklyStatusDot = getWeeklyStatusDot(
+          getWeeklyStatusState(attendanceRate),
+        );
+        const tuesdayLesson = lessonsByWeekday.get("tue");
+        const thursdayLesson = lessonsByWeekday.get("thu");
+        const fridayLesson = lessonsByWeekday.get("fri");
+        const tuesdayDot = tuesdayLesson
+          ? getStateDot(row.lessonStates[tuesdayLesson.id] ?? "unmarked")
+          : "—";
+        const thursdayDot = thursdayLesson
+          ? getStateDot(row.lessonStates[thursdayLesson.id] ?? "unmarked")
+          : "—";
+        const fridayDot = fridayLesson
+          ? getStateDot(row.lessonStates[fridayLesson.id] ?? "unmarked")
+          : "—";
 
-          return `${lessonLabel} — ${getStateLabel(state)}`;
-        });
-
-        return `- ${row.student.lastName} ${row.student.firstName} — ${attendanceRate}% (${lessonParts.join(", ")})`;
+        return `| ${row.student.lastName} ${row.student.firstName} | ${tuesdayDot} | ${thursdayDot} | ${fridayDot} | ${weeklyStatusDot} ${attendanceRate}% |`;
       }),
     );
   }

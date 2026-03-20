@@ -5,6 +5,7 @@ import {
   syncAllProjectsAction,
   syncProjectAction,
 } from "@/app/projects/actions";
+import { ProjectWeeklyStatusReportCard } from "@/app/projects/project-weekly-status-report-card";
 import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import {
   projectNeedsSync,
 } from "@/lib/project-sync";
 import { requireTeacherSession } from "@/lib/server/auth";
+import { buildProjectWeeklyStatusMarkdownReport } from "@/lib/server/project-weekly-status-report";
 import { listProjects } from "@/lib/server/repositories/projects";
 
 export default async function ProjectsPage({
@@ -53,6 +55,8 @@ export default async function ProjectsPage({
   const projectsNeedingSync = projects.filter((project) =>
     projectNeedsSync(project),
   ).length;
+  const weeklyProjectStatusMarkdown =
+    await buildProjectWeeklyStatusMarkdownReport();
 
   return (
     <TeacherShell
@@ -260,6 +264,9 @@ export default async function ProjectsPage({
             </div>
           </CardContent>
         </Card>
+      </section>
+      <section className="mt-6">
+        <ProjectWeeklyStatusReportCard markdown={weeklyProjectStatusMarkdown} />
       </section>
     </TeacherShell>
   );

@@ -5,6 +5,7 @@
 
 # Local agent/app state
 .codex/
+appwrite.config.json
 
 # Dependencies
 /node_modules

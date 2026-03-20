@@ -1242,3 +1242,36 @@ export async function listProjectAiReports(
     return [];
   }
 }
+
+export async function listProjectAiReportsByProjectIds(projectIds: string[]) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config || projectIds.length === 0) {
+    return new Map<string, ProjectAiReportRecord[]>();
+  }
+
+  try {
+    const response = await appwrite.databases.listDocuments(
+      appwrite.databaseId,
+      config.collections.projectAiReports,
+      [
+        Query.equal("project_id", projectIds),
+        Query.orderDesc("$createdAt"),
+        Query.limit(500),
+      ],
+    );
+    const grouped = new Map<string, ProjectAiReportRecord[]>();
+
+    for (const document of response.documents) {
+      const report = mapProjectAiReportDocument(document);
+      const reports = grouped.get(report.projectId) ?? [];
+      reports.push(report);
+      grouped.set(report.projectId, reports);
+    }
+
+    return grouped;
+  } catch {
+    return new Map<string, ProjectAiReportRecord[]>();
+  }
+}
