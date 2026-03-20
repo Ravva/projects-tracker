@@ -77,7 +77,7 @@ function RowLink({
 export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
   if (rows.length === 0) {
     return (
-      <Table>
+      <Table className="w-max text-sm md:text-base">
         <TableHeader>
           <TableRow>
             <TableHead>Ученик</TableHead>
@@ -105,7 +105,7 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
   }
 
   return (
-    <Table>
+    <Table className="w-max text-sm md:text-base">
       <TableHeader>
         <TableRow>
           <TableHead>Ученик</TableHead>
@@ -132,19 +132,13 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
                   <div className="px-4 py-4">{row.studentName}</div>
                 </TableCell>
                 <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">
-                    отсутствует
-                  </div>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
                 </TableCell>
                 <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">
-                    отсутствует
-                  </div>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
                 </TableCell>
                 <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">
-                    отсутствует
-                  </div>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
                 </TableCell>
                 <TableCell>
                   <div className="px-4 py-4 text-muted-foreground">-</div>
@@ -156,9 +150,7 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
                   <div className="px-4 py-4 text-muted-foreground">-</div>
                 </TableCell>
                 <TableCell className="text-right font-medium">
-                  <div className="px-4 py-4 text-muted-foreground">
-                    отсутствует
-                  </div>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
                 </TableCell>
               </TableRow>
             );
