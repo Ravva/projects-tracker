@@ -24,6 +24,12 @@ import {
 } from "@/lib/project-sync";
 import type { ProjectRecord } from "@/lib/types";
 
+export interface ProjectsTableRowData {
+  studentId: string;
+  studentName: string;
+  project: ProjectRecord | null;
+}
+
 function formatLastCommitLabel(value: string) {
   if (!value || value === "Нет данных") {
     return "Последние изменения: нет данных";
@@ -65,13 +71,13 @@ function RowLink({
   );
 }
 
-export function ProjectsTable({ projects }: { projects: ProjectRecord[] }) {
-  if (projects.length === 0) {
+export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
+  if (rows.length === 0) {
     return (
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Ученик</TableHead>
+            <TableHead>Фамилия, имя</TableHead>
             <TableHead>Проект</TableHead>
             <TableHead>Статус</TableHead>
             <TableHead>Repo sync</TableHead>
@@ -98,7 +104,7 @@ export function ProjectsTable({ projects }: { projects: ProjectRecord[] }) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Ученик</TableHead>
+          <TableHead>Фамилия, имя</TableHead>
           <TableHead>Проект</TableHead>
           <TableHead>Статус</TableHead>
           <TableHead>Repo sync</TableHead>
@@ -108,17 +114,56 @@ export function ProjectsTable({ projects }: { projects: ProjectRecord[] }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {projects.map((project) => {
+        {rows.map((row) => {
+          const project = row.project;
+
+          if (!project) {
+            return (
+              <TableRow
+                key={row.studentId}
+                className="transition-colors hover:bg-muted/40"
+              >
+                <TableCell className="font-medium">
+                  <div className="px-4 py-4">{row.studentName}</div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">
+                    отсутствует
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">
+                    отсутствует
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                </TableCell>
+                <TableCell className="text-right font-medium">
+                  <div className="px-4 py-4 text-muted-foreground">
+                    отсутствует
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          }
+
           const href = `/projects/${project.id}`;
 
           return (
             <TableRow
-              key={project.id}
+              key={row.studentId}
               className="transition-colors hover:bg-muted/40"
             >
               <TableCell className="p-0 font-medium">
                 <RowLink href={href} padded={false}>
-                  {project.studentName}
+                  {row.studentName}
                 </RowLink>
               </TableCell>
               <TableCell>

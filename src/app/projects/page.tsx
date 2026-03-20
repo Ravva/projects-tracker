@@ -5,11 +5,13 @@ import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { isProjectCurrent } from "@/lib/project-status";
 import { projectNeedsSync } from "@/lib/project-sync";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { startOfCurrentWeek, toIsoDate } from "@/lib/server/date-utils";
 import { buildProjectReportSharePath } from "@/lib/server/project-report-share";
 import { listProjects } from "@/lib/server/repositories/projects";
+import { listStudents } from "@/lib/server/repositories/students";
 
 export default async function ProjectsPage({
   searchParams,
@@ -23,10 +25,23 @@ export default async function ProjectsPage({
 }) {
   const teacher = await requireTeacherSession();
   const { error, notice, projectId, success } = await searchParams;
-  const projects = await listProjects();
+  const [projects, students] = await Promise.all([
+    listProjects(),
+    listStudents(),
+  ]);
   const projectsNeedingSync = projects.filter((project) =>
     projectNeedsSync(project),
   ).length;
+  const currentProjectsByStudentId = new Map(
+    projects
+      .filter((project) => isProjectCurrent(project.status))
+      .map((project) => [project.studentId, project] as const),
+  );
+  const rows = students.map((student) => ({
+    studentId: student.id,
+    studentName: `${student.lastName}, ${student.firstName}`,
+    project: currentProjectsByStudentId.get(student.id) ?? null,
+  }));
   const sharePath = buildProjectReportSharePath(
     toIsoDate(startOfCurrentWeek()),
   );
@@ -87,7 +102,7 @@ export default async function ProjectsPage({
             <CardTitle className="text-base">Список проектов</CardTitle>
           </CardHeader>
           <CardContent>
-            <ProjectsTable projects={projects} />
+            <ProjectsTable rows={rows} />
           </CardContent>
         </Card>
       </section>
