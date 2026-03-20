@@ -127,6 +127,8 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - `/my-project` - student-only страница истории проектов ученика, состояния текущего проекта и выбора следующего GitHub-репозитория.
 - `/api/telegram/webhook` - публичный route для Telegram Bot API, который обрабатывает `/start <token>` и сохраняет `telegram_chat_id` в карточку ученика.
 - `/attendance` - teacher-only weekly attendance workspace.
+- `/attendance/report` - teacher-only printable attendance report view с кнопками возврата, печати и сохранения PDF.
+- `/attendance/report/share` - публичный signed route для родителей без авторизации; показывает тот же attendance report по share-ссылке со сроком жизни 1 год.
 - `/projects` - teacher-only список подключенных student-проектов без ручного создания.
 - `/projects/[projectId]` - teacher-only обзор проекта: сначала блок `Прогресс и сигналы`, затем полный `docs/README.md`, `Product context`, `Active context`, `Progress notes`, repo signals и история AI-отчетов; крупные текстовые карточки страницы рендерят Markdown-разметку.
 

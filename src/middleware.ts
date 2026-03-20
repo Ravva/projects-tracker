@@ -14,7 +14,8 @@ export const config = {
     "/student/link",
     "/my-project/:path*",
     "/students/:path*",
-    "/attendance/:path*",
+    "/attendance",
+    "/attendance/report",
     "/projects/:path*",
   ],
 };

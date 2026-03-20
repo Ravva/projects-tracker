@@ -4,6 +4,7 @@ import { AttendanceWeeklyReportCard } from "@/app/attendance/attendance-weekly-r
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { buildAttendanceReportSharePath } from "@/lib/server/attendance-report-share";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { formatWeekRangeLabel } from "@/lib/server/date-utils";
 import {
@@ -23,6 +24,7 @@ export default async function AttendancePage({
   const previousWeekStart = shiftWeekStart(weekStart, -1);
   const nextWeekStart = shiftWeekStart(weekStart, 1);
   const weekRangeLabel = formatWeekRangeLabel(weekStart);
+  const sharePath = buildAttendanceReportSharePath(weekStart);
 
   return (
     <TeacherShell
@@ -54,7 +56,10 @@ export default async function AttendancePage({
         </Card>
       </section>
       <section className="mt-6">
-        <AttendanceWeeklyReportCard weekStart={weekStart} />
+        <AttendanceWeeklyReportCard
+          sharePath={sharePath}
+          weekStart={weekStart}
+        />
       </section>
     </TeacherShell>
   );

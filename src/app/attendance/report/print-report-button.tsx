@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 
-export function PrintReportButton() {
+export function PrintReportButton({ label }: { label: string }) {
   return (
     <Button
       type="button"
@@ -10,7 +10,7 @@ export function PrintReportButton() {
       className="rounded-xl bg-background/90 print:hidden"
       onClick={() => window.print()}
     >
-      Печать / Сохранить PDF
+      {label}
     </Button>
   );
 }
