@@ -60,6 +60,18 @@ function getAttentionToneDot(attendanceRate: number) {
   return "🟢";
 }
 
+function compareAttentionRates(left: number, right: number) {
+  if (left === 0 && right > 0) {
+    return 1;
+  }
+
+  if (right === 0 && left > 0) {
+    return -1;
+  }
+
+  return left - right;
+}
+
 export function buildAttendanceWeeklyMarkdownReport(
   attendanceWeek: AttendanceWeekRecord,
 ) {
@@ -115,8 +127,6 @@ export function buildAttendanceWeeklyMarkdownReport(
       attendanceWeek.lessons.map((lesson) => [lesson.weekdayCode, lesson]),
     );
 
-    lines.push("| Ученик | Вторник | Четверг | Пятница | Статус недели |");
-    lines.push("| --- | --- | --- | --- | --- |");
     lines.push(
       ...attendanceWeek.rows.map((row) => {
         const presentCount = attendanceWeek.lessons.reduce(
@@ -142,7 +152,7 @@ export function buildAttendanceWeeklyMarkdownReport(
           ? getStateDot(row.lessonStates[fridayLesson.id] ?? "unmarked")
           : "—";
 
-        return `| ${row.student.lastName} ${row.student.firstName} | ${tuesdayDot} | ${thursdayDot} | ${fridayDot} | ${weeklyStatusDot} ${attendanceRate}% |`;
+        return `${row.student.lastName} ${row.student.firstName}  Вт ${tuesdayDot}  Чт ${thursdayDot}  Пт ${fridayDot}  Неделя ${weeklyStatusDot} ${attendanceRate}%`;
       }),
     );
   }
@@ -152,7 +162,9 @@ export function buildAttendanceWeeklyMarkdownReport(
     lines.push("## Зона внимания");
     lines.push(
       ...attendanceWeek.studentsNeedingAttention
-        .toSorted((left, right) => left.attendanceRate - right.attendanceRate)
+        .toSorted((left, right) =>
+          compareAttentionRates(left.attendanceRate, right.attendanceRate),
+        )
         .map(
           (student) =>
             `- ${getAttentionToneDot(student.attendanceRate)} ${student.lastName} ${student.firstName} — ${student.attendanceRate}%`,
