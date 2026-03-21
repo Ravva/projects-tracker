@@ -13,6 +13,19 @@ function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+function inferAiProviderLabelFromMessage(message: string) {
+  const normalized = message.trim().toUpperCase();
+
+  if (
+    /HUGGING FACE|HF_TOKEN|HF_|HF\b/.test(normalized) &&
+    !/AI GATEWAY/.test(normalized)
+  ) {
+    return "HF";
+  }
+
+  return "CF";
+}
+
 export async function chooseStudentProjectAction(formData: FormData) {
   const student = await requireStudentSession();
   let autoAnalysisNotice = "";
@@ -29,10 +42,13 @@ export async function chooseStudentProjectAction(formData: FormData) {
     try {
       await runProjectAiAnalysis(project.$id);
     } catch (error) {
-      autoAnalysisNotice =
+      const message =
         error instanceof Error && error.message.trim()
-          ? `Репозиторий привязан, но автоматический AI-анализ пока не завершился: ${error.message.trim()}`
-          : "Репозиторий привязан, но автоматический AI-анализ пока не завершился.";
+          ? error.message.trim()
+          : "Автоматический AI-анализ пока не завершился.";
+      const providerLabel = inferAiProviderLabelFromMessage(message);
+
+      autoAnalysisNotice = `Репозиторий привязан, но автоматический AI-анализ (${providerLabel}) пока не завершился: ${message}`;
 
       console.error("[my-project] Automatic AI analysis failed", {
         studentId: student.studentId,

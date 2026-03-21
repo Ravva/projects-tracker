@@ -16,6 +16,23 @@ function buildAiProviderLabel(providerCode: string) {
   return providerCode.trim().toUpperCase() === "HF" ? "HF" : "CF";
 }
 
+function inferAiProviderLabelFromMessage(message: string) {
+  const normalized = message.trim().toUpperCase();
+
+  if (
+    /HUGGING FACE|HF_TOKEN|HF_|HF\b/.test(normalized) &&
+    !/AI GATEWAY/.test(normalized)
+  ) {
+    return "HF";
+  }
+
+  return "CF";
+}
+
+function buildAutoAnalysisNotice(message: string, providerLabel: string) {
+  return `GitHub sync выполнен, но автоматический AI-анализ (${providerLabel}) не завершился: ${message}`;
+}
+
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
@@ -113,6 +130,7 @@ export async function syncProjectAction(formData: FormData) {
       error,
       "Автоматический AI-анализ после GitHub sync не завершился.",
     );
+    aiProvider = inferAiProviderLabelFromMessage(notice);
   }
 
   revalidatePath("/projects");
@@ -122,21 +140,21 @@ export async function syncProjectAction(formData: FormData) {
   redirect(
     returnTo === "projects"
       ? buildProjectsListRedirect({
-          success: "sync-complete",
+          success: notice ? "sync-complete-with-warning" : "sync-complete",
           projectId,
           ...(aiProvider ? { aiProvider } : {}),
           ...(notice
             ? {
-                notice: `GitHub sync выполнен, но автоматический AI-анализ не завершился: ${notice}`,
+                notice: buildAutoAnalysisNotice(notice, aiProvider || "CF"),
               }
             : {}),
         })
       : buildProjectDetailsRedirect(projectId, {
-          success: "sync-complete",
+          success: notice ? "sync-complete-with-warning" : "sync-complete",
           ...(aiProvider ? { aiProvider } : {}),
           ...(notice
             ? {
-                notice: `GitHub sync выполнен, но автоматический AI-анализ не завершился: ${notice}`,
+                notice: buildAutoAnalysisNotice(notice, aiProvider || "CF"),
               }
             : {}),
         }),

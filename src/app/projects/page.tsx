@@ -90,6 +90,11 @@ export default async function ProjectsPage({
           {projectId ? " для выбранного проекта" : ""}.
         </div>
       ) : null}
+      {success === "sync-complete-with-warning" ? (
+        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+          GitHub sync выполнен{projectId ? " для выбранного проекта" : ""}.
+        </div>
+      ) : null}
       {success === "sync-all-complete" ? (
         <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
           Пакетная синхронизация завершена.

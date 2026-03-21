@@ -167,7 +167,7 @@ function isCloudflareQuotaError(message: string) {
 function shouldFallbackToHuggingFace(message: string) {
   return (
     isCloudflareQuotaError(message) ||
-    /AI_GATEWAY_URL не задан|AI_GATEWAY_TOKEN не задан|fetch failed|network|ecconnreset|econnrefused|enotfound|timed out/i.test(
+    /AI_GATEWAY_URL не задан|AI_GATEWAY_TOKEN не задан|AI gateway вернул невалидный JSON|AI gateway вернул пустой ответ|AI gateway не вернул content|fetch failed|network|ecconnreset|econnrefused|enotfound|timed out/i.test(
       message,
     )
   );

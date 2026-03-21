@@ -8,6 +8,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RunAiAnalysisButton } from "@/app/projects/[projectId]/run-ai-analysis-button";
+import { SyncProjectButton } from "@/app/projects/[projectId]/sync-project-button";
 import {
   deleteProjectAction,
   runProjectAiAnalysisAction,
@@ -205,9 +206,7 @@ export default async function ProjectDetailsPage({
           </Button>
           <form action={syncProjectAction}>
             <input type="hidden" name="projectId" value={project.id} />
-            <Button variant="outline" className="rounded-xl bg-background/90">
-              GitHub sync
-            </Button>
+            <SyncProjectButton />
           </form>
           <form action={runProjectAiAnalysisAction}>
             <input type="hidden" name="projectId" value={project.id} />
@@ -244,6 +243,11 @@ export default async function ProjectDetailsPage({
         <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
           GitHub sync выполнен, AI-анализ{providerSuffix} обновлен
           автоматически.
+        </div>
+      ) : null}
+      {success === "sync-complete-with-warning" ? (
+        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+          GitHub sync выполнен.
         </div>
       ) : null}
       {notice ? (
