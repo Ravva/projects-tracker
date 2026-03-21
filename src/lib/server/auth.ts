@@ -175,13 +175,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  debug: true,
 };
-
-console.log("[Auth] GITHUB_ID set:", !!process.env.GITHUB_ID);
-console.log("[Auth] GITHUB_SECRET set:", !!process.env.GITHUB_SECRET);
-console.log("[Auth] NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
-console.log("[Auth] TEACHER_GITHUB_LOGIN:", process.env.TEACHER_GITHUB_LOGIN);
 
 export async function getAuthSession() {
   return getServerSession(authOptions);

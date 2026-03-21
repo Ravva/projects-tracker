@@ -1,51 +1,31 @@
 "use client";
 
-import { type ThemeMode, useTheme } from "@/components/theme/theme-provider";
+import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { useTheme } from "@/components/theme/theme-provider";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-const THEME_LABELS: Record<ThemeMode, string> = {
-  system: "Системная",
-  light: "Светлая",
-  dark: "Темная",
-};
 
 export function ThemeToggle() {
-  const { theme, resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDarkTheme = resolvedTheme === "dark";
+  const nextTheme = isDarkTheme ? "light" : "dark";
+  const Icon = isDarkTheme ? Sun03Icon : Moon02Icon;
+  const label = isDarkTheme
+    ? "Переключить на светлую тему"
+    : "Переключить на темную тему";
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-xl bg-background/90"
-        >
-          Тема: {THEME_LABELS[theme]}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-44">
-        <DropdownMenuLabel>
-          Активная палитра: {THEME_LABELS[resolvedTheme]}
-        </DropdownMenuLabel>
-        <DropdownMenuRadioGroup
-          value={theme}
-          onValueChange={(value) => setTheme(value as ThemeMode)}
-        >
-          <DropdownMenuRadioItem value="system">
-            Системная
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="light">Светлая</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="dark">Темная</DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button
+      type="button"
+      variant="outline"
+      size="icon-sm"
+      className="rounded-full bg-background/90"
+      aria-label={label}
+      title={label}
+      onClick={() => setTheme(nextTheme)}
+    >
+      <HugeiconsIcon icon={Icon} strokeWidth={1.9} />
+      <span className="sr-only">{label}</span>
+    </Button>
   );
 }

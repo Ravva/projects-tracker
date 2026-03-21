@@ -4,8 +4,8 @@ import {
   AiBrain03Icon,
   Book01Icon,
   Calendar03Icon,
-  ChartUpIcon,
   Github01Icon,
+  Logout01Icon,
   Notification01Icon,
   Task01Icon,
   User02Icon,
@@ -15,6 +15,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { BrandMark } from "@/components/app/brand-mark";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,6 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainNavigation = [
-  { title: "Дашборд", href: "/", icon: ChartUpIcon },
   { title: "Ученики", href: "/students", icon: User02Icon },
   { title: "Посещаемость", href: "/attendance", icon: Calendar03Icon },
   { title: "Проекты", href: "/projects", icon: Github01Icon },
@@ -79,7 +79,7 @@ export function TeacherSidebar({
           <Link
             href="/"
             onClick={handleMobileNavigation}
-            className="flex flex-1 items-center gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/40 px-3 py-3"
+            className="flex flex-1 shrink-0 items-center gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/40 px-3 py-3 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0"
           >
             <div className="flex size-11 items-center justify-center rounded-2xl shadow-sm">
               <BrandMark className="size-11 rounded-2xl" />
@@ -174,8 +174,11 @@ export function TeacherSidebar({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="px-3 pb-4">
-        <div className="flex items-center gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3">
+      <SidebarFooter className="px-3 pb-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
+        <div className="flex justify-center group-data-[collapsible=icon]:w-full">
+          <ThemeToggle />
+        </div>
+        <div className="flex shrink-0 items-center gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
           <Avatar size="lg">
             <AvatarFallback className="bg-[hsl(var(--status-warning)/0.18)] font-semibold text-[hsl(var(--status-warning))]">
               {initials || "TC"}
@@ -193,9 +196,10 @@ export function TeacherSidebar({
         <a
           href="/api/auth/signout"
           onClick={handleMobileNavigation}
-          className="mt-3 inline-flex items-center justify-center rounded-xl border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent/50"
+          className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent/50 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:rounded-2xl group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0"
         >
-          Выйти
+          <HugeiconsIcon icon={Logout01Icon} size={18} strokeWidth={1.8} />
+          <span className="group-data-[collapsible=icon]:hidden">Выйти</span>
         </a>
       </SidebarFooter>
     </Sidebar>
