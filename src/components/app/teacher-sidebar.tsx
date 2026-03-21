@@ -1,13 +1,9 @@
 "use client";
 
 import {
-  AiBrain03Icon,
-  Book01Icon,
   Calendar03Icon,
   Github01Icon,
   Logout01Icon,
-  Notification01Icon,
-  Task01Icon,
   User02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -30,7 +26,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -38,13 +33,6 @@ const mainNavigation = [
   { title: "Ученики", href: "/students", icon: User02Icon },
   { title: "Посещаемость", href: "/attendance", icon: Calendar03Icon },
   { title: "Проекты", href: "/projects", icon: Github01Icon },
-];
-
-const supportNavigation = [
-  { title: "AI-отчеты", href: "/", icon: AiBrain03Icon },
-  { title: "ТЗ и планы", href: "/", icon: Book01Icon },
-  { title: "Уведомления", href: "/", icon: Notification01Icon },
-  { title: "Контроль недели", href: "/", icon: Task01Icon },
 ];
 
 export function TeacherSidebar({
@@ -129,34 +117,6 @@ export function TeacherSidebar({
                     }
                     tooltip={item.title}
                     className="h-11 rounded-xl text-sm"
-                  >
-                    <Link href={item.href} onClick={handleMobileNavigation}>
-                      <HugeiconsIcon
-                        icon={item.icon}
-                        size={18}
-                        strokeWidth={1.8}
-                      />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarSeparator />
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Рабочий поток</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {supportNavigation.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={item.title}
-                    className="h-10 rounded-xl text-sm"
                   >
                     <Link href={item.href} onClick={handleMobileNavigation}>
                       <HugeiconsIcon
