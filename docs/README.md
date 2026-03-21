@@ -138,7 +138,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 
 - dev server должен использовать `127.0.0.1:3300`; в локальной Windows-среде порт `3100` попадает в system excluded range, а `localhost` дополнительно может уводить bind в `::1`.
 - `.env.example` включает `TELEGRAM_BOT_TOKEN` для ученических и teacher-only Telegram-уведомлений, `TELEGRAM_BOT_USERNAME` для генерации `start`-ссылок, `TELEGRAM_WEBHOOK_SECRET` для защиты webhook и `TEACHER_TELEGRAM_CHAT_ID` для weekly digest преподавателю;
-- `.env.example` также включает `AI_GATEWAY_URL`, `AI_GATEWAY_TOKEN` и опциональный `AI_GATEWAY_MODEL` для server-side вызова Cloudflare Worker с Workers AI, а также `HF_TOKEN`, `HF_BASE_URL`, `HF_CHAT_MODEL` и `AI_FORCE_HF` для fallback или принудительного переключения на Hugging Face;
+- `.env.example` также включает `AI_GATEWAY_URL`, `AI_GATEWAY_TOKEN` и опциональный `AI_GATEWAY_MODEL` для server-side вызова Cloudflare Worker с Workers AI, а также `HF_TOKEN`, `HF_BASE_URL`, `HF_CHAT_MODEL` и `AI_FORCE_HF` для fallback или принудительного переключения на Hugging Face; текущий fallback default — `Qwen/Qwen2.5-7B-Instruct`;
 - GitHub OAuth запрашивает scope, достаточный для чтения списка student repositories владельца.
 
 ## Deployment

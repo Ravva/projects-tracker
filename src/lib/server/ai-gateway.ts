@@ -68,7 +68,7 @@ function getHuggingFaceBaseUrl() {
 }
 
 function getHuggingFaceModel() {
-  return process.env.HF_CHAT_MODEL?.trim() || "Qwen/Qwen2.5-7B-Instruct-1M";
+  return process.env.HF_CHAT_MODEL?.trim() || "Qwen/Qwen2.5-7B-Instruct";
 }
 
 function shouldPreferHuggingFace() {
@@ -145,7 +145,9 @@ function isCloudflareQuotaError(message: string) {
 function shouldFallbackToHuggingFace(message: string) {
   return (
     isCloudflareQuotaError(message) ||
-    /AI_GATEWAY_URL не задан|AI_GATEWAY_TOKEN не задан/i.test(message)
+    /AI_GATEWAY_URL не задан|AI_GATEWAY_TOKEN не задан|fetch failed|network|ecconnreset|econnrefused|enotfound|timed out/i.test(
+      message,
+    )
   );
 }
 
@@ -194,36 +196,61 @@ async function requestHuggingFaceJsonObject<T extends object>(input: {
     throw new Error("HF_TOKEN не задан.");
   }
 
-  const response = await fetch(`${getHuggingFaceBaseUrl()}/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: input.model ?? getHuggingFaceModel(),
-      messages: input.messages,
-      temperature: 0.2,
-      max_tokens: 1024,
-      response_format: {
-        type: "json_object",
+  const candidateModels = Array.from(
+    new Set(
+      [
+        input.model?.trim(),
+        getHuggingFaceModel(),
+        "Qwen/Qwen2.5-7B-Instruct",
+        "katanemo/Arch-Router-1.5B:hf-inference",
+      ].filter(Boolean),
+    ),
+  );
+  let lastError = "Hugging Face не вернул content.";
+
+  for (const model of candidateModels) {
+    const response = await fetch(
+      `${getHuggingFaceBaseUrl()}/chat/completions`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: input.messages,
+          temperature: 0.2,
+          max_tokens: 1024,
+          response_format: {
+            type: "json_object",
+          },
+        }),
       },
-    }),
-  });
+    );
 
-  if (!response.ok) {
-    throw new Error(await readHuggingFaceError(response));
+    if (!response.ok) {
+      lastError = await readHuggingFaceError(response);
+
+      if (/model_not_supported|not supported by/i.test(lastError)) {
+        continue;
+      }
+
+      throw new Error(lastError);
+    }
+
+    const responseJson =
+      (await response.json()) as HuggingFaceChatCompletionResponse;
+    const content = responseJson.choices?.[0]?.message?.content?.trim();
+
+    if (content) {
+      return extractJsonObject(content) as T;
+    }
+
+    lastError = "Hugging Face не вернул content.";
   }
 
-  const responseJson =
-    (await response.json()) as HuggingFaceChatCompletionResponse;
-  const content = responseJson.choices?.[0]?.message?.content?.trim();
-
-  if (!content) {
-    throw new Error("Hugging Face не вернул content.");
-  }
-
-  return extractJsonObject(content) as T;
+  throw new Error(lastError);
 }
 
 export async function requestAiGatewayJsonObject<T extends object>(input: {
