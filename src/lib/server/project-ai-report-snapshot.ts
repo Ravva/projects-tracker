@@ -14,6 +14,13 @@ type ProjectAiCompressedMemoryBankSnapshot = Partial<
   Record<keyof ProjectAiMemoryBankSnapshot, string>
 >;
 
+export type ProjectProgressCalculationStatus =
+  | "valid"
+  | "missing_projectbrief"
+  | "missing_deliverables_section"
+  | "no_parsable_deliverables"
+  | "invalid_weight_sum";
+
 export type ProjectAiInputSnapshot = {
   name: string;
   summary: string;
@@ -42,6 +49,9 @@ export type ProjectAiInputSnapshot = {
     inProgress: number;
     pending: number;
     completionPercent: number;
+    progressCalculationStatus: ProjectProgressCalculationStatus;
+    progressCalculationDetails: string;
+    deliverablesWeightTotal: number;
   };
   taskHighlights: {
     completed: string[];
@@ -189,6 +199,23 @@ export function parseProjectAiInputSnapshot(
         inProgress: Number(parsed.taskMetrics?.inProgress ?? 0),
         pending: Number(parsed.taskMetrics?.pending ?? 0),
         completionPercent: Number(parsed.taskMetrics?.completionPercent ?? 0),
+        progressCalculationStatus:
+          parsed.taskMetrics?.progressCalculationStatus === "valid" ||
+          parsed.taskMetrics?.progressCalculationStatus ===
+            "missing_projectbrief" ||
+          parsed.taskMetrics?.progressCalculationStatus ===
+            "missing_deliverables_section" ||
+          parsed.taskMetrics?.progressCalculationStatus ===
+            "no_parsable_deliverables" ||
+          parsed.taskMetrics?.progressCalculationStatus === "invalid_weight_sum"
+            ? parsed.taskMetrics.progressCalculationStatus
+            : "missing_projectbrief",
+        progressCalculationDetails: String(
+          parsed.taskMetrics?.progressCalculationDetails ?? "",
+        ),
+        deliverablesWeightTotal: Number(
+          parsed.taskMetrics?.deliverablesWeightTotal ?? 0,
+        ),
       },
       taskHighlights: {
         completed: Array.isArray(parsed.taskHighlights?.completed)

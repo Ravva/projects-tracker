@@ -6,16 +6,25 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
-const PROJECT_SETUP_PROMPT = `Найди файл AGENTS.md и используй его в качестве правила.
-Проверь структуру Memory Bank, обнови или создай при необходимости.
-После чего выполни коммит и пуш всех файлов`;
+function buildProjectSetupPrompt(agentsSourceUrl: string) {
+  return `Скачай и используй актуальный AGENTS.md из ${agentsSourceUrl}
+Проверь, что в memory_bank/projectbrief.md есть раздел ## Project Deliverables в виде markdown-таблицы с колонками ID | Deliverable | Status | Weight.
+Проверь, что сумма всех Weight ровно 100.
+Если memory_bank отсутствует или заполнен неверно, создай или исправь его по правилам AGENTS.md.
+После исправлений обнови Memory Bank, выполни коммит и пуш всех файлов.`;
+}
 
-export function CopyProjectSetupPrompt() {
+export function CopyProjectSetupPrompt({
+  agentsSourceUrl,
+}: {
+  agentsSourceUrl: string;
+}) {
   const [copied, setCopied] = useState(false);
+  const projectSetupPrompt = buildProjectSetupPrompt(agentsSourceUrl);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(PROJECT_SETUP_PROMPT);
+      await navigator.clipboard.writeText(projectSetupPrompt);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -41,7 +50,7 @@ export function CopyProjectSetupPrompt() {
         />
       </Button>
       <pre className="whitespace-pre-wrap text-sm leading-6">
-        {PROJECT_SETUP_PROMPT}
+        {projectSetupPrompt}
       </pre>
     </div>
   );

@@ -27,6 +27,7 @@
 ## Student Project Selection Pattern
 
 - student page `/my-project` показывает все проекты текущего ученика, отдельно выделяет текущий проект и историю завершенных;
+- student page `/my-project` подтягивает канонический `AGENTS.md` из репозитория `projects-tracker` по GitHub raw URL с локальным fallback, чтобы ученик всегда копировал актуальную инструкцию;
 - список репозиториев читается напрямую из GitHub API по OAuth access token;
 - выбор репозитория создает новый `draft`-проект в `projects` со связкой `student_id + github_url`, только если у ученика нет другого текущего проекта;
 - создание и смена статуса текущего проекта сериализуются per-student lock через Appwrite-коллекцию `project_selection_locks`, чтобы параллельные запросы не нарушали инвариант `один текущий проект`;
@@ -53,8 +54,9 @@
 - пакетная teacher-only команда `Синхронизировать все` на `/projects` обрабатывает только проекты со статусом `sync_needed`, чтобы не делать лишние GitHub/API-вызовы по уже актуальным snapshot'ам;
 - GitHub Actions workflow `.github/workflows/project-sync.yml` каждые 4 часа по UTC вызывает production route `/api/github-actions/project-sync`; route авторизуется через `PROJECT_SYNC_CRON_SECRET` и переиспользует тот же server-side batch helper, что и teacher-only кнопка массовой синхронизации;
 - backend читает `memory_bank/projectbrief.md`, `productContext.md`, `activeContext.md`, `progress.md` и опциональный `docs/README.md` прямо из student GitHub repository;
-- `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; deliverables без валидной суммы весов `100` не участвуют в расчете процента;
+- `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; допустим только табличный формат `ID | Deliverable | Status | Weight`, а deliverables без валидной суммы весов `100` не участвуют в расчете процента;
 - commit metrics и флаг `abandoned` считаются по истории коммитов default branch;
+- snapshot AI-анализа сохраняет явную причину, почему progress не считается корректно: отсутствует `projectbrief.md`, отсутствует секция `Project Deliverables`, deliverables не распарсились или сумма весов не равна `100`;
 - AI используется только для нормализации summary, risks и next steps поверх уже рассчитанного snapshot;
 - Vercel-приложение не ходит к модели напрямую по умолчанию: server-only клиент сначала вызывает token-protected Cloudflare Worker `/chat`, а уже Worker обращается к Workers AI `@cf/qwen/qwen3-30b-a3b-fp8` через binding `AI`; если Worker возвращает quota/error `4006` или gateway не сконфигурирован, server-only клиент может переключиться на Hugging Face Chat Completions через `HF_TOKEN`;
 - до первого AI-анализа проект остается в нейтральном состоянии `данные отсутствуют`; флаги `missing_memory_bank`, `missing_spec` и `missing_plan` выставляются только после реального repo analysis;

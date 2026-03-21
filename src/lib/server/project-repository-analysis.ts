@@ -15,6 +15,13 @@ type ParsedDeliverable = {
   weight: number;
 };
 
+type ProgressCalculationStatus =
+  | "valid"
+  | "missing_projectbrief"
+  | "missing_deliverables_section"
+  | "no_parsable_deliverables"
+  | "invalid_weight_sum";
+
 type RepositoryFileSnapshot = {
   path: string;
   content: string;
@@ -46,6 +53,9 @@ export type ProjectRepositoryAnalysis = {
     trackedTasksInProgress: number;
     trackedTasksPending: number;
     completionPercent: number;
+    progressCalculationStatus: ProgressCalculationStatus;
+    progressCalculationDetails: string;
+    deliverablesWeightTotal: number;
     commitCount: number;
     commitsPerWeek: number;
     lastCommitAt: string;
@@ -234,9 +244,51 @@ export function parseProjectDeliverables(content: string | null) {
   const hasValidWeights = totalWeight === 100;
 
   return {
+    hasSection: section.length > 0,
     deliverables,
     hasValidWeights,
     totalWeight,
+  };
+}
+
+function buildProgressCalculationDiagnostics(input: {
+  projectBrief: string | null;
+  parsedDeliverables: ReturnType<typeof parseProjectDeliverables>;
+}) {
+  if (!input.projectBrief) {
+    return {
+      status: "missing_projectbrief" as const,
+      details: "Файл memory_bank/projectbrief.md не найден в репозитории.",
+    };
+  }
+
+  if (!input.parsedDeliverables.hasSection) {
+    return {
+      status: "missing_deliverables_section" as const,
+      details:
+        "В memory_bank/projectbrief.md отсутствует секция ## Project Deliverables.",
+    };
+  }
+
+  if (input.parsedDeliverables.deliverables.length === 0) {
+    return {
+      status: "no_parsable_deliverables" as const,
+      details:
+        "Секция ## Project Deliverables найдена, но в ней нет валидных строк таблицы формата ID | Deliverable | Status | Weight.",
+    };
+  }
+
+  if (!input.parsedDeliverables.hasValidWeights) {
+    return {
+      status: "invalid_weight_sum" as const,
+      details: `Сумма Weight в ## Project Deliverables равна ${input.parsedDeliverables.totalWeight}, а должна быть ровно 100.`,
+    };
+  }
+
+  return {
+    status: "valid" as const,
+    details:
+      "Project Deliverables валиден: секция найдена, строки распарсились, сумма весов равна 100.",
   };
 }
 
@@ -324,8 +376,12 @@ export async function analyzeProjectRepository(input: {
     docsReadme ? "docs/README.md" : null,
   ].filter((path): path is string => Boolean(path));
   const parsedDeliverables = parseProjectDeliverables(projectBrief);
+  const progressCalculation = buildProgressCalculationDiagnostics({
+    projectBrief,
+    parsedDeliverables,
+  });
   const deliverables =
-    parsedDeliverables.hasValidWeights &&
+    progressCalculation.status === "valid" &&
     parsedDeliverables.deliverables.length > 0
       ? parsedDeliverables.deliverables
       : [];
@@ -397,7 +453,7 @@ export async function analyzeProjectRepository(input: {
         hasMeaningfulMarkdown(projectBrief) &&
         hasMeaningfulMarkdown(productContext),
       hasPlan:
-        parsedDeliverables.hasValidWeights &&
+        progressCalculation.status === "valid" &&
         deliverables.length > 0 &&
         hasMeaningfulMarkdown(activeContext) &&
         hasMeaningfulMarkdown(progress),
@@ -406,6 +462,9 @@ export async function analyzeProjectRepository(input: {
       trackedTasksInProgress,
       trackedTasksPending,
       completionPercent,
+      progressCalculationStatus: progressCalculation.status,
+      progressCalculationDetails: progressCalculation.details,
+      deliverablesWeightTotal: parsedDeliverables.totalWeight,
       commitCount: commits.length,
       commitsPerWeek,
       lastCommitAt: lastCommit?.committedAt ?? "",

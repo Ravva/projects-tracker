@@ -159,6 +159,16 @@ export default async function ProjectDetailsPage({
   const aiSummaryText = project.hasAiAnalysisSnapshot
     ? project.aiSummary || "AI summary пока не рассчитан."
     : "Данные AI-анализа пока отсутствуют. Запустите AI-анализ, чтобы получить project overview и repo signals.";
+  const progressCalculationDetails =
+    snapshot?.taskMetrics.progressCalculationDetails ||
+    (project.hasAiAnalysisSnapshot
+      ? "Подробности расчета progress не сохранены в последнем AI-snapshot."
+      : "Сначала запустите AI-анализ, чтобы увидеть причину расчета progress.");
+  const progressCalculationTone =
+    !project.hasAiAnalysisSnapshot ||
+    snapshot?.taskMetrics.progressCalculationStatus === "valid"
+      ? "success"
+      : "warning";
   const progressTone = !project.hasAiAnalysisSnapshot
     ? "calm"
     : project.progress >= 75
@@ -478,6 +488,29 @@ export default async function ProjectDetailsPage({
                   После AI-анализа здесь появятся следующие шаги по проекту.
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card/88 shadow-none">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Расчет progress</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className={getSignalToneClasses(progressCalculationTone)}>
+                <div className="font-medium text-foreground">
+                  {snapshot?.taskMetrics.progressCalculationStatus === "valid"
+                    ? "Project Deliverables валиден"
+                    : "Есть причина, почему progress не считается корректно"}
+                </div>
+                <div className="mt-2 leading-6 text-muted-foreground">
+                  {progressCalculationDetails}
+                </div>
+                {snapshot ? (
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    Total Weight: {snapshot.taskMetrics.deliverablesWeightTotal}
+                  </div>
+                ) : null}
+              </div>
             </CardContent>
           </Card>
 

@@ -23,6 +23,7 @@ MVP включает:
 ### Student Access
 
 Student-access строится на GitHub OAuth и стабильном `github_user_id`. После подтверждения через Telegram бот ученик получает одноразовую GitHub login-ссылку, связывает свой аккаунт с карточкой ученика и попадает на `/my-project`, где видит текущий проект, историю завершенных проектов и может выбрать только свой следующий репозиторий из списка GitHub-репозиториев владельца. Новый проект разрешен только после перевода предыдущего в статус `completed`. Teacher-only страница ученика также умеет сбросить ошибочно привязанный `github_user_id` и сразу перевыпустить новую GitHub login-ссылку, если браузер ученика подставил не тот аккаунт. Если student-link открыт при уже активной GitHub-сессии, `/login` больше не завершает привязку автоматически: сначала показывается подтверждение текущего аккаунта и действие `Выйти и сменить аккаунт`, а новый OAuth-запрос идет с `prompt=select_account`. На student-flow также есть явная инструкция по подготовке `AGENTS.md` и `memory_bank`, потому что без корректной структуры Memory Bank teacher-only AI-анализ и сигналы проекта будут неточными. Редактирование ученических данных, посещаемости и ручных оценок остается за преподавателем.
+Страница `/my-project` показывает ученику канонический `AGENTS.md` прямо из репозитория `projects-tracker` по GitHub raw URL с локальным fallback, чтобы инструкция не устаревала между проектами и всегда содержала актуальные правила для `Project Deliverables`.
 
 Детальное ТЗ: [Student Project Access](./student-project-access.md).
 
@@ -76,6 +77,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - AI-анализ teacher-only проекта читает `memory_bank` и commit history прямо из student GitHub repository, а не полагается только на локально заполненные поля проекта;
 - вызов модели идет через отдельный Cloudflare Worker gateway с Workers AI `@cf/qwen/qwen3-30b-a3b-fp8`; если Cloudflare возвращает quota/error по Workers AI или gateway временно не настроен, server-only AI client может уйти в fallback на Hugging Face Chat Completions через `HF_TOKEN`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
 - `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; вес завершенных deliverables дает итоговый процент, а `activeContext.md` и `progress.md` больше не используются как источник процента;
+- канонический формат `## Project Deliverables` фиксирован: Markdown-таблица `ID | Deliverable | Status | Weight`, где `Status` может быть только `pending`, `in_progress`, `completed` или `blocked`, а сумма всех `Weight` обязана быть ровно `100`;
 - AI используется только для нормализации summary и next steps поверх уже рассчитанных метрик;
 - до первого AI-анализа UI показывает состояние `данные отсутствуют`; флаги `missing_memory_bank`, `missing_spec` и `missing_plan` появляются только после реального анализа репозитория;
 - детальное ТЗ механизма: [Project Repo Analysis](./project-repo-analysis.md);

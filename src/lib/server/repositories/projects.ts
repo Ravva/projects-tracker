@@ -385,6 +385,14 @@ function buildProjectReportPayload(input: {
     inProgress: number;
     pending: number;
     completionPercent: number;
+    progressCalculationStatus:
+      | "valid"
+      | "missing_projectbrief"
+      | "missing_deliverables_section"
+      | "no_parsable_deliverables"
+      | "invalid_weight_sum";
+    progressCalculationDetails: string;
+    deliverablesWeightTotal: number;
   };
   taskHighlights: {
     completed: string[];
@@ -430,6 +438,9 @@ function buildProjectReportPayload(input: {
     trackedTasksCompleted: input.taskMetrics.completed,
     trackedTasksInProgress: input.taskMetrics.inProgress,
     trackedTasksPending: input.taskMetrics.pending,
+    progressCalculationStatus: input.taskMetrics.progressCalculationStatus,
+    progressCalculationDetails: input.taskMetrics.progressCalculationDetails,
+    deliverablesWeightTotal: input.taskMetrics.deliverablesWeightTotal,
     commitCount: input.github.commitCount,
     commitsPerWeek: input.github.commitsPerWeek,
     lastCommitDaysAgo: input.github.lastCommitDaysAgo,
@@ -1063,6 +1074,12 @@ export async function runProjectAiAnalysis(
       inProgress: repositoryAnalysis.metrics.trackedTasksInProgress,
       pending: repositoryAnalysis.metrics.trackedTasksPending,
       completionPercent,
+      progressCalculationStatus:
+        repositoryAnalysis.metrics.progressCalculationStatus,
+      progressCalculationDetails:
+        repositoryAnalysis.metrics.progressCalculationDetails,
+      deliverablesWeightTotal:
+        repositoryAnalysis.metrics.deliverablesWeightTotal,
     },
     taskHighlights: repositoryAnalysis.taskHighlights,
     memoryBank: {

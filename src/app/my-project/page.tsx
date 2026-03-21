@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-
 import { chooseStudentProjectAction } from "@/app/my-project/actions";
 import { CopyProjectSetupPrompt } from "@/app/my-project/copy-project-setup-prompt";
+import { CopyTextButton } from "@/app/my-project/copy-text-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getProjectRiskLabel } from "@/lib/project-risk";
@@ -12,6 +12,7 @@ import {
   requireAuthenticatedSession,
   requireStudentSession,
 } from "@/lib/server/auth";
+import { getCanonicalAgentsDocument } from "@/lib/server/canonical-agents";
 import {
   type GithubRepositoryOption,
   listGithubRepositoriesForStudent,
@@ -177,6 +178,7 @@ export default async function MyProjectPage({
   let projects: ProjectRecord[] = [];
   let repositories: GithubRepositoryOption[] = PREVIEW_REPOSITORIES;
   let repositoryLoadError = "";
+  const canonicalAgentsDocument = await getCanonicalAgentsDocument();
 
   if (isTeacherPreview) {
     projects = PREVIEW_PROJECTS;
@@ -281,16 +283,36 @@ export default async function MyProjectPage({
                 </div>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   Создайте в корне проекта файл <code>AGENTS.md</code> и
-                  вставьте в него актуальную базовую инструкцию для ИИ.
+                  вставьте в него актуальную каноническую инструкцию для ИИ из
+                  этого репозитория.
                 </p>
-                <Link
-                  href="https://digital-ai-news.vercel.app/posts/176383d1-3711-4b37-be5e-9ea0a985d381"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-3 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  Открыть базовую инструкцию
-                </Link>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <CopyTextButton
+                    text={canonicalAgentsDocument.content}
+                    idleLabel="Скопировать AGENTS.md"
+                    successLabel="AGENTS.md скопирован"
+                  />
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="rounded-xl bg-background/90"
+                  >
+                    <Link
+                      href={canonicalAgentsDocument.blobUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Открыть источник
+                    </Link>
+                  </Button>
+                </div>
+                <p className="mt-3 text-xs leading-6 text-muted-foreground">
+                  Источник:{" "}
+                  {canonicalAgentsDocument.source === "remote"
+                    ? "актуальная версия из GitHub"
+                    : "локальный fallback, если GitHub временно недоступен"}
+                  .
+                </p>
               </div>
               <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
                 <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-[hsl(var(--status-calm)/0.14)] font-semibold text-[hsl(var(--status-calm))]">
@@ -302,7 +324,8 @@ export default async function MyProjectPage({
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   После добавления <code>AGENTS.md</code> отправьте ИИ готовый
                   промпт. Он сам проверит структуру <code>Memory Bank</code>,
-                  обновит её при необходимости и выполнит commit/push.
+                  исправит <code>Project Deliverables</code> и проверит сумму
+                  весов перед commit/push.
                 </p>
                 <Link
                   href="https://digital-ai-news.vercel.app/posts/fb6be397-2bde-4c72-8baa-b82ecbe475d5"
@@ -312,12 +335,29 @@ export default async function MyProjectPage({
                 >
                   Посмотреть, как устроен Memory Bank
                 </Link>
+                <ul className="mt-3 space-y-1 text-xs leading-6 text-muted-foreground">
+                  <li>
+                    - файл <code>memory_bank/projectbrief.md</code> существует;
+                  </li>
+                  <li>
+                    - в нем есть секция <code>## Project Deliverables</code>.
+                  </li>
+                  <li>
+                    - таблица использует колонки{" "}
+                    <code>ID | Deliverable | Status | Weight</code>.
+                  </li>
+                  <li>
+                    - сумма всех <code>Weight</code> ровно <code>100</code>.
+                  </li>
+                </ul>
               </div>
             </div>
             <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Готовый промпт
             </div>
-            <CopyProjectSetupPrompt />
+            <CopyProjectSetupPrompt
+              agentsSourceUrl={canonicalAgentsDocument.blobUrl}
+            />
           </CardContent>
         </Card>
 
