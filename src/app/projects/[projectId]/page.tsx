@@ -97,7 +97,9 @@ function formatLastCommitLabel(
     return `${diffHours} ч. назад`;
   }
 
-  return `${lastCommitDaysAgo} дн. назад`;
+  const diffDays = Math.max(1, Math.floor(diffMs / (24 * 60 * 60 * 1000)));
+
+  return `${diffDays} дн. назад`;
 }
 
 export default async function ProjectDetailsPage({
