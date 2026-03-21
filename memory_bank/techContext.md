@@ -12,6 +12,7 @@
 - `node-appwrite` для server-side доступа к Appwrite;
 - GitHub REST API для чтения student repositories, `memory_bank` файлов и commit history;
 - Cloudflare Workers + Workers AI для server-side AI gateway и модели `@cf/openai/gpt-oss-120b`;
+- Hugging Face Inference Providers Chat Completions как fallback-провайдер для AI-анализа при недоступности или исчерпании квоты Workers AI;
 - `xlsx` для teacher import students.
 
 ## Auth And Access
@@ -60,6 +61,10 @@
   - `AI_GATEWAY_URL`
   - `AI_GATEWAY_TOKEN`
   - `AI_GATEWAY_MODEL`
+  - `HF_TOKEN`
+  - `HF_BASE_URL`
+  - `HF_CHAT_MODEL`
+  - `AI_FORCE_HF`
   - `GITHUB_TOKEN` желателен для стабильного teacher-only AI-analysis и GitHub sync без упора в публичный rate limit
   - `PROJECT_SYNC_CRON_SECRET` для защищенного route, который вызывается GitHub Actions
 - GitHub Actions workflow `project-sync.yml` использует repository secret `PROJECT_SYNC_ENDPOINT_URL` для production endpoint и `PROJECT_SYNC_CRON_SECRET` для авторизации фонового запуска.
@@ -69,5 +74,5 @@
 - Markdown-файлы не проверяются через Biome;
 - dev server на `127.0.0.1:3300` управляется пользователем и не должен запускаться агентом;
 - teacher-only AI-анализ student projects опирается на публично доступные или доступные через `GITHUB_TOKEN` данные GitHub repo;
-- teacher-only AI-анализ вызывает модели только через Cloudflare Worker gateway с Workers AI; само приложение не хранит прямой provider API key и использует `AI_GATEWAY_URL`/`AI_GATEWAY_TOKEN`;
+- teacher-only AI-анализ по умолчанию вызывает модели через Cloudflare Worker gateway с Workers AI; при quota error `4006` или отсутствии gateway-конфига server-only клиент может переключиться на Hugging Face через `HF_TOKEN`, `HF_BASE_URL` и `HF_CHAT_MODEL`;
 - student-access не дает student права на teacher-only маршруты и ручные teacher actions.

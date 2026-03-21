@@ -56,7 +56,7 @@
 - `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; deliverables без валидной суммы весов `100` не участвуют в расчете процента;
 - commit metrics и флаг `abandoned` считаются по истории коммитов default branch;
 - AI используется только для нормализации summary, risks и next steps поверх уже рассчитанного snapshot;
-- Vercel-приложение не ходит к модели напрямую: server-only клиент вызывает token-protected Cloudflare Worker `/chat`, а уже Worker обращается к Workers AI `@cf/openai/gpt-oss-120b` через binding `AI`;
+- Vercel-приложение не ходит к модели напрямую по умолчанию: server-only клиент сначала вызывает token-protected Cloudflare Worker `/chat`, а уже Worker обращается к Workers AI `@cf/openai/gpt-oss-120b` через binding `AI`; если Worker возвращает quota/error `4006` или gateway не сконфигурирован, server-only клиент может переключиться на Hugging Face Chat Completions через `HF_TOKEN`;
 - до первого AI-анализа проект остается в нейтральном состоянии `данные отсутствуют`; флаги `missing_memory_bank`, `missing_spec` и `missing_plan` выставляются только после реального repo analysis;
 - агрегированные metrics пишутся в `projects.project_state_json`, а история запусков — в `project_ai_reports`;
 - полный текст `Project brief`, `Product context`, `Active context` и `Progress notes` внутри AI-отчета хранится в сжатом виде в `inputSnapshotJson`, чтобы detail page читал весь markdown и оставался в пределах лимита Appwrite.

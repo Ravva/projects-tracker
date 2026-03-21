@@ -74,7 +74,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - фоновая синхронизация проектов через GitHub Actions переведена в ручной режим `workflow_dispatch`; teacher-side массовый `Синхронизировать все` и ручной запуск workflow остаются основными способами запуска защищенного route `/api/github-actions/project-sync` с секретом `PROJECT_SYNC_CRON_SECRET`;
 - teacher-only detail page проекта умеет переводить проект в `completed` и обратно в `active`, чтобы открывать ученику доступ к следующему проекту;
 - AI-анализ teacher-only проекта читает `memory_bank` и commit history прямо из student GitHub repository, а не полагается только на локально заполненные поля проекта;
-- вызов модели идет через отдельный Cloudflare Worker gateway с Workers AI `@cf/openai/gpt-oss-120b`; основное приложение обращается к нему только по `AI_GATEWAY_URL` и `AI_GATEWAY_TOKEN`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
+- вызов модели идет через отдельный Cloudflare Worker gateway с Workers AI `@cf/openai/gpt-oss-120b`; если Cloudflare возвращает quota/error по Workers AI или gateway временно не настроен, server-only AI client может уйти в fallback на Hugging Face Chat Completions через `HF_TOKEN`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
 - `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; вес завершенных deliverables дает итоговый процент, а `activeContext.md` и `progress.md` больше не используются как источник процента;
 - AI используется только для нормализации summary и next steps поверх уже рассчитанных метрик;
 - до первого AI-анализа UI показывает состояние `данные отсутствуют`; флаги `missing_memory_bank`, `missing_spec` и `missing_plan` появляются только после реального анализа репозитория;
@@ -138,7 +138,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 
 - dev server должен использовать `127.0.0.1:3300`; в локальной Windows-среде порт `3100` попадает в system excluded range, а `localhost` дополнительно может уводить bind в `::1`.
 - `.env.example` включает `TELEGRAM_BOT_TOKEN` для ученических и teacher-only Telegram-уведомлений, `TELEGRAM_BOT_USERNAME` для генерации `start`-ссылок, `TELEGRAM_WEBHOOK_SECRET` для защиты webhook и `TEACHER_TELEGRAM_CHAT_ID` для weekly digest преподавателю;
-- `.env.example` также включает `AI_GATEWAY_URL`, `AI_GATEWAY_TOKEN` и опциональный `AI_GATEWAY_MODEL` для server-side вызова Cloudflare Worker с Workers AI;
+- `.env.example` также включает `AI_GATEWAY_URL`, `AI_GATEWAY_TOKEN` и опциональный `AI_GATEWAY_MODEL` для server-side вызова Cloudflare Worker с Workers AI, а также `HF_TOKEN`, `HF_BASE_URL`, `HF_CHAT_MODEL` и `AI_FORCE_HF` для fallback или принудительного переключения на Hugging Face;
 - GitHub OAuth запрашивает scope, достаточный для чтения списка student repositories владельца.
 
 ## Deployment
@@ -148,7 +148,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - для production deployment требуется авторизованный `vercel` CLI или `VERCEL_TOKEN`;
 - production env должен включать корректный `NEXTAUTH_URL` для публичного Vercel URL;
 - production env должен включать `TEACHER_GITHUB_USER_ID`; без него teacher login считается не настроенным;
-- production env должен включать `AI_GATEWAY_URL` и `AI_GATEWAY_TOKEN`; `AI_GATEWAY_MODEL` опционален и по умолчанию равен `@cf/openai/gpt-oss-120b`;
+- production env должен включать `AI_GATEWAY_URL` и `AI_GATEWAY_TOKEN`; `AI_GATEWAY_MODEL` опционален и по умолчанию равен `@cf/openai/gpt-oss-120b`. Для fallback на Hugging Face нужен `HF_TOKEN`; `HF_BASE_URL`, `HF_CHAT_MODEL` и `AI_FORCE_HF` остаются опциональными;
 - отдельный Worker разворачивается через `wrangler` из подпроекта `workers/ai-worker` и использует binding `[ai]`;
 - Telegram webhook уже привязан к `https://projects-tracker-one.vercel.app/api/telegram/webhook`;
 - на 2026-03-11 production smoke test teacher-only сценариев `/students`, `/attendance`, `/projects`, массовой Telegram-рассылки и teacher weekly digest подтвержден вручную.
