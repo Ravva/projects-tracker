@@ -42,9 +42,9 @@ export function TeacherShell({
       if (currentScrollY <= 12) {
         setIsMobileHeaderHidden(false);
       } else if (currentScrollY < lastScrollY) {
-        setIsMobileHeaderHidden(true);
-      } else if (currentScrollY > lastScrollY) {
         setIsMobileHeaderHidden(false);
+      } else if (currentScrollY > lastScrollY) {
+        setIsMobileHeaderHidden(true);
       }
 
       lastScrollY = currentScrollY;
