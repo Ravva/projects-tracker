@@ -77,24 +77,21 @@ function formatLastCommitLabel(
   const lastCommitDate = new Date(lastCommit);
 
   if (Number.isNaN(lastCommitDate.getTime())) {
-    return lastCommitDaysAgo < 1
-      ? "меньше суток назад"
-      : `${lastCommitDaysAgo} дн. назад`;
+    if (lastCommitDaysAgo < 1) {
+      return "меньше часа назад";
+    }
+
+    return `${lastCommitDaysAgo} дн. назад`;
   }
 
-  const diffMinutes = Math.max(
-    1,
-    Math.floor((Date.now() - lastCommitDate.getTime()) / (60 * 1000)),
-  );
+  const diffMs = Date.now() - lastCommitDate.getTime();
+  const diffMinutes = Math.max(1, Math.floor(diffMs / (60 * 1000)));
 
   if (diffMinutes < 60) {
     return `${diffMinutes} мин. назад`;
   }
 
-  const diffHours = Math.max(
-    1,
-    Math.floor((Date.now() - lastCommitDate.getTime()) / (60 * 60 * 1000)),
-  );
+  const diffHours = Math.max(1, Math.floor(diffMs / (60 * 60 * 1000)));
 
   if (diffHours < 24) {
     return `${diffHours} ч. назад`;
