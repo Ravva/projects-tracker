@@ -17,6 +17,7 @@ export interface ProjectReportItem {
   studentId: string;
   studentName: string;
   projectName: string;
+  projectUrl: string;
   progress: number | null;
   progressDelta: number | null;
   lastUpdateDaysAgo: number | null;
@@ -27,6 +28,7 @@ export interface ProjectReportRow {
   studentId: string;
   studentName: string;
   projectName: string | null;
+  projectUrl: string | null;
   progress: number | null;
   progressDelta: number | null;
   updateLabel: string;
@@ -52,18 +54,18 @@ function formatLastUpdateLabel(lastUpdateDaysAgo: number | null) {
   }
 
   if (lastUpdateDaysAgo < 1) {
-    return "обновление сегодня";
+    return "сегодня";
   }
 
   if (lastUpdateDaysAgo === 1) {
-    return "обновление 1 дн. назад";
+    return "1 дн. назад";
   }
 
-  return `обновление ${lastUpdateDaysAgo} дн. назад`;
+  return `${lastUpdateDaysAgo} дн. назад`;
 }
 
 function formatStudentName(lastName: string, firstName: string) {
-  return `${lastName}, ${firstName}`;
+  return `${lastName} ${firstName}`;
 }
 
 function compareStudentNames(a: string, b: string) {
@@ -131,6 +133,7 @@ export async function buildProjectReportData(
       studentId: project.studentId,
       studentName: project.studentName,
       projectName: project.name,
+      projectUrl: project.githubUrl,
       progress: project.hasAiAnalysisSnapshot ? project.progress : null,
       progressDelta,
       lastUpdateDaysAgo: project.lastCommitDaysAgo,
@@ -177,6 +180,7 @@ export async function buildProjectReportData(
         studentId: student.id,
         studentName: formatStudentName(student.lastName, student.firstName),
         projectName: project?.projectName ?? null,
+        projectUrl: project?.projectUrl ?? null,
         progress: project?.progress ?? null,
         progressDelta: project?.progressDelta ?? null,
         updateLabel: project?.updateLabel ?? "данных нет",

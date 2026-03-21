@@ -38,6 +38,58 @@ function renderDelta(value: number | null) {
   return `${value > 0 ? "+" : ""}${value}%`;
 }
 
+function renderWeeklyStatusLabel(row: ProjectReportData["rows"][number]) {
+  if (!row.hasProject) {
+    return "Нет данных";
+  }
+
+  if (row.weeklyStatus === "success") {
+    return "Хорошая динамика";
+  }
+
+  if (row.weeklyStatus === "warning") {
+    return "Нет динамики";
+  }
+
+  if (row.weeklyStatus === "critical") {
+    return "Заброшен";
+  }
+
+  if (row.progressDelta === null) {
+    return "Недостаточно данных";
+  }
+
+  if (row.progressDelta < 0) {
+    return "Снижение прогресса";
+  }
+
+  return "Слабая динамика";
+}
+
+function renderProjectLink(input: {
+  name: string;
+  url: string | null;
+  className?: string;
+}) {
+  if (!input.url) {
+    return input.name;
+  }
+
+  return (
+    <a
+      href={input.url}
+      target="_blank"
+      rel="noreferrer"
+      className={
+        input.className ??
+        "underline decoration-border underline-offset-4 print:text-black"
+      }
+    >
+      {input.name}
+    </a>
+  );
+}
+
 function Section({
   items,
   title,
@@ -64,7 +116,14 @@ function Section({
                 <span className="font-medium print:text-black">
                   {item.studentName}
                 </span>{" "}
-                - {item.projectName}: {renderProgress(item.progress)} (
+                -{" "}
+                {renderProjectLink({
+                  name: item.projectName,
+                  url: item.projectUrl,
+                  className:
+                    "underline decoration-border underline-offset-4 print:text-black",
+                })}
+                : {renderProgress(item.progress)} (
                 {renderDelta(item.progressDelta)}; {item.updateLabel})
               </li>
             ))}
@@ -131,24 +190,11 @@ export function ProjectReportView({
             <li>
               <strong>Заброшенные проекты</strong>: {report.abandoned.length}
             </li>
+            <li>
+              <strong>Нет проектов</strong>: {report.missingProjectData.length}
+            </li>
           </ul>
         </header>
-
-        <Section
-          items={report.goodDynamics}
-          title="Хорошая динамика"
-          emptyText="Проекты с увеличением прогресса на 10% и более за неделю не обнаружены."
-        />
-        <Section
-          items={report.noDynamics}
-          title="Нет динамики"
-          emptyText="Проекты без изменения процента за неделю не обнаружены."
-        />
-        <Section
-          items={report.abandoned}
-          title="Заброшенные проекты"
-          emptyText="Заброшенные проекты не обнаружены."
-        />
 
         <div className="mt-10">
           <h3 className="text-[2rem] font-semibold tracking-tight print:text-black">
@@ -159,7 +205,7 @@ export function ProjectReportView({
               <thead className="bg-foreground/[0.06] text-foreground print:bg-black/5 print:text-black">
                 <tr>
                   <th className="border-b border-border/70 px-4 py-4 font-semibold">
-                    Фамилия, имя
+                    Фамилия Имя
                   </th>
                   <th className="border-b border-border/70 px-4 py-4 font-semibold">
                     Проект
@@ -185,7 +231,14 @@ export function ProjectReportView({
                       {row.studentName}
                     </td>
                     <td className="border-b border-border/60 px-4 py-4 print:text-black">
-                      {row.projectName ?? "данных нет"}
+                      {row.projectName
+                        ? renderProjectLink({
+                            name: row.projectName,
+                            url: row.projectUrl,
+                            className:
+                              "underline decoration-border underline-offset-4 print:text-black",
+                          })
+                        : "данных нет"}
                     </td>
                     <td className="border-b border-border/60 px-4 py-4 print:text-black">
                       {row.hasProject
@@ -203,18 +256,10 @@ export function ProjectReportView({
                     <td className="border-b border-border/60 px-4 py-4">
                       <span className="inline-flex items-center gap-3">
                         <span
-                          className={`inline-flex size-4 rounded-full ${getStateDotClassName(row.weeklyStatus)}`}
+                          className={`inline-flex size-4 shrink-0 self-center rounded-full aspect-square ${getStateDotClassName(row.weeklyStatus)}`}
                         />
                         <span className="print:text-black">
-                          {row.hasProject
-                            ? row.weeklyStatus === "success"
-                              ? "Хорошая динамика"
-                              : row.weeklyStatus === "warning"
-                                ? "Нет динамики"
-                                : row.weeklyStatus === "critical"
-                                  ? "Заброшен"
-                                  : "Есть данные"
-                            : "данных нет"}
+                          {renderWeeklyStatusLabel(row)}
                         </span>
                       </span>
                     </td>
@@ -224,6 +269,22 @@ export function ProjectReportView({
             </table>
           </div>
         </div>
+
+        <Section
+          items={report.goodDynamics}
+          title="Хорошая динамика"
+          emptyText="Проекты с увеличением прогресса на 10% и более за неделю не обнаружены."
+        />
+        <Section
+          items={report.noDynamics}
+          title="Нет динамики"
+          emptyText="Проекты без изменения процента за неделю не обнаружены."
+        />
+        <Section
+          items={report.abandoned}
+          title="Заброшенные проекты"
+          emptyText="Заброшенные проекты не обнаружены."
+        />
 
         <div className="mt-10">
           <h3 className="text-[2rem] font-semibold tracking-tight print:text-black">
