@@ -17,6 +17,7 @@ export default async function ProjectsPage({
   searchParams,
 }: {
   searchParams: Promise<{
+    aiProvider?: string;
     error?: string;
     notice?: string;
     projectId?: string;
@@ -24,7 +25,10 @@ export default async function ProjectsPage({
   }>;
 }) {
   const teacher = await requireTeacherSession();
-  const { error, notice, projectId, success } = await searchParams;
+  const { aiProvider, error, notice, projectId, success } = await searchParams;
+  const providerSuffix = aiProvider?.trim()
+    ? ` (${aiProvider.trim().toUpperCase()})`
+    : "";
   const [projects, students] = await Promise.all([
     listProjects(),
     listStudents(),
@@ -82,7 +86,7 @@ export default async function ProjectsPage({
       ) : null}
       {success === "sync-complete" ? (
         <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
-          GitHub sync и автоматический AI-анализ завершены
+          GitHub sync и автоматический AI-анализ{providerSuffix} завершены
           {projectId ? " для выбранного проекта" : ""}.
         </div>
       ) : null}

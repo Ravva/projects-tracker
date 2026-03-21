@@ -7,7 +7,16 @@ type AiGatewayResponse = {
   error?: string;
 };
 
+export type AiProviderCode = "CF" | "HF";
+
+export type AiGatewayJsonObjectResult<T extends object> = {
+  data: T;
+  providerCode: AiProviderCode;
+  modelName: string;
+};
+
 type HuggingFaceChatCompletionResponse = {
+  model?: string;
   error?: {
     message?: string;
   };
@@ -44,7 +53,7 @@ function getAiGatewayToken() {
 }
 
 export function getAiGatewayModel() {
-  return process.env.AI_GATEWAY_MODEL?.trim() || "@cf/openai/gpt-oss-120b";
+  return process.env.AI_GATEWAY_MODEL?.trim() || "@cf/qwen/qwen3-30b-a3b-fp8";
 }
 
 function getHuggingFaceToken() {
@@ -76,29 +85,42 @@ function shouldPreferHuggingFace() {
 }
 
 function extractJsonObject(rawContent: string) {
-  const directContent = rawContent.trim();
+  const directContent = rawContent
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .trim();
 
   if (!directContent) {
     throw new Error("AI gateway вернул пустой ответ.");
   }
 
+  const normalizeParsedObject = (value: object) => {
+    const record = value as Record<string, unknown>;
+    const response = record.response;
+
+    if (response && typeof response === "object" && !Array.isArray(response)) {
+      return response as object;
+    }
+
+    return value;
+  };
+
   try {
-    return JSON.parse(directContent) as object;
+    return normalizeParsedObject(JSON.parse(directContent) as object);
   } catch {
     const fencedMatch = directContent.match(/```(?:json)?\s*([\s\S]+?)\s*```/i);
     const fencedContent = fencedMatch?.[1]?.trim();
 
     if (fencedContent) {
-      return JSON.parse(fencedContent) as object;
+      return normalizeParsedObject(JSON.parse(fencedContent) as object);
     }
 
     const firstBrace = directContent.indexOf("{");
     const lastBrace = directContent.lastIndexOf("}");
 
     if (firstBrace >= 0 && lastBrace > firstBrace) {
-      return JSON.parse(
-        directContent.slice(firstBrace, lastBrace + 1),
-      ) as object;
+      return normalizeParsedObject(
+        JSON.parse(directContent.slice(firstBrace, lastBrace + 1)) as object,
+      );
     }
 
     throw new Error("AI gateway вернул невалидный JSON.");
@@ -154,7 +176,8 @@ function shouldFallbackToHuggingFace(message: string) {
 async function requestCloudflareJsonObject<T extends object>(input: {
   model?: string;
   messages: ChatMessage[];
-}): Promise<T> {
+}): Promise<AiGatewayJsonObjectResult<T>> {
+  const modelName = input.model ?? getAiGatewayModel();
   const response = await fetch(`${getAiGatewayUrl()}/chat`, {
     method: "POST",
     headers: {
@@ -162,7 +185,7 @@ async function requestCloudflareJsonObject<T extends object>(input: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: input.model ?? getAiGatewayModel(),
+      model: modelName,
       messages: input.messages,
     }),
   });
@@ -183,13 +206,17 @@ async function requestCloudflareJsonObject<T extends object>(input: {
     throw new Error("AI gateway не вернул content.");
   }
 
-  return extractJsonObject(content) as T;
+  return {
+    data: extractJsonObject(content) as T,
+    providerCode: "CF",
+    modelName: responseJson.model?.trim() || modelName,
+  };
 }
 
 async function requestHuggingFaceJsonObject<T extends object>(input: {
   model?: string;
   messages: ChatMessage[];
-}): Promise<T> {
+}): Promise<AiGatewayJsonObjectResult<T>> {
   const token = getHuggingFaceToken();
 
   if (!token) {
@@ -244,7 +271,11 @@ async function requestHuggingFaceJsonObject<T extends object>(input: {
     const content = responseJson.choices?.[0]?.message?.content?.trim();
 
     if (content) {
-      return extractJsonObject(content) as T;
+      return {
+        data: extractJsonObject(content) as T,
+        providerCode: "HF",
+        modelName: responseJson.model?.trim() || model || getHuggingFaceModel(),
+      };
     }
 
     lastError = "Hugging Face не вернул content.";
@@ -257,7 +288,7 @@ export async function requestAiGatewayJsonObject<T extends object>(input: {
   model?: string;
   systemPrompt: string;
   userPayload: unknown;
-}): Promise<T> {
+}): Promise<AiGatewayJsonObjectResult<T>> {
   const messages = buildMessages(input);
 
   if (shouldPreferHuggingFace()) {

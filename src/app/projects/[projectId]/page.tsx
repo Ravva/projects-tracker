@@ -108,11 +108,19 @@ export default async function ProjectDetailsPage({
   searchParams,
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ error?: string; notice?: string; success?: string }>;
+  searchParams: Promise<{
+    aiProvider?: string;
+    error?: string;
+    notice?: string;
+    success?: string;
+  }>;
 }) {
   const teacher = await requireTeacherSession();
   const { projectId } = await params;
-  const { error, notice, success } = await searchParams;
+  const { aiProvider, error, notice, success } = await searchParams;
+  const providerSuffix = aiProvider?.trim()
+    ? ` (${aiProvider.trim().toUpperCase()})`
+    : "";
   const [project, reports] = await Promise.all([
     getProject(projectId),
     listProjectAiReports(projectId),
@@ -220,12 +228,13 @@ export default async function ProjectDetailsPage({
       ) : null}
       {success === "analysis-complete" ? (
         <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
-          AI-анализ завершен, данные проекта обновлены.
+          AI-анализ{providerSuffix} завершен, данные проекта обновлены.
         </div>
       ) : null}
       {success === "sync-complete" ? (
         <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
-          GitHub sync выполнен, AI-анализ обновлен автоматически.
+          GitHub sync выполнен, AI-анализ{providerSuffix} обновлен
+          автоматически.
         </div>
       ) : null}
       {notice ? (

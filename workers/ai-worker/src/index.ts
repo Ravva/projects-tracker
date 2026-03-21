@@ -17,21 +17,31 @@ type ChatBody = {
   model?: string;
 };
 
+type JsonResponseFormat = {
+  type: "json_object";
+};
+
 type AiRunPayload = {
   messages: ChatMessage[];
   max_tokens: number;
   temperature: number;
+  response_format?: JsonResponseFormat;
 };
 
 type WorkerAiResult = {
   model?: string;
   response?:
     | string
+    | Record<string, unknown>
     | Array<string | { text?: string; content?: string; type?: string }>;
-  content?: string | Array<{ text?: string; content?: string; type?: string }>;
+  content?:
+    | string
+    | Record<string, unknown>
+    | Array<{ text?: string; content?: string; type?: string }>;
   result?: {
     response?:
       | string
+      | Record<string, unknown>
       | Array<string | { text?: string; content?: string; type?: string }>;
   };
   usage?: {
@@ -45,13 +55,14 @@ type WorkerAiResult = {
     message?: {
       content?:
         | string
+        | Record<string, unknown>
         | Array<{ text?: string; content?: string; type?: string }>;
       reasoning_content?: string;
     };
   }>;
 };
 
-const DEFAULT_MODEL = "@cf/openai/gpt-oss-120b";
+const DEFAULT_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8";
 
 function buildCorsHeaders(origin: string | null, env: Env) {
   const allowedOrigins = (env.ALLOWED_ORIGINS ?? "")
@@ -111,10 +122,28 @@ function getAiContent(result: WorkerAiResult) {
       .join("\n")
       .trim();
 
+  const stringifyObject = (value: unknown) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return "";
+    }
+
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return "";
+    }
+  };
+
   const firstChoice = result.choices?.[0]?.message?.content;
 
   if (typeof firstChoice === "string" && firstChoice.trim()) {
     return firstChoice.trim();
+  }
+
+  const firstChoiceObject = stringifyObject(firstChoice);
+
+  if (firstChoiceObject) {
+    return firstChoiceObject;
   }
 
   const reasoningContent = result.choices?.[0]?.message?.reasoning_content;
@@ -135,6 +164,12 @@ function getAiContent(result: WorkerAiResult) {
     return result.content.trim();
   }
 
+  const contentObject = stringifyObject(result.content);
+
+  if (contentObject) {
+    return contentObject;
+  }
+
   if (Array.isArray(result.content)) {
     const combined = pickTextFromArray(result.content);
 
@@ -145,6 +180,12 @@ function getAiContent(result: WorkerAiResult) {
 
   if (typeof result.response === "string" && result.response.trim()) {
     return result.response.trim();
+  }
+
+  const responseObject = stringifyObject(result.response);
+
+  if (responseObject) {
+    return responseObject;
   }
 
   if (Array.isArray(result.response)) {
@@ -160,6 +201,12 @@ function getAiContent(result: WorkerAiResult) {
     result.result.response.trim()
   ) {
     return result.result.response.trim();
+  }
+
+  const nestedResponseObject = stringifyObject(result.result?.response);
+
+  if (nestedResponseObject) {
+    return nestedResponseObject;
   }
 
   if (Array.isArray(result.result?.response)) {
@@ -233,6 +280,9 @@ export default {
           messages,
           max_tokens: 1024,
           temperature: 0.2,
+          response_format: {
+            type: "json_object",
+          },
         })) as WorkerAiResult;
         const content = getAiContent(result);
 

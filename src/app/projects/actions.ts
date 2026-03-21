@@ -12,6 +12,10 @@ import {
   syncProjectGithub,
 } from "@/lib/server/repositories/projects";
 
+function buildAiProviderLabel(providerCode: string) {
+  return providerCode.trim().toUpperCase() === "HF" ? "HF" : "CF";
+}
+
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
@@ -79,6 +83,7 @@ export async function syncProjectAction(formData: FormData) {
   const projectId = readString(formData, "projectId");
   const returnTo = readString(formData, "returnTo");
   let notice = "";
+  let aiProvider = "";
 
   try {
     await syncProjectGithub(projectId);
@@ -101,7 +106,8 @@ export async function syncProjectAction(formData: FormData) {
   }
 
   try {
-    await runProjectAiAnalysis(projectId);
+    const analysisResult = await runProjectAiAnalysis(projectId);
+    aiProvider = buildAiProviderLabel(analysisResult.providerCode);
   } catch (error) {
     notice = getErrorMessage(
       error,
@@ -118,6 +124,7 @@ export async function syncProjectAction(formData: FormData) {
       ? buildProjectsListRedirect({
           success: "sync-complete",
           projectId,
+          ...(aiProvider ? { aiProvider } : {}),
           ...(notice
             ? {
                 notice: `GitHub sync выполнен, но автоматический AI-анализ не завершился: ${notice}`,
@@ -126,6 +133,7 @@ export async function syncProjectAction(formData: FormData) {
         })
       : buildProjectDetailsRedirect(projectId, {
           success: "sync-complete",
+          ...(aiProvider ? { aiProvider } : {}),
           ...(notice
             ? {
                 notice: `GitHub sync выполнен, но автоматический AI-анализ не завершился: ${notice}`,
@@ -154,6 +162,18 @@ export async function syncAllProjectsAction() {
 
   const resultSummary = `Обновлено ${result.syncedProjects} из ${result.targetedProjects} проект(ов).`;
   const noticeParts = [
+    result.aiProviderCounts.CF > 0 || result.aiProviderCounts.HF > 0
+      ? `Провайдеры AI: ${[
+          result.aiProviderCounts.CF > 0
+            ? `CF ${result.aiProviderCounts.CF}`
+            : "",
+          result.aiProviderCounts.HF > 0
+            ? `HF ${result.aiProviderCounts.HF}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join(", ")}.`
+      : "",
     result.aiWarnings > 0
       ? `Для ${result.aiWarnings} проект(ов) GitHub sync прошёл, но AI-анализ завершился с предупреждением.`
       : "",
@@ -177,9 +197,11 @@ export async function runProjectAiAnalysisAction(formData: FormData) {
   await requireTeacherSession();
 
   const projectId = readString(formData, "projectId");
+  let aiProvider = "";
 
   try {
-    await runProjectAiAnalysis(projectId);
+    const analysisResult = await runProjectAiAnalysis(projectId);
+    aiProvider = buildAiProviderLabel(analysisResult.providerCode);
   } catch (error) {
     redirect(
       buildProjectDetailsRedirect(projectId, {
@@ -198,6 +220,7 @@ export async function runProjectAiAnalysisAction(formData: FormData) {
   redirect(
     buildProjectDetailsRedirect(projectId, {
       success: "analysis-complete",
+      ...(aiProvider ? { aiProvider } : {}),
     }),
   );
 }

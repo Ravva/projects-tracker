@@ -8,6 +8,7 @@ import {
 } from "@/lib/project-limits";
 import { isProjectCurrent, normalizeProjectStatus } from "@/lib/project-status";
 import {
+  type AiProviderCode,
   getAiGatewayModel,
   requestAiGatewayJsonObject,
 } from "@/lib/server/ai-gateway";
@@ -36,6 +37,11 @@ import type {
 } from "@/lib/types";
 
 const PROJECT_SELECTION_LOCK_TTL_MS = 2 * 60 * 1000;
+
+export type ProjectAiAnalysisResult = {
+  providerCode: AiProviderCode;
+  modelName: string;
+};
 
 function buildProjectSelectionLockId(studentId: string) {
   const digest = crypto
@@ -965,7 +971,9 @@ export async function syncProjectGithub(projectId: string) {
   }
 }
 
-export async function runProjectAiAnalysis(projectId: string) {
+export async function runProjectAiAnalysis(
+  projectId: string,
+): Promise<ProjectAiAnalysisResult> {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
   const project = await getProject(projectId);
@@ -1065,7 +1073,7 @@ export async function runProjectAiAnalysis(projectId: string) {
       docsReadme: repositoryAnalysis.files.docsReadme?.content ?? "",
     },
   };
-  const parsed = await requestAiGatewayJsonObject<{
+  const aiResult = await requestAiGatewayJsonObject<{
     summary?: string;
     risks?: string[];
     next_steps?: string[];
@@ -1078,6 +1086,7 @@ export async function runProjectAiAnalysis(projectId: string) {
       "Ты оцениваешь учебный GitHub-проект по данным memory_bank и метрикам GitHub. Анализ проводится исключительно в образовательных целях. Процент реализации уже рассчитан детерминированно и его нельзя менять. Верни только компактный JSON с полями summary, risks, next_steps, implemented_items, partial_items, missing_items. Summary: одна короткая строка до 240 символов. Каждый массив: максимум 5 коротких элементов без markdown и без пояснений вне JSON.",
     userPayload: inputSnapshot,
   });
+  const parsed = aiResult.data;
   const risks = Array.isArray(parsed.risks) ? parsed.risks : [];
   const nextSteps = Array.isArray(parsed.next_steps) ? parsed.next_steps : [];
   const nextProjectStatus =
@@ -1099,8 +1108,8 @@ export async function runProjectAiAnalysis(projectId: string) {
     {
       project_id: projectId,
       source_commit_sha: repositoryAnalysis.metrics.lastCommitSha,
-      analysis_version: "v3-cloudflare-worker",
-      model_name: aiModel,
+      analysis_version: "v3-ai-gateway",
+      model_name: `${aiResult.providerCode}:${aiResult.modelName}`,
       summary: parsed.summary ?? "",
       completion_percent: completionPercent,
       report_payload_json: buildProjectReportPayload({
@@ -1163,6 +1172,11 @@ export async function runProjectAiAnalysis(projectId: string) {
       }),
     },
   );
+
+  return {
+    providerCode: aiResult.providerCode,
+    modelName: aiResult.modelName,
+  };
 }
 
 export async function setProjectManualOverride(

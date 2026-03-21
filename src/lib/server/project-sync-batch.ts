@@ -3,6 +3,7 @@ import "server-only";
 import { projectNeedsSync } from "@/lib/project-sync";
 import {
   listProjects,
+  type ProjectAiAnalysisResult,
   runProjectAiAnalysis,
   syncProjectGithub,
 } from "@/lib/server/repositories/projects";
@@ -19,6 +20,7 @@ export interface ProjectSyncBatchResult {
   targetedProjects: number;
   syncedProjects: number;
   aiWarnings: number;
+  aiProviderCounts: Record<ProjectAiAnalysisResult["providerCode"], number>;
   failures: ProjectSyncBatchFailure[];
 }
 
@@ -36,6 +38,10 @@ export async function runProjectSyncBatch(): Promise<ProjectSyncBatchResult> {
   const failures: ProjectSyncBatchFailure[] = [];
   let syncedProjects = 0;
   let aiWarnings = 0;
+  const aiProviderCounts: ProjectSyncBatchResult["aiProviderCounts"] = {
+    CF: 0,
+    HF: 0,
+  };
 
   for (const project of projectsToSync) {
     try {
@@ -52,7 +58,8 @@ export async function runProjectSyncBatch(): Promise<ProjectSyncBatchResult> {
     }
 
     try {
-      await runProjectAiAnalysis(project.id);
+      const analysisResult = await runProjectAiAnalysis(project.id);
+      aiProviderCounts[analysisResult.providerCode] += 1;
     } catch (error) {
       aiWarnings += 1;
       failures.push({
@@ -69,6 +76,7 @@ export async function runProjectSyncBatch(): Promise<ProjectSyncBatchResult> {
     targetedProjects: projectsToSync.length,
     syncedProjects,
     aiWarnings,
+    aiProviderCounts,
     failures,
   };
 }

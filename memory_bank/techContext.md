@@ -11,7 +11,7 @@
 - `next-auth` для GitHub OAuth;
 - `node-appwrite` для server-side доступа к Appwrite;
 - GitHub REST API для чтения student repositories, `memory_bank` файлов и commit history;
-- Cloudflare Workers + Workers AI для server-side AI gateway и модели `@cf/openai/gpt-oss-120b`;
+- Cloudflare Workers + Workers AI для server-side AI gateway и модели `@cf/qwen/qwen3-30b-a3b-fp8`;
 - Hugging Face Inference Providers Chat Completions как fallback-провайдер для AI-анализа при недоступности или исчерпании квоты Workers AI;
 - `xlsx` для teacher import students.
 
