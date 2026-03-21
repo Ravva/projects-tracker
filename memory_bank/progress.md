@@ -23,6 +23,8 @@
 
 ## Changelog
 
+- 2026-03-21: teacher-only project detail уточнен по формату давности последнего коммита. В `src/app/projects/[projectId]/page.tsx` `formatLastCommitLabel()` теперь показывает интервалы меньше часа в минутах (`N мин. назад`) вместо прежнего округления до `1 ч. назад`. Измененный не-Markdown файл прогнан через `bunx biome check --write`, повторная проверка проходит.
+- 2026-03-21: teacher-only shell получил ручной переключатель темы. Добавлены `src/components/theme/theme-provider.tsx` и `src/components/theme/theme-toggle.tsx`, `src/app/layout.tsx` теперь инициализирует тему до гидратации, а `src/app/globals.css` поддерживает управляемые режимы `Системная / Светлая / Темная` через `data-theme` с сохранением fallback на системную тему. В `src/components/app/teacher-shell.tsx` theme switcher вынесен в общий header, а мобильный sidebar в `src/components/ui/sidebar.tsx` и `src/components/app/teacher-sidebar.tsx` больше не прячет кнопку закрытия, явно закрывается кнопкой `Скрыть` и автоматически сворачивается после перехода по навигации. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, `bun run build` проходит.
 - 2026-03-21: fallback на Hugging Face расширен и на сетевые сбои Cloudflare gateway. В `src/lib/server/ai-gateway.ts` `shouldFallbackToHuggingFace()` теперь включает `fetch failed` и типовые network errors (`ECONNRESET`, `ECONNREFUSED`, `ENOTFOUND`, timeout), чтобы teacher-side AI-analysis уходил в HF не только при quota error `4006`, но и при сетевой недоступности Cloudflare gateway. Измененный не-Markdown файл прогнан через `bunx biome check --write`, `bun run build` проходит.
 - 2026-03-21: Hugging Face fallback уточнен после живой проверки токена. `Qwen/Qwen2.5-7B-Instruct-1M` возвращал `model_not_supported`, тогда как `Qwen/Qwen2.5-7B-Instruct` отвечал успешно. Поэтому в `src/lib/server/ai-gateway.ts` default HF model переключен на `Qwen/Qwen2.5-7B-Instruct`, а fallback дополнился retry-цепочкой по нескольким HF моделям. `.env.example` и локальный `.env` синхронизированы с новым default. Измененный не-Markdown файл прогнан через `bunx biome check --write`, `bun run build` проходит.
 - 2026-03-21: server-only AI client получил fallback на Hugging Face. В `src/lib/server/ai-gateway.ts` добавлен OpenAI-compatible вызов `https://router.huggingface.co/v1/chat/completions`, который включается при quota error `4006` от Cloudflare Workers AI, а также при `AI_FORCE_HF=true` или отсутствии `AI_GATEWAY_*` конфига при наличии `HF_TOKEN`. В `.env.example` и локальный `.env` добавлены `HF_TOKEN`, `HF_BASE_URL`, `HF_CHAT_MODEL`, `AI_FORCE_HF`; архитектурная документация и memory bank синхронизированы. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, `bun run build` проходит.
@@ -166,4 +168,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `3f1556c2aebfb59d97379dca795445ab13f09acd`
+- `last_checked_commit`: `ac1eedc23865cbba851566576518218c18ad9882`

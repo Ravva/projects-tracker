@@ -82,6 +82,15 @@ function formatLastCommitLabel(
       : `${lastCommitDaysAgo} дн. назад`;
   }
 
+  const diffMinutes = Math.max(
+    1,
+    Math.floor((Date.now() - lastCommitDate.getTime()) / (60 * 1000)),
+  );
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes} мин. назад`;
+  }
+
   const diffHours = Math.max(
     1,
     Math.floor((Date.now() - lastCommitDate.getTime()) / (60 * 60 * 1000)),

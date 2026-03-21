@@ -2,6 +2,7 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { TeacherSidebar } from "@/components/app/teacher-sidebar";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   SidebarInset,
   SidebarProvider,
@@ -51,9 +52,10 @@ export function TeacherShell({
                       </h1>
                     </div>
                   </div>
-                  {actions ? (
-                    <div className="flex items-center gap-2">{actions}</div>
-                  ) : null}
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <ThemeToggle />
+                    {actions}
+                  </div>
                 </div>
               </div>
             </header>
