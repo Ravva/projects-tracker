@@ -376,7 +376,8 @@ export async function analyzeProjectRepository(input: {
     docsReadme ? "docs/README.md" : null,
   ].filter((path): path is string => Boolean(path));
   const parsedDeliverables = parseProjectDeliverables(projectBrief);
-  console.log(
+  console.error("[DEBUG] projectBrief exists:", !!projectBrief);
+  console.error(
     "[DEBUG] parsedDeliverables:",
     JSON.stringify(parsedDeliverables),
   );
@@ -384,6 +385,10 @@ export async function analyzeProjectRepository(input: {
     projectBrief,
     parsedDeliverables,
   });
+  console.error(
+    "[DEBUG] progressCalculation:",
+    JSON.stringify(progressCalculation),
+  );
   console.log(
     "[DEBUG] progressCalculation:",
     JSON.stringify(progressCalculation),
