@@ -695,6 +695,20 @@ function buildProjectRecordWithMembers(
             joinedAt: document.$createdAt,
           },
         ];
+  const hasOwnerMembership = normalizedMemberships.some(
+    (membership) => membership.studentId === ownerStudentId,
+  );
+
+  if (!hasOwnerMembership && ownerStudentId) {
+    normalizedMemberships.unshift({
+      id: `legacy-owner:${baseProject.id}:${ownerStudentId}`,
+      projectId: baseProject.id,
+      studentId: ownerStudentId,
+      studentName: ownerStudentName,
+      role: "owner",
+      joinedAt: document.$createdAt,
+    });
+  }
   const uniqueMembers = new Map<string, string>();
 
   for (const membership of normalizedMemberships) {
@@ -1059,22 +1073,25 @@ export async function listProjectMembers(
     studentNameMap,
   ).get(projectId);
 
-  if (memberships && memberships.length > 0) {
-    return memberships.sort((left, right) =>
-      left.studentName.localeCompare(right.studentName, "ru"),
-    );
-  }
+  const normalizedMemberships = memberships ? [...memberships] : [];
+  const hasOwnerMembership = normalizedMemberships.some(
+    (membership) => membership.studentId === project.ownerStudentId,
+  );
 
-  return [
-    {
+  if (!hasOwnerMembership) {
+    normalizedMemberships.unshift({
       id: `legacy-owner:${project.id}:${project.ownerStudentId}`,
       projectId: project.id,
       studentId: project.ownerStudentId,
       studentName: project.ownerStudentName,
       role: "owner",
       joinedAt: "",
-    },
-  ];
+    });
+  }
+
+  return normalizedMemberships.sort((left, right) =>
+    left.studentName.localeCompare(right.studentName, "ru"),
+  );
 }
 
 export async function addProjectMember(projectId: string, studentId: string) {

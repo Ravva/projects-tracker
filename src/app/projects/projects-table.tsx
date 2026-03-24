@@ -1,3 +1,5 @@
+import { User02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -25,7 +27,10 @@ import {
 import type { ProjectRecord } from "@/lib/types";
 
 export interface ProjectsTableRowData {
-  project: ProjectRecord;
+  studentId: string;
+  studentName: string;
+  participantsLabel: string[];
+  project: ProjectRecord | null;
 }
 
 function formatLastCommitLabel(value: string) {
@@ -69,6 +74,27 @@ function RowLink({
     >
       {children}
     </Link>
+  );
+}
+
+function ProjectKindIcon({ membersCount }: { membersCount: number }) {
+  if (membersCount > 1) {
+    return (
+      <span className="relative inline-flex h-5 w-6 shrink-0 items-center">
+        <span className="absolute left-0 top-0.5 opacity-70">
+          <HugeiconsIcon icon={User02Icon} size={14} strokeWidth={1.8} />
+        </span>
+        <span className="absolute left-2.5 top-0.5">
+          <HugeiconsIcon icon={User02Icon} size={14} strokeWidth={1.8} />
+        </span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center">
+      <HugeiconsIcon icon={User02Icon} size={14} strokeWidth={1.8} />
+    </span>
   );
 }
 
@@ -119,28 +145,63 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
       <TableBody>
         {rows.map((row) => {
           const { project } = row;
+
+          if (!project) {
+            return (
+              <TableRow
+                key={row.studentId}
+                className="transition-colors hover:bg-muted/40"
+              >
+                <TableCell className="font-medium">
+                  <div className="px-4 py-4">
+                    {row.participantsLabel.join(", ")}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                </TableCell>
+                <TableCell>
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                </TableCell>
+                <TableCell className="text-right font-medium">
+                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                </TableCell>
+              </TableRow>
+            );
+          }
+
           const href = `/projects/${project.id}`;
 
           return (
             <TableRow
-              key={project.id}
+              key={row.studentId}
               className="transition-colors hover:bg-muted/40"
             >
               <TableCell className="p-0 font-medium">
                 <RowLink href={href} padded={false}>
                   <div className="font-medium">
-                    {project.memberNames.join(", ")}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {project.membersCount > 1
-                      ? "групповой проект"
-                      : "индивидуальный проект"}
+                    {row.participantsLabel.join(", ")}
                   </div>
                 </RowLink>
               </TableCell>
               <TableCell>
                 <RowLink href={href}>
-                  <div className="font-medium">{project.name}</div>
+                  <div className="flex items-center gap-2 font-medium">
+                    <ProjectKindIcon membersCount={project.membersCount} />
+                    <span>{project.name}</span>
+                  </div>
                   {project.syncStatusReason ? (
                     <div className="text-xs text-muted-foreground">
                       {project.syncStatusReason}
