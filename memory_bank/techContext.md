@@ -57,6 +57,7 @@
   - `TELEGRAM_BOT_USERNAME`
   - `TELEGRAM_WEBHOOK_SECRET`
   - `TEACHER_TELEGRAM_CHAT_ID`
+  - `PROJECT_REPORT_SHARE_SECRET` для отдельной подписи project report share-link
 - AI env:
   - `AI_GATEWAY_URL`
   - `AI_GATEWAY_TOKEN`
@@ -68,11 +69,12 @@
   - `GITHUB_TOKEN` желателен для стабильного teacher-only AI-analysis и GitHub sync без упора в публичный rate limit
   - `PROJECT_SYNC_CRON_SECRET` для защищенного route, который вызывается GitHub Actions
 - GitHub Actions workflow `project-sync.yml` использует repository secret `PROJECT_SYNC_ENDPOINT_URL` для production endpoint и `PROJECT_SYNC_CRON_SECRET` для авторизации фонового запуска.
+- auth guard в Next.js 16 перенесен на `src/proxy.ts`; `src/middleware.ts` больше не используется.
 
 ## Ограничения
 
 - Markdown-файлы не проверяются через Biome;
 - dev server на `127.0.0.1:3300` управляется пользователем и не должен запускаться агентом;
 - teacher-only AI-анализ student projects опирается на публично доступные или доступные через `GITHUB_TOKEN` данные GitHub repo;
-- teacher-only AI-анализ по умолчанию вызывает модели через Cloudflare Worker gateway с Workers AI; при quota error `4006` или отсутствии gateway-конфига server-only клиент может переключиться на Hugging Face через `HF_TOKEN`, `HF_BASE_URL` и `HF_CHAT_MODEL`;
+- teacher-only AI-анализ по умолчанию вызывает модели через Cloudflare Worker gateway с Workers AI; при quota error `4006` или отсутствии gateway-конфига server-only client может переключиться на Hugging Face через `HF_TOKEN`, `HF_BASE_URL` и `HF_CHAT_MODEL`;
 - student-access не дает student права на teacher-only маршруты и ручные teacher actions.

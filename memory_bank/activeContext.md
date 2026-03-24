@@ -6,6 +6,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 
 ## Задача в работе
 
+- закрыто в текущей сессии: техническое оздоровление teacher/student flows по итогам code review выполнено — каскадное удаление ученика теперь очищает `project_ai_reports`, приватные student GitHub-репозитории подсвечиваются красным и не выбираются, auth guard перенесен на `src/proxy.ts`, `PROJECT_REPORT_SHARE_SECRET` отделен от attendance secret, а `bun dev` синхронизирован с `127.0.0.1:3300`;
 - закрыто в текущей сессии: канонический шаблон `AGENTS.md` ужесточен под `Project Deliverables` — теперь инструкция явно требует обязательную таблицу `ID | Deliverable | Status | Weight`, канонические статусы `pending/in_progress/completed/blocked` и сумму весов ровно `100`; student-flow `/my-project` подтягивает актуальный `AGENTS.md` из репозитория `projects-tracker` по GitHub raw URL с локальным fallback, а teacher-only project detail показывает явную причину, почему `completion_percent` не считается корректно;
 - закрыто в текущей сессии: на teacher-only project detail формат подписи `Последний коммит` снова приведен к ожидаемому правилу — если коммит был меньше часа назад, показываются минуты, если меньше суток, показываются часы, а `0 дн. назад` больше не должен появляться;
 - закрыто в текущей сессии: из teacher sidebar удален вторичный блок `Рабочий поток`; в навигации оставлены только основные маршруты `Ученики / Посещаемость / Проекты`, чтобы нижняя часть сайдбара не дублировала неиспользуемые заглушки;
@@ -153,7 +154,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - реализована интеграция с Telegram Bot API для отправки уведомлений студентам;
 - страницы читают данные через `src/lib/server/repositories/*`;
 - `.env.example` задает минимальный набор Appwrite переменных;
-- GitHub OAuth реализован через `next-auth`, защита маршрутов перенесена из `src/proxy.ts` в `src/middleware.ts`;
+- GitHub OAuth реализован через `next-auth`, защита маршрутов перенесена в `src/proxy.ts`;
 - `/login` использует клиентский компонент `LoginButton` для инициации входа через GitHub;
 - Appwrite schema создается через `bun run db:provision`;
 - `projects` и `project_ai_reports` хранят часть состояния в компактных JSON-полях из-за лимитов Appwrite;
@@ -168,4 +169,5 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - у одного ученика может быть несколько проектов, но student-flow `/my-project` должен разрешать только один текущий проект одновременно; завершенные проекты остаются в истории и доступны teacher review.
 - production teacher-access должен опираться только на `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` допустим только как non-production fallback.
 - локальный dev server должен слушать `127.0.0.1:3300`, потому что `localhost` на Windows может уйти в IPv6 `::1`, а порт `3100` в текущей среде зарезервирован системой.
+- публичные project share-ссылки используют отдельный `PROJECT_REPORT_SHARE_SECRET`, а attendance share остается на `ATTENDANCE_REPORT_SHARE_SECRET` для обратной совместимости.
 - закрыто в текущей сессии: student bind flow после Telegram invite починен — login page теперь сохраняет и восстанавливает student callback, GitHub OAuth возвращает ученика в `/student/link`, а повторное открытие `/login` с активной сессией автоматически продолжает привязку вместо зависания на экране входа.

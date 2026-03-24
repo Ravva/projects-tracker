@@ -26,6 +26,7 @@ import {
   type ProjectAiInputSnapshot,
   serializeProjectAiInputSnapshot,
 } from "@/lib/server/project-ai-report-snapshot";
+import { deleteProjectCascade } from "@/lib/server/project-cleanup";
 import { analyzeProjectRepository } from "@/lib/server/project-repository-analysis";
 import { listStudentNameMap } from "@/lib/server/repositories/students";
 import type {
@@ -710,6 +711,7 @@ export async function createStudentProjectFromGithubSelection(input: {
   repositoryName: string;
   repositoryUrl: string;
   repositoryDescription: string;
+  repositoryPrivate: boolean;
 }) {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
@@ -722,6 +724,11 @@ export async function createStudentProjectFromGithubSelection(input: {
 
   if (!parseGithubUrl(normalizedUrl)) {
     throw new Error("Выбран некорректный GitHub URL.");
+  }
+  if (input.repositoryPrivate) {
+    throw new Error(
+      "Приватные GitHub-репозитории нельзя выбрать для student-flow. Откройте публичный репозиторий.",
+    );
   }
   const lock = await acquireProjectSelectionLock(input.studentId);
 
@@ -826,32 +833,7 @@ export async function updateProject(projectId: string, input: ProjectInput) {
 }
 
 export async function deleteProject(projectId: string) {
-  const appwrite = getAppwriteDatabases();
-  const config = getAppwriteConfig();
-
-  if (!appwrite || !config) {
-    throw new Error("Appwrite не настроен.");
-  }
-
-  const reports = await appwrite.databases.listDocuments(
-    appwrite.databaseId,
-    config.collections.projectAiReports,
-    [Query.equal("project_id", projectId), Query.limit(500)],
-  );
-
-  for (const report of reports.documents) {
-    await appwrite.databases.deleteDocument(
-      appwrite.databaseId,
-      config.collections.projectAiReports,
-      report.$id,
-    );
-  }
-
-  return appwrite.databases.deleteDocument(
-    appwrite.databaseId,
-    config.collections.projects,
-    projectId,
-  );
+  return deleteProjectCascade(projectId);
 }
 
 async function updateProjectRiskFlags(projectId: string, flags: ProjectRisk[]) {

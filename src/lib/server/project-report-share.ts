@@ -6,6 +6,7 @@ const ONE_YEAR_IN_MS = 365 * 24 * 60 * 60 * 1000;
 
 function getProjectReportShareSecret() {
   return (
+    process.env.PROJECT_REPORT_SHARE_SECRET?.trim() ||
     process.env.ATTENDANCE_REPORT_SHARE_SECRET?.trim() ||
     process.env.NEXTAUTH_SECRET?.trim() ||
     ""
@@ -17,7 +18,7 @@ function buildSignature(input: { weekStart: string; expiresAt: string }) {
 
   if (!secret) {
     throw new Error(
-      "Не настроен секрет project share report. Добавьте ATTENDANCE_REPORT_SHARE_SECRET или NEXTAUTH_SECRET.",
+      "Не настроен секрет project share report. Добавьте PROJECT_REPORT_SHARE_SECRET, ATTENDANCE_REPORT_SHARE_SECRET или NEXTAUTH_SECRET.",
     );
   }
 

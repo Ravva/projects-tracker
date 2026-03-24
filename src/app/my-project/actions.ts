@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireStudentSession } from "@/lib/server/auth";
+import { listGithubRepositoriesForStudent } from "@/lib/server/github";
 import {
   createStudentProjectFromGithubSelection,
   runProjectAiAnalysis,
@@ -11,6 +12,10 @@ import {
 
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
+}
+
+function normalizeRepositoryUrl(value: string) {
+  return value.trim().replace(/\/+$/, "");
 }
 
 function inferAiProviderLabelFromMessage(message: string) {
@@ -29,14 +34,40 @@ function inferAiProviderLabelFromMessage(message: string) {
 export async function chooseStudentProjectAction(formData: FormData) {
   const student = await requireStudentSession();
   let autoAnalysisNotice = "";
+  const repositoryName = readString(formData, "repositoryName");
+  const repositoryUrl = readString(formData, "repositoryUrl");
+  const repositoryDescription = readString(formData, "repositoryDescription");
 
   try {
+    const repositories = await listGithubRepositoriesForStudent(
+      student.githubAccessToken,
+    );
+    const selectedRepository = repositories.find(
+      (repository) =>
+        normalizeRepositoryUrl(repository.url) ===
+        normalizeRepositoryUrl(repositoryUrl),
+    );
+
+    if (!selectedRepository) {
+      throw new Error(
+        "Этот репозиторий недоступен для выбора. Обновите страницу и попробуйте снова.",
+      );
+    }
+
+    if (selectedRepository.private) {
+      throw new Error(
+        "Приватный репозиторий выбрать нельзя. Он доступен только для просмотра.",
+      );
+    }
+
     const project = await createStudentProjectFromGithubSelection({
       studentId: student.studentId,
       studentName: student.studentName,
-      repositoryName: readString(formData, "repositoryName"),
-      repositoryUrl: readString(formData, "repositoryUrl"),
-      repositoryDescription: readString(formData, "repositoryDescription"),
+      repositoryName: repositoryName || selectedRepository.name,
+      repositoryUrl: selectedRepository.url,
+      repositoryDescription:
+        repositoryDescription || selectedRepository.description,
+      repositoryPrivate: selectedRepository.private,
     });
 
     try {
@@ -54,7 +85,7 @@ export async function chooseStudentProjectAction(formData: FormData) {
         studentId: student.studentId,
         githubLogin: student.githubLogin,
         projectId: project.$id,
-        repositoryUrl: readString(formData, "repositoryUrl"),
+        repositoryUrl,
         error,
       });
     }
@@ -67,7 +98,7 @@ export async function chooseStudentProjectAction(formData: FormData) {
     console.error("[my-project] Failed to create student project", {
       studentId: student.studentId,
       githubLogin: student.githubLogin,
-      repositoryUrl: readString(formData, "repositoryUrl"),
+      repositoryUrl,
       error,
     });
 

@@ -13,7 +13,7 @@
 - student определяется поиском в Appwrite `students.github_user_id`;
 - post-login redirect выполняет маршрут `/auth/complete`;
 - teacher-only и student-only ограничения проверяются на сервере через `requireTeacherSession`, `requireStudentSession` и `requireAuthenticatedSession`;
-- `src/middleware.ts` защищает только факт логина, но не роль.
+- `src/proxy.ts` защищает только факт логина, но не роль.
 
 ## Telegram To GitHub Bind Pattern
 
@@ -29,6 +29,7 @@
 - student page `/my-project` показывает все проекты текущего ученика, отдельно выделяет текущий проект и историю завершенных;
 - student page `/my-project` подтягивает канонический `AGENTS.md` из репозитория `projects-tracker` по GitHub raw URL с локальным fallback, чтобы ученик всегда копировал актуальную инструкцию;
 - список репозиториев читается напрямую из GitHub API по OAuth access token;
+- приватные репозитории в `/my-project` помечаются как `Приватный`, выделяются предупреждающим стилем и не могут быть выбраны; server action повторно проверяет список доступных репозиториев перед созданием проекта;
 - выбор репозитория создает новый `draft`-проект в `projects` со связкой `student_id + github_url`, только если у ученика нет другого текущего проекта;
 - создание и смена статуса текущего проекта сериализуются per-student lock через Appwrite-коллекцию `project_selection_locks`, чтобы параллельные запросы не нарушали инвариант `один текущий проект`;
 - после выбора репозитория в student-flow teacher-side AI-анализ запускается автоматически; проект повышается из `draft` в `active`, если подтверждены `hasRepository`, `hasMemoryBank`, `hasSpec` и `hasPlan`;
@@ -71,6 +72,7 @@
   - claim одноразового GitHub bind token;
   - выбор проекта только для `student_id` текущего ученика;
 - `projects` и `project_ai_reports` остаются на компактных JSON-state полях из-за лимитов Appwrite.
+- каскадное удаление student-проектов и самого ученика выполняется через общий cleanup-helper, который сначала удаляет связанные `project_ai_reports`, а затем сам `projects` документ.
 
 ## Appwrite Anti-Pause Pattern
 

@@ -460,17 +460,31 @@ export default async function MyProjectPage({
               ) : repositories.length > 0 ? (
                 repositories.map((repository) => {
                   const alreadySelected = selectedUrls.has(repository.url);
-                  const disabled = alreadySelected || !canChooseNextProject;
+                  const disabled =
+                    repository.private ||
+                    alreadySelected ||
+                    !canChooseNextProject;
 
                   return (
                     <div
                       key={repository.id}
-                      className="rounded-2xl border border-border/70 bg-background/70 p-4"
+                      className={
+                        repository.private
+                          ? "rounded-2xl border border-[hsl(var(--status-critical)/0.28)] bg-[hsl(var(--status-critical)/0.08)] p-4"
+                          : "rounded-2xl border border-border/70 bg-background/70 p-4"
+                      }
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div className="space-y-1">
-                          <div className="font-medium">
-                            {repository.fullName}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="font-medium">
+                              {repository.fullName}
+                            </div>
+                            {repository.private ? (
+                              <span className="rounded-full border border-[hsl(var(--status-critical)/0.28)] bg-[hsl(var(--status-critical)/0.14)] px-2.5 py-0.5 text-[11px] font-medium text-[hsl(var(--status-critical))]">
+                                Приватный
+                              </span>
+                            ) : null}
                           </div>
                           <div className="text-muted-foreground">
                             {repository.description ||
@@ -505,11 +519,13 @@ export default async function MyProjectPage({
                           >
                             {alreadySelected
                               ? "Уже в истории"
-                              : !canChooseNextProject
-                                ? "Сначала завершите текущий"
-                                : isTeacherPreview
-                                  ? "Недоступно в preview"
-                                  : "Начать следующий проект"}
+                              : repository.private
+                                ? "Приватный"
+                                : !canChooseNextProject
+                                  ? "Сначала завершите текущий"
+                                  : isTeacherPreview
+                                    ? "Недоступно в preview"
+                                    : "Начать следующий проект"}
                           </Button>
                         </form>
                       </div>

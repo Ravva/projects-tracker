@@ -6,6 +6,7 @@ import { isProjectCurrent, normalizeProjectStatus } from "@/lib/project-status";
 import { getAppwriteConfig, getAppwriteDatabases } from "@/lib/server/appwrite";
 import { daysSince, normalizeWeekStart } from "@/lib/server/date-utils";
 import { mapStudentDocument, toStudentDocument } from "@/lib/server/mappers";
+import { deleteProjectCascade } from "@/lib/server/project-cleanup";
 import type { StudentInput, StudentRecord, WeeklyState } from "@/lib/types";
 
 type StudentSummary = Pick<
@@ -274,7 +275,7 @@ export async function claimStudentGithubIdentity(input: {
   const config = getAppwriteConfig();
 
   if (!appwrite || !config) {
-    throw new Error("Appwrite РЅРµ РЅР°СЃС‚СЂРѕРµРЅ.");
+    throw new Error("Appwrite не настроен.");
   }
 
   return appwrite.databases.updateDocument(
@@ -386,11 +387,7 @@ export async function deleteStudent(studentId: string) {
   );
 
   for (const project of projectsResponse.documents) {
-    await appwrite.databases.deleteDocument(
-      appwrite.databaseId,
-      config.collections.projects,
-      project.$id,
-    );
+    await deleteProjectCascade(project.$id);
   }
 
   const attendanceResponse = await appwrite.databases.listDocuments(
