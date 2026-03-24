@@ -5,6 +5,8 @@ import { formatDateLabel } from "@/lib/server/date-utils";
 import type {
   AttendanceLessonRecord,
   ProjectAiReportRecord,
+  ProjectMemberRecord,
+  ProjectMemberRole,
   ProjectRecord,
   ProjectRisk,
   StudentInput,
@@ -252,6 +254,11 @@ export function mapProjectDocument(
     id: document.$id,
     studentId: String(getField(document, "student_id") ?? ""),
     studentName,
+    ownerStudentId: String(getField(document, "student_id") ?? ""),
+    ownerStudentName: studentName,
+    memberStudentIds: [],
+    memberNames: studentName ? [studentName] : [],
+    membersCount: studentName ? 1 : 0,
     name: String(getField(document, "name") ?? ""),
     summary: String(getField(document, "summary") ?? ""),
     status: normalizeProjectStatus(getField(document, "status")),
@@ -296,6 +303,24 @@ export function mapProjectDocument(
     aiStatus: lastAiAnalysisAtRaw ? "up_to_date" : "not_started",
     remoteLastCommit: "",
     remoteLastCommitSha: "",
+  };
+}
+
+function normalizeProjectMemberRole(value: unknown): ProjectMemberRole {
+  return value === "owner" ? "owner" : "member";
+}
+
+export function mapProjectMembershipDocument(
+  document: Models.Document,
+  studentName: string,
+): ProjectMemberRecord {
+  return {
+    id: document.$id,
+    projectId: String(getField(document, "project_id") ?? ""),
+    studentId: String(getField(document, "student_id") ?? ""),
+    studentName,
+    role: normalizeProjectMemberRole(getField(document, "role")),
+    joinedAt: String(getField(document, "joined_at") ?? document.$createdAt),
   };
 }
 

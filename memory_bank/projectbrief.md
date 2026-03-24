@@ -29,9 +29,10 @@
 | PT-02 | Teacher workspace для студентов с CRUD и массовой Telegram-рассылкой | completed | 14 |
 | PT-03 | Weekly attendance workspace с реальной записью в Appwrite | completed | 14 |
 | PT-04 | Student bind flow через Telegram и GitHub OAuth | completed | 12 |
-| PT-05 | Student page `/my-project` и создание draft-проекта из GitHub repository | completed | 10 |
-| PT-06 | Teacher workspace для проектов, GitHub sync и review-страницы | completed | 10 |
+| PT-05 | Student page `/my-project` и создание draft-проекта из GitHub repository | completed | 9 |
+| PT-06 | Teacher workspace для проектов, GitHub sync и review-страницы | completed | 8 |
 | PT-07 | AI-analysis pipeline проекта с отчетами, risk flags и устойчивым расчетом прогресса | completed | 14 |
-| PT-08 | Production hardening, deployment и полная smoke-проверка teacher/student сценариев | completed | 8 |
-| PT-09 | Стабилизация документации и Memory Bank как надежного источника прогресса проекта | in_progress | 4 |
-| PT-10 | Последовательный multi-project lifecycle для одного ученика с историей состояний | completed | 6 |
+| PT-08 | Production hardening, deployment и полная smoke-проверка teacher/student сценариев | completed | 6 |
+| PT-09 | Стабилизация документации и Memory Bank как надежного источника прогресса проекта | in_progress | 3 |
+| PT-10 | Последовательный multi-project lifecycle для одного ученика с историей состояний | completed | 4 |
+| PT-11 | Групповой проект с несколькими учениками, единым GitHub-репозиторием и общим teacher/student доступом | completed | 8 |

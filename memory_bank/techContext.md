@@ -34,12 +34,15 @@
   - `lessons`
   - `attendance`
   - `projects`
+  - `project_memberships`
   - `project_selection_locks`
   - `project_ai_reports`
 - схема поднимается идемпотентно через `bun run db:provision`;
 - индекс `students_by_github_link_token` нужен для student bind flow.
-- в `projects.status` используется lifecycle `draft | active | completed`; новый student project разрешается только при отсутствии другого текущего проекта у того же `student_id`.
-- текущий student project сериализуется отдельной lock-коллекцией `project_selection_locks`; lock берется на создание нового проекта и на перевод статуса обратно в `active`.
+- в `projects.status` используется lifecycle `draft | active | completed`; новый student project разрешается только при отсутствии другого текущего участия у ученика, а проверка идет через `project_memberships` с fallback для legacy-записей;
+- `projects.student_id` теперь означает владельца GitHub-репозитория, а не единственного участника проекта;
+- коллекция `project_memberships` хранит связь `project_id -> student_id -> role`, чтобы один проект мог принадлежать группе;
+- текущий student project сериализуется отдельной lock-коллекцией `project_selection_locks`; lock берется на создание нового проекта, добавление участника в текущий проект и на перевод статуса обратно в `active`.
 - для Appwrite Cloud Free нужно учитывать operational-риск: проект может уйти в pause после `7` дней без Console activity; для локальной профилактики добавлен `bun run appwrite:keepalive`.
 
 ## Deployment And Env

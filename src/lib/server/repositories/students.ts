@@ -44,33 +44,64 @@ async function buildStudentSummaries(
   }
 
   const weekStart = normalizeWeekStart(inputWeekStart);
-  const [projectsResponse, lessonsResponse, attendanceResponse] =
-    await Promise.all([
-      appwrite.databases.listDocuments(
-        appwrite.databaseId,
-        config.collections.projects,
-        [Query.limit(500)],
-      ),
-      appwrite.databases.listDocuments(
-        appwrite.databaseId,
-        config.collections.lessons,
-        [Query.equal("lesson_week_start", weekStart), Query.limit(10)],
-      ),
-      appwrite.databases.listDocuments(
-        appwrite.databaseId,
-        config.collections.attendance,
-        [Query.equal("student_id", studentIds), Query.limit(1000)],
-      ),
-    ]);
+  const [
+    projectsResponse,
+    projectMembershipsResponse,
+    lessonsResponse,
+    attendanceResponse,
+  ] = await Promise.all([
+    appwrite.databases.listDocuments(
+      appwrite.databaseId,
+      config.collections.projects,
+      [Query.limit(500)],
+    ),
+    appwrite.databases.listDocuments(
+      appwrite.databaseId,
+      config.collections.projectMemberships,
+      [Query.limit(1000)],
+    ),
+    appwrite.databases.listDocuments(
+      appwrite.databaseId,
+      config.collections.lessons,
+      [Query.equal("lesson_week_start", weekStart), Query.limit(10)],
+    ),
+    appwrite.databases.listDocuments(
+      appwrite.databaseId,
+      config.collections.attendance,
+      [Query.equal("student_id", studentIds), Query.limit(1000)],
+    ),
+  ]);
 
   const projectCountMap = new Map<string, number>();
   const activeProjectCountMap = new Map<string, number>();
   const completedProjectCountMap = new Map<string, number>();
   const lastActivityMap = new Map<string, string>();
   const aiSummaryMap = new Map<string, string>();
+  const membershipsByProjectId = new Map<string, string[]>();
+
+  for (const membershipDocument of projectMembershipsResponse.documents) {
+    const projectId = String(
+      (membershipDocument as Record<string, unknown>).project_id ?? "",
+    );
+    const studentId = String(
+      (membershipDocument as Record<string, unknown>).student_id ?? "",
+    );
+
+    if (!projectId || !studentId) {
+      continue;
+    }
+
+    const studentIds = membershipsByProjectId.get(projectId) ?? [];
+
+    if (!studentIds.includes(studentId)) {
+      studentIds.push(studentId);
+    }
+
+    membershipsByProjectId.set(projectId, studentIds);
+  }
 
   for (const document of projectsResponse.documents) {
-    const studentId = String(
+    const ownerStudentId = String(
       (document as Record<string, unknown>).student_id ?? "",
     );
     const status = normalizeProjectStatus(
@@ -80,21 +111,16 @@ async function buildStudentSummaries(
       (document as Record<string, unknown>).project_state_json ?? "",
     );
 
-    if (!studentId) {
-      continue;
-    }
+    const memberStudentIds = membershipsByProjectId.get(document.$id) ?? [];
+    const normalizedStudentIds =
+      memberStudentIds.length > 0
+        ? memberStudentIds
+        : ownerStudentId
+          ? [ownerStudentId]
+          : [];
 
-    projectCountMap.set(studentId, (projectCountMap.get(studentId) ?? 0) + 1);
-    if (isProjectCurrent(status)) {
-      activeProjectCountMap.set(
-        studentId,
-        (activeProjectCountMap.get(studentId) ?? 0) + 1,
-      );
-    } else {
-      completedProjectCountMap.set(
-        studentId,
-        (completedProjectCountMap.get(studentId) ?? 0) + 1,
-      );
+    if (normalizedStudentIds.length === 0) {
+      continue;
     }
 
     let aiSummary = "";
@@ -116,19 +142,38 @@ async function buildStudentSummaries(
       lastCommitAt = String(githubState.lastCommitAt ?? "");
     } catch {}
 
-    if (aiSummary && isProjectCurrent(status) && !aiSummaryMap.has(studentId)) {
-      aiSummaryMap.set(studentId, aiSummary);
-    }
+    for (const studentId of normalizedStudentIds) {
+      projectCountMap.set(studentId, (projectCountMap.get(studentId) ?? 0) + 1);
+      if (isProjectCurrent(status)) {
+        activeProjectCountMap.set(
+          studentId,
+          (activeProjectCountMap.get(studentId) ?? 0) + 1,
+        );
+      } else {
+        completedProjectCountMap.set(
+          studentId,
+          (completedProjectCountMap.get(studentId) ?? 0) + 1,
+        );
+      }
 
-    if (aiSummary && !aiSummaryMap.has(studentId)) {
-      aiSummaryMap.set(studentId, aiSummary);
-    }
+      if (
+        aiSummary &&
+        isProjectCurrent(status) &&
+        !aiSummaryMap.has(studentId)
+      ) {
+        aiSummaryMap.set(studentId, aiSummary);
+      }
 
-    if (lastCommitAt) {
-      const previous = lastActivityMap.get(studentId);
+      if (aiSummary && !aiSummaryMap.has(studentId)) {
+        aiSummaryMap.set(studentId, aiSummary);
+      }
 
-      if (!previous || new Date(lastCommitAt) > new Date(previous)) {
-        lastActivityMap.set(studentId, lastCommitAt);
+      if (lastCommitAt) {
+        const previous = lastActivityMap.get(studentId);
+
+        if (!previous || new Date(lastCommitAt) > new Date(previous)) {
+          lastActivityMap.set(studentId, lastCommitAt);
+        }
       }
     }
   }
@@ -388,6 +433,29 @@ export async function deleteStudent(studentId: string) {
 
   for (const project of projectsResponse.documents) {
     await deleteProjectCascade(project.$id);
+  }
+
+  const membershipsResponse = await appwrite.databases.listDocuments(
+    appwrite.databaseId,
+    config.collections.projectMemberships,
+    [Query.equal("student_id", studentId), Query.limit(500)],
+  );
+
+  for (const membership of membershipsResponse.documents) {
+    const projectId = String(
+      (membership as Record<string, unknown>).project_id ?? "",
+    );
+    const ownerProjects = new Set(
+      projectsResponse.documents.map((project) => project.$id),
+    );
+
+    if (!ownerProjects.has(projectId)) {
+      await appwrite.databases.deleteDocument(
+        appwrite.databaseId,
+        config.collections.projectMemberships,
+        membership.$id,
+      );
+    }
   }
 
   const attendanceResponse = await appwrite.databases.listDocuments(

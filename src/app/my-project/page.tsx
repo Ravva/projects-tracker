@@ -38,6 +38,11 @@ const PREVIEW_PROJECTS: ProjectRecord[] = [
     id: "preview-active-project",
     studentId: "preview-student",
     studentName: "Превью ученика",
+    ownerStudentId: "preview-student",
+    ownerStudentName: "Превью ученика",
+    memberStudentIds: ["preview-student", "preview-second-student"],
+    memberNames: ["Превью ученика", "Второй участник"],
+    membersCount: 2,
     name: "LinguaFlow",
     summary: "Учебный проект с AI-практикой и memory_bank.",
     status: "active",
@@ -83,6 +88,11 @@ const PREVIEW_PROJECTS: ProjectRecord[] = [
     id: "preview-completed-project",
     studentId: "preview-student",
     studentName: "Превью ученика",
+    ownerStudentId: "preview-student",
+    ownerStudentName: "Превью ученика",
+    memberStudentIds: ["preview-student"],
+    memberNames: ["Превью ученика"],
+    membersCount: 1,
     name: "StartLaunch",
     summary: "Завершённый учебный проект.",
     status: "completed",
@@ -224,8 +234,9 @@ export default async function MyProjectPage({
           </h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground">
             {student.studentName}, здесь хранится история ваших GitHub-проектов
-            в Projects Tracker. Новый репозиторий можно начать только после
-            завершения текущего проекта преподавателем.
+            в Projects Tracker, включая групповые проекты. Новый репозиторий
+            можно начать только после завершения текущего проекта
+            преподавателем.
           </p>
           {isTeacherPreview ? (
             <div className="mt-4 rounded-2xl border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] px-4 py-3 text-sm text-foreground">
@@ -381,7 +392,8 @@ export default async function MyProjectPage({
                     </div>
                     <div className="mt-1 text-muted-foreground">
                       Прогресс: {project.progress}%. Риск:{" "}
-                      {getProjectRiskLabel(project.risk)}.
+                      {getProjectRiskLabel(project.risk)}. Участники:{" "}
+                      {project.memberNames.join(", ")}.
                     </div>
                     <div className="mt-3">
                       <Button
@@ -425,7 +437,8 @@ export default async function MyProjectPage({
                       </div>
                       <div className="mt-1 text-muted-foreground">
                         Итоговый прогресс: {project.progress}%. Последний
-                        коммит: {project.lastCommit}.
+                        коммит: {project.lastCommit}. Участники:{" "}
+                        {project.memberNames.join(", ")}.
                       </div>
                     </div>
                   ))

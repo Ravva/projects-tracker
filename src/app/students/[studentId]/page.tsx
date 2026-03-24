@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/field-with-counter";
 import { Input } from "@/components/ui/input";
 import { requireTeacherSession } from "@/lib/server/auth";
+import { listProjectsByStudentId } from "@/lib/server/repositories/projects";
 import { getStudent } from "@/lib/server/repositories/students";
 import { getStudentTelegramInviteLink } from "@/lib/server/telegram-linking";
 import { GithubLinkCard } from "./github-link-card";
@@ -45,6 +46,7 @@ export default async function StudentDetailsPage({
     student.telegramLinkStatus === "awaiting_start"
       ? await getStudentTelegramInviteLink(student.id)
       : null;
+  const studentProjects = await listProjectsByStudentId(student.id);
 
   return (
     <TeacherShell
@@ -292,6 +294,35 @@ export default async function StudentDetailsPage({
                   {student.aiSummary}
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card/88 shadow-none">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Проекты ученика</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              {studentProjects.length > 0 ? (
+                studentProjects.map((project) => (
+                  <div
+                    key={project.id}
+                    className="rounded-2xl border border-border/70 bg-background/70 p-4"
+                  >
+                    <div className="font-medium text-foreground">
+                      {project.name}
+                    </div>
+                    <div className="mt-1 text-muted-foreground">
+                      Статус:{" "}
+                      {project.status === "completed" ? "завершен" : "в работе"}
+                      . Участники: {project.memberNames.join(", ")}.
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-border/70 bg-background/50 p-4 text-muted-foreground">
+                  Проекты для этого ученика пока не подключены.
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

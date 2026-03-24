@@ -12,6 +12,7 @@ type AppwriteConfig = {
     lessons: string;
     attendance: string;
     projects: string;
+    projectMemberships: string;
     projectSelectionLocks: string;
     projectAiReports: string;
   };
@@ -57,6 +58,9 @@ export function getAppwriteConfig(): AppwriteConfig | null {
       lessons: process.env.APPWRITE_LESSONS_COLLECTION_ID ?? "lessons",
       attendance: process.env.APPWRITE_ATTENDANCE_COLLECTION_ID ?? "attendance",
       projects: process.env.APPWRITE_PROJECTS_COLLECTION_ID ?? "projects",
+      projectMemberships:
+        process.env.APPWRITE_PROJECT_MEMBERSHIPS_COLLECTION_ID ??
+        "project_memberships",
       projectSelectionLocks:
         process.env.APPWRITE_PROJECT_SELECTION_LOCKS_COLLECTION_ID ??
         "project_selection_locks",

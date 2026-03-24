@@ -114,7 +114,7 @@ export async function buildProjectReportData(
     projects.map((project) => project.id),
   );
 
-  const items = projects.map((project) => {
+  const items = projects.flatMap((project) => {
     const reports = reportsByProjectId.get(project.id) ?? [];
     const latestReport = reports[0] ?? null;
     const previousReport =
@@ -129,9 +129,9 @@ export async function buildProjectReportData(
         ? latestReport.completionPercent - previousReport.completionPercent
         : null;
 
-    return {
-      studentId: project.studentId,
-      studentName: project.studentName,
+    return project.memberStudentIds.map((studentId, index) => ({
+      studentId,
+      studentName: project.memberNames[index] ?? project.ownerStudentName,
       projectName: project.name,
       projectUrl: project.githubUrl,
       progress: project.hasAiAnalysisSnapshot ? project.progress : null,
@@ -154,11 +154,11 @@ export async function buildProjectReportData(
         project.risk === "abandoned" ||
         project.isAbandoned ||
         (project.lastCommitDaysAgo !== null && project.lastCommitDaysAgo > 7),
-    } satisfies ProjectReportItem & {
+    })) satisfies (ProjectReportItem & {
       isGoodDynamics: boolean;
       isNoDynamics: boolean;
       isAbandoned: boolean;
-    };
+    })[];
   });
 
   const studentIdsWithProjects = new Set(

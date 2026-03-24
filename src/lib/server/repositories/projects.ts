@@ -21,6 +21,7 @@ import {
 import {
   mapProjectAiReportDocument,
   mapProjectDocument,
+  mapProjectMembershipDocument,
 } from "@/lib/server/mappers";
 import {
   type ProjectAiInputSnapshot,
@@ -32,6 +33,8 @@ import { listStudentNameMap } from "@/lib/server/repositories/students";
 import type {
   ProjectAiReportRecord,
   ProjectInput,
+  ProjectMemberRecord,
+  ProjectMemberRole,
   ProjectRecord,
   ProjectRisk,
   ProjectStatus,
@@ -188,6 +191,19 @@ function buildProjectPayload(input: ProjectInput) {
     status: normalizedInput.status,
     spec_markdown: normalizedInput.specMarkdown,
     plan_markdown: normalizedInput.planMarkdown,
+  };
+}
+
+function buildProjectMembershipPayload(input: {
+  projectId: string;
+  studentId: string;
+  role: ProjectMemberRole;
+}) {
+  return {
+    project_id: input.projectId,
+    student_id: input.studentId,
+    role: input.role,
+    joined_at: new Date().toISOString(),
   };
 }
 
@@ -586,6 +602,146 @@ async function listProjectDocumentsByStudent(studentId: string) {
   return response.documents;
 }
 
+async function listProjectMembershipDocumentsByProjectIds(
+  projectIds: string[],
+) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config || projectIds.length === 0) {
+    return [];
+  }
+
+  const response = await appwrite.databases.listDocuments(
+    appwrite.databaseId,
+    config.collections.projectMemberships,
+    [
+      Query.equal("project_id", projectIds),
+      Query.orderDesc("$updatedAt"),
+      Query.limit(500),
+    ],
+  );
+
+  return response.documents;
+}
+
+async function listProjectMembershipDocumentsByStudent(studentId: string) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    return [];
+  }
+
+  const response = await appwrite.databases.listDocuments(
+    appwrite.databaseId,
+    config.collections.projectMemberships,
+    [
+      Query.equal("student_id", studentId),
+      Query.orderDesc("$updatedAt"),
+      Query.limit(500),
+    ],
+  );
+
+  return response.documents;
+}
+
+function buildMembershipsByProjectId(
+  documents: Awaited<
+    ReturnType<typeof listProjectMembershipDocumentsByProjectIds>
+  >,
+  studentNameMap: Map<string, string>,
+) {
+  const grouped = new Map<string, ProjectMemberRecord[]>();
+
+  for (const document of documents) {
+    const studentId = String(
+      (document as Record<string, unknown>).student_id ?? "",
+    );
+    const membership = mapProjectMembershipDocument(
+      document,
+      studentNameMap.get(studentId) ?? "Неизвестный ученик",
+    );
+    const memberships = grouped.get(membership.projectId) ?? [];
+    memberships.push(membership);
+    grouped.set(membership.projectId, memberships);
+  }
+
+  return grouped;
+}
+
+function buildProjectRecordWithMembers(
+  document: Awaited<ReturnType<typeof listProjectDocuments>>[number],
+  studentNameMap: Map<string, string>,
+  membershipsByProjectId: Map<string, ProjectMemberRecord[]>,
+) {
+  const ownerStudentId = String(
+    (document as Record<string, unknown>).student_id ?? "",
+  );
+  const ownerStudentName =
+    studentNameMap.get(ownerStudentId) ?? "Неизвестный ученик";
+  const baseProject = mapProjectDocument(document, ownerStudentName);
+  const memberships = membershipsByProjectId.get(baseProject.id) ?? [];
+  const normalizedMemberships =
+    memberships.length > 0
+      ? memberships
+      : [
+          {
+            id: `legacy-owner:${baseProject.id}:${ownerStudentId}`,
+            projectId: baseProject.id,
+            studentId: ownerStudentId,
+            studentName: ownerStudentName,
+            role: "owner" as const,
+            joinedAt: document.$createdAt,
+          },
+        ];
+  const uniqueMembers = new Map<string, string>();
+
+  for (const membership of normalizedMemberships) {
+    if (!membership.studentId.trim()) {
+      continue;
+    }
+
+    uniqueMembers.set(
+      membership.studentId,
+      membership.studentName || "Неизвестный ученик",
+    );
+  }
+
+  if (uniqueMembers.size === 0 && ownerStudentId) {
+    uniqueMembers.set(ownerStudentId, ownerStudentName);
+  }
+
+  return {
+    ...baseProject,
+    studentId: ownerStudentId,
+    studentName: ownerStudentName,
+    ownerStudentId,
+    ownerStudentName,
+    memberStudentIds: [...uniqueMembers.keys()],
+    memberNames: [...uniqueMembers.values()],
+    membersCount: uniqueMembers.size,
+  } satisfies ProjectRecord;
+}
+
+async function listStudentProjectIds(studentId: string) {
+  const membershipDocuments =
+    await listProjectMembershipDocumentsByStudent(studentId);
+  const projectIds = new Set(
+    membershipDocuments.map((document) =>
+      String((document as Record<string, unknown>).project_id ?? ""),
+    ),
+  );
+
+  const legacyDocuments = await listProjectDocumentsByStudent(studentId);
+
+  for (const document of legacyDocuments) {
+    projectIds.add(document.$id);
+  }
+
+  return [...projectIds].filter(Boolean);
+}
+
 export async function listCurrentProjectsByStudentId(
   studentId: string,
 ): Promise<ProjectRecord[]> {
@@ -607,16 +763,20 @@ export async function listProjects(): Promise<ProjectRecord[]> {
       listProjectDocuments(),
       listStudentNameMap(),
     ]);
+    const membershipsByProjectId = buildMembershipsByProjectId(
+      await listProjectMembershipDocumentsByProjectIds(
+        documents.map((document) => document.$id),
+      ),
+      studentNameMap,
+    );
 
-    const projects = documents.map((document) => {
-      const studentId = String(
-        (document as Record<string, unknown>).student_id ?? "",
-      );
-      return mapProjectDocument(
+    const projects = documents.map((document) =>
+      buildProjectRecordWithMembers(
         document,
-        studentNameMap.get(studentId) ?? "Неизвестный ученик",
-      );
-    });
+        studentNameMap,
+        membershipsByProjectId,
+      ),
+    );
 
     return enrichProjectsRepositoryStatus(projects);
   } catch {
@@ -635,17 +795,38 @@ export async function listProjectsByStudentId(
   }
 
   try {
-    const [documents, studentNameMap] = await Promise.all([
-      listProjectDocumentsByStudent(studentId),
+    const [projectIds, studentNameMap] = await Promise.all([
+      listStudentProjectIds(studentId),
       listStudentNameMap(),
     ]);
 
-    const projects = documents.map((document) =>
-      mapProjectDocument(
-        document,
-        studentNameMap.get(studentId) ?? "Неизвестный ученик",
-      ),
+    if (projectIds.length === 0) {
+      return [];
+    }
+
+    const [documents, membershipDocuments] = await Promise.all([
+      listProjectDocuments(),
+      listProjectMembershipDocumentsByProjectIds(projectIds),
+    ]);
+    const documentsById = new Map(
+      documents.map((document) => [document.$id, document]),
     );
+    const membershipsByProjectId = buildMembershipsByProjectId(
+      membershipDocuments,
+      studentNameMap,
+    );
+    const projects = projectIds
+      .map((projectId) => documentsById.get(projectId))
+      .filter((document): document is (typeof documents)[number] =>
+        Boolean(document),
+      )
+      .map((document) =>
+        buildProjectRecordWithMembers(
+          document,
+          studentNameMap,
+          membershipsByProjectId,
+        ),
+      );
 
     return enrichProjectsRepositoryStatus(projects);
   } catch {
@@ -672,12 +853,15 @@ export async function getProject(
       ),
       listStudentNameMap(),
     ]);
-    const studentId = String(
-      (document as Record<string, unknown>).student_id ?? "",
+    const membershipsByProjectId = buildMembershipsByProjectId(
+      await listProjectMembershipDocumentsByProjectIds([projectId]),
+      studentNameMap,
     );
-    const project = mapProjectDocument(
+
+    const project = buildProjectRecordWithMembers(
       document,
-      studentNameMap.get(studentId) ?? "Неизвестный ученик",
+      studentNameMap,
+      membershipsByProjectId,
     );
     return enrichProjectRepositoryStatus(getProjectBaseRecord(project));
   } catch {
@@ -693,7 +877,7 @@ export async function createProject(input: ProjectInput) {
     throw new Error("Appwrite не настроен.");
   }
 
-  return appwrite.databases.createDocument(
+  const project = await appwrite.databases.createDocument(
     appwrite.databaseId,
     config.collections.projects,
     ID.unique(),
@@ -703,6 +887,19 @@ export async function createProject(input: ProjectInput) {
       project_state_json: buildProjectState(),
     },
   );
+
+  await appwrite.databases.createDocument(
+    appwrite.databaseId,
+    config.collections.projectMemberships,
+    ID.unique(),
+    buildProjectMembershipPayload({
+      projectId: project.$id,
+      studentId: input.studentId,
+      role: "owner",
+    }),
+  );
+
+  return project;
 }
 
 export async function createStudentProjectFromGithubSelection(input: {
@@ -734,6 +931,7 @@ export async function createStudentProjectFromGithubSelection(input: {
 
   try {
     const existingProjects = await listProjectsByStudentId(input.studentId);
+    const allProjects = await listProjects();
 
     if (
       existingProjects.some(
@@ -748,25 +946,25 @@ export async function createStudentProjectFromGithubSelection(input: {
         "Сначала завершите текущий проект ученика, затем можно выбрать следующий репозиторий.",
       );
     }
+    if (
+      allProjects.some(
+        (project) => project.githubUrl.trim() === normalizedUrl.trim(),
+      )
+    ) {
+      throw new Error(
+        "Этот GitHub-репозиторий уже привязан к другому проекту. Для групповой работы преподаватель должен добавить второго участника в существующий проект.",
+      );
+    }
 
-    return await appwrite.databases.createDocument(
-      appwrite.databaseId,
-      config.collections.projects,
-      ID.unique(),
-      {
-        ...buildProjectPayload({
-          studentId: input.studentId,
-          name: input.repositoryName.trim() || `Проект ${input.studentName}`,
-          summary: input.repositoryDescription.trim(),
-          githubUrl: normalizedUrl,
-          status: "draft",
-          specMarkdown: "",
-          planMarkdown: "",
-        }),
-        github_state_json: buildGithubState(),
-        project_state_json: buildProjectState(),
-      },
-    );
+    return await createProject({
+      studentId: input.studentId,
+      name: input.repositoryName.trim() || `Проект ${input.studentName}`,
+      summary: input.repositoryDescription.trim(),
+      githubUrl: normalizedUrl,
+      status: "draft",
+      specMarkdown: "",
+      planMarkdown: "",
+    });
   } finally {
     await lock.release();
   }
@@ -785,21 +983,30 @@ export async function setProjectStatus(
   }
 
   const normalizedStatus = normalizeProjectStatus(nextStatus);
-  const lock = await acquireProjectSelectionLock(project.studentId);
+  const participantStudentIds = project.memberStudentIds.length
+    ? project.memberStudentIds
+    : [project.studentId];
+  const locks = await Promise.all(
+    participantStudentIds.map((studentId) =>
+      acquireProjectSelectionLock(studentId),
+    ),
+  );
 
   try {
     if (normalizedStatus === "active") {
-      const studentProjects = await listProjectsByStudentId(project.studentId);
-      const hasOtherCurrentProject = studentProjects.some(
-        (studentProject) =>
-          studentProject.id !== projectId &&
-          isProjectCurrent(studentProject.status),
-      );
-
-      if (hasOtherCurrentProject) {
-        throw new Error(
-          "У ученика уже есть другой текущий проект. Сначала завершите его или оставьте этот проект завершенным.",
+      for (const studentId of participantStudentIds) {
+        const studentProjects = await listProjectsByStudentId(studentId);
+        const hasOtherCurrentProject = studentProjects.some(
+          (studentProject) =>
+            studentProject.id !== projectId &&
+            isProjectCurrent(studentProject.status),
         );
+
+        if (hasOtherCurrentProject) {
+          throw new Error(
+            "У одного из участников уже есть другой текущий проект. Сначала завершите его или оставьте этот проект завершенным.",
+          );
+        }
       }
     }
 
@@ -812,7 +1019,7 @@ export async function setProjectStatus(
       },
     );
   } finally {
-    await lock.release();
+    await Promise.all(locks.map((lock) => lock.release()));
   }
 }
 
@@ -829,6 +1036,136 @@ export async function updateProject(projectId: string, input: ProjectInput) {
     config.collections.projects,
     projectId,
     buildProjectPayload(input),
+  );
+}
+
+export async function listProjectMembers(
+  projectId: string,
+): Promise<ProjectMemberRecord[]> {
+  const [project, studentNameMap] = await Promise.all([
+    getProject(projectId),
+    listStudentNameMap(),
+  ]);
+
+  if (!project) {
+    return [];
+  }
+
+  const membershipDocuments = await listProjectMembershipDocumentsByProjectIds([
+    projectId,
+  ]);
+  const memberships = buildMembershipsByProjectId(
+    membershipDocuments,
+    studentNameMap,
+  ).get(projectId);
+
+  if (memberships && memberships.length > 0) {
+    return memberships.sort((left, right) =>
+      left.studentName.localeCompare(right.studentName, "ru"),
+    );
+  }
+
+  return [
+    {
+      id: `legacy-owner:${project.id}:${project.ownerStudentId}`,
+      projectId: project.id,
+      studentId: project.ownerStudentId,
+      studentName: project.ownerStudentName,
+      role: "owner",
+      joinedAt: "",
+    },
+  ];
+}
+
+export async function addProjectMember(projectId: string, studentId: string) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+  const [project, studentProjects] = await Promise.all([
+    getProject(projectId),
+    listProjectsByStudentId(studentId),
+  ]);
+
+  if (!appwrite || !config || !project) {
+    throw new Error("Проект не найден.");
+  }
+
+  if (project.memberStudentIds.includes(studentId)) {
+    throw new Error("Этот ученик уже добавлен в проект.");
+  }
+
+  if (
+    studentProjects.some((studentProject) =>
+      isProjectCurrent(studentProject.status),
+    )
+  ) {
+    throw new Error(
+      "У ученика уже есть текущий проект. Сначала завершите его, затем можно добавить участие в групповом проекте.",
+    );
+  }
+
+  const lock = await acquireProjectSelectionLock(studentId);
+
+  try {
+    const refreshedProjects = await listProjectsByStudentId(studentId);
+
+    if (
+      refreshedProjects.some((studentProject) =>
+        isProjectCurrent(studentProject.status),
+      )
+    ) {
+      throw new Error(
+        "У ученика уже есть текущий проект. Сначала завершите его, затем можно добавить участие в групповом проекте.",
+      );
+    }
+
+    return await appwrite.databases.createDocument(
+      appwrite.databaseId,
+      config.collections.projectMemberships,
+      ID.unique(),
+      buildProjectMembershipPayload({
+        projectId,
+        studentId,
+        role: "member",
+      }),
+    );
+  } finally {
+    await lock.release();
+  }
+}
+
+export async function removeProjectMember(
+  projectId: string,
+  studentId: string,
+) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+  const [project, membershipDocuments] = await Promise.all([
+    getProject(projectId),
+    listProjectMembershipDocumentsByProjectIds([projectId]),
+  ]);
+
+  if (!appwrite || !config || !project) {
+    throw new Error("Проект не найден.");
+  }
+
+  if (project.ownerStudentId === studentId) {
+    throw new Error("Нельзя удалить владельца GitHub-репозитория из проекта.");
+  }
+
+  const membershipDocument = membershipDocuments.find(
+    (document) =>
+      String((document as Record<string, unknown>).student_id ?? "") ===
+      studentId,
+  );
+
+  if (!membershipDocument) {
+    throw new Error("Участник проекта не найден.");
+  }
+
+  return appwrite.databases.deleteDocument(
+    appwrite.databaseId,
+    config.collections.projectMemberships,
+    membershipDocument.$id,
   );
 }
 

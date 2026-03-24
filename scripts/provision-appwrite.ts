@@ -22,6 +22,9 @@ const collections = {
   lessons: process.env.APPWRITE_LESSONS_COLLECTION_ID ?? "lessons",
   attendance: process.env.APPWRITE_ATTENDANCE_COLLECTION_ID ?? "attendance",
   projects: process.env.APPWRITE_PROJECTS_COLLECTION_ID ?? "projects",
+  projectMemberships:
+    process.env.APPWRITE_PROJECT_MEMBERSHIPS_COLLECTION_ID ??
+    "project_memberships",
   projectSelectionLocks:
     process.env.APPWRITE_PROJECT_SELECTION_LOCKS_COLLECTION_ID ??
     "project_selection_locks",
@@ -305,6 +308,34 @@ const attributeDefinitions: AttributeDefinition[] = [
   },
   {
     type: "string",
+    collectionId: collections.projectMemberships,
+    key: "project_id",
+    size: 255,
+    required: true,
+  },
+  {
+    type: "string",
+    collectionId: collections.projectMemberships,
+    key: "student_id",
+    size: 255,
+    required: true,
+  },
+  {
+    type: "string",
+    collectionId: collections.projectMemberships,
+    key: "role",
+    size: 32,
+    required: true,
+  },
+  {
+    type: "string",
+    collectionId: collections.projectMemberships,
+    key: "joined_at",
+    size: 255,
+    required: true,
+  },
+  {
+    type: "string",
     collectionId: collections.projectSelectionLocks,
     key: "expires_at",
     size: 255,
@@ -400,6 +431,18 @@ const indexDefinitions: IndexDefinition[] = [
     key: "project_selection_locks_by_student",
     attributes: ["student_id"],
     orders: [OrderBy.Asc],
+  },
+  {
+    collectionId: collections.projectMemberships,
+    key: "project_memberships_by_project",
+    attributes: ["project_id", "$updatedAt"],
+    orders: [OrderBy.Asc, OrderBy.Desc],
+  },
+  {
+    collectionId: collections.projectMemberships,
+    key: "project_memberships_by_student",
+    attributes: ["student_id", "$updatedAt"],
+    orders: [OrderBy.Asc, OrderBy.Desc],
   },
   {
     collectionId: collections.projectAiReports,
@@ -608,6 +651,7 @@ await ensureCollection(collections.students, "Students");
 await ensureCollection(collections.lessons, "Lessons");
 await ensureCollection(collections.attendance, "Attendance");
 await ensureCollection(collections.projects, "Projects");
+await ensureCollection(collections.projectMemberships, "Project Memberships");
 await ensureCollection(
   collections.projectSelectionLocks,
   "Project Selection Locks",

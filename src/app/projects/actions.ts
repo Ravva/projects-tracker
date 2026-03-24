@@ -6,7 +6,10 @@ import { redirect } from "next/navigation";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { runProjectSyncBatch } from "@/lib/server/project-sync-batch";
 import {
+  addProjectMember,
   deleteProject,
+  getProject,
+  removeProjectMember,
   runProjectAiAnalysis,
   setProjectStatus,
   syncProjectGithub,
@@ -82,15 +85,43 @@ function buildProjectsListRedirect(searchParams: Record<string, string>) {
   return query ? `/projects?${query}` : "/projects";
 }
 
+async function revalidateProjectRelatedPaths(projectId: string) {
+  const project = await getProject(projectId);
+
+  revalidatePath("/projects");
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/my-project");
+  revalidatePath("/");
+  revalidatePath("/students");
+
+  if (!project) {
+    return;
+  }
+
+  for (const studentId of project.memberStudentIds) {
+    revalidatePath(`/students/${studentId}`);
+  }
+}
+
 export async function deleteProjectAction(formData: FormData) {
   await requireTeacherSession();
 
   const projectId = readString(formData, "projectId");
+  const project = await getProject(projectId);
 
   await deleteProject(projectId);
 
   revalidatePath("/projects");
+  revalidatePath("/my-project");
+  revalidatePath("/students");
   revalidatePath("/");
+
+  if (project) {
+    for (const studentId of project.memberStudentIds) {
+      revalidatePath(`/students/${studentId}`);
+    }
+  }
+
   redirect("/projects");
 }
 
@@ -133,9 +164,7 @@ export async function syncProjectAction(formData: FormData) {
     aiProvider = inferAiProviderLabelFromMessage(notice);
   }
 
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${projectId}`);
-  revalidatePath("/");
+  await revalidateProjectRelatedPaths(projectId);
 
   redirect(
     returnTo === "projects"
@@ -231,9 +260,7 @@ export async function runProjectAiAnalysisAction(formData: FormData) {
     );
   }
 
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${projectId}`);
-  revalidatePath("/");
+  await revalidateProjectRelatedPaths(projectId);
 
   redirect(
     buildProjectDetailsRedirect(projectId, {
@@ -248,20 +275,61 @@ export async function setProjectStatusAction(formData: FormData) {
 
   const projectId = readString(formData, "projectId");
   const status = readString(formData, "status");
-  const studentId = readString(formData, "studentId");
 
   await setProjectStatus(
     projectId,
     status === "completed" ? "completed" : "active",
   );
 
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${projectId}`);
-  revalidatePath("/my-project");
-  revalidatePath("/");
-  revalidatePath("/students");
+  await revalidateProjectRelatedPaths(projectId);
+}
 
-  if (studentId) {
-    revalidatePath(`/students/${studentId}`);
+export async function addProjectMemberAction(formData: FormData) {
+  await requireTeacherSession();
+
+  const projectId = readString(formData, "projectId");
+  const studentId = readString(formData, "studentId");
+
+  try {
+    await addProjectMember(projectId, studentId);
+  } catch (error) {
+    redirect(
+      buildProjectDetailsRedirect(projectId, {
+        error: getErrorMessage(error, "Не удалось добавить участника проекта."),
+      }),
+    );
   }
+
+  await revalidateProjectRelatedPaths(projectId);
+
+  redirect(
+    buildProjectDetailsRedirect(projectId, {
+      success: "member-added",
+    }),
+  );
+}
+
+export async function removeProjectMemberAction(formData: FormData) {
+  await requireTeacherSession();
+
+  const projectId = readString(formData, "projectId");
+  const studentId = readString(formData, "studentId");
+
+  try {
+    await removeProjectMember(projectId, studentId);
+  } catch (error) {
+    redirect(
+      buildProjectDetailsRedirect(projectId, {
+        error: getErrorMessage(error, "Не удалось удалить участника проекта."),
+      }),
+    );
+  }
+
+  await revalidateProjectRelatedPaths(projectId);
+
+  redirect(
+    buildProjectDetailsRedirect(projectId, {
+      success: "member-removed",
+    }),
+  );
 }

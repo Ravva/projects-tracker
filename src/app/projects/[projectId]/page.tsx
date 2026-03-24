@@ -10,7 +10,9 @@ import { notFound } from "next/navigation";
 import { RunAiAnalysisButton } from "@/app/projects/[projectId]/run-ai-analysis-button";
 import { SyncProjectButton } from "@/app/projects/[projectId]/sync-project-button";
 import {
+  addProjectMemberAction,
   deleteProjectAction,
+  removeProjectMemberAction,
   runProjectAiAnalysisAction,
   setProjectStatusAction,
   syncProjectAction,
@@ -39,7 +41,9 @@ import { parseProjectAiInputSnapshot } from "@/lib/server/project-ai-report-snap
 import {
   getProject,
   listProjectAiReports,
+  listProjectMembers,
 } from "@/lib/server/repositories/projects";
+import { listStudents } from "@/lib/server/repositories/students";
 import { cn } from "@/lib/utils";
 
 function extractTextOrFallback(value: string | undefined, fallback: string) {
@@ -130,6 +134,14 @@ export default async function ProjectDetailsPage({
     notFound();
   }
 
+  const [members, students] = await Promise.all([
+    listProjectMembers(projectId),
+    listStudents(),
+  ]);
+  const availableStudents = students.filter(
+    (student) => !project.memberStudentIds.includes(student.id),
+  );
+
   const latestReport = reports[0] ?? null;
   const snapshot = latestReport
     ? parseProjectAiInputSnapshot(latestReport.inputSnapshotJson)
@@ -214,7 +226,6 @@ export default async function ProjectDetailsPage({
           </form>
           <form action={setProjectStatusAction}>
             <input type="hidden" name="projectId" value={project.id} />
-            <input type="hidden" name="studentId" value={project.studentId} />
             <input
               type="hidden"
               name="status"
@@ -237,6 +248,16 @@ export default async function ProjectDetailsPage({
       {success === "analysis-complete" ? (
         <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
           AI-анализ{providerSuffix} завершен, данные проекта обновлены.
+        </div>
+      ) : null}
+      {success === "member-added" ? (
+        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+          Участник добавлен в проект.
+        </div>
+      ) : null}
+      {success === "member-removed" ? (
+        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+          Участник удален из проекта.
         </div>
       ) : null}
       {success === "sync-complete" ? (
@@ -407,6 +428,93 @@ export default async function ProjectDetailsPage({
         </div>
 
         <div className="grid content-start gap-6 self-start">
+          <Card className="border-border/70 bg-card/88 shadow-none">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Участники проекта</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4 text-muted-foreground">
+                GitHub-репозиторий закреплен за владельцем:{" "}
+                <span className="font-medium text-foreground">
+                  {project.ownerStudentName}
+                </span>
+                . Остальные ученики подключаются к этому же проекту как
+                участники.
+              </div>
+              <div className="space-y-3">
+                {members.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-background/70 p-4 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div>
+                      <div className="font-medium text-foreground">
+                        {member.studentName}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {member.role === "owner"
+                          ? "владелец репозитория"
+                          : "участник группы"}
+                      </div>
+                    </div>
+                    {member.role === "owner" ? (
+                      <StatusPill tone="calm" label="Owner" />
+                    ) : (
+                      <form action={removeProjectMemberAction}>
+                        <input
+                          type="hidden"
+                          name="projectId"
+                          value={project.id}
+                        />
+                        <input
+                          type="hidden"
+                          name="studentId"
+                          value={member.studentId}
+                        />
+                        <Button
+                          type="submit"
+                          variant="outline"
+                          className="rounded-xl bg-background/90"
+                        >
+                          Удалить из проекта
+                        </Button>
+                      </form>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {availableStudents.length > 0 ? (
+                <form
+                  action={addProjectMemberAction}
+                  className="rounded-2xl border border-border/70 bg-background/70 p-4"
+                >
+                  <input type="hidden" name="projectId" value={project.id} />
+                  <div className="mb-3 font-medium text-foreground">
+                    Добавить ученика в групповой проект
+                  </div>
+                  <select
+                    name="studentId"
+                    defaultValue=""
+                    required
+                    className="flex h-11 w-full rounded-xl border border-input bg-background/90 px-3 text-sm outline-none"
+                  >
+                    <option value="" disabled>
+                      Выберите ученика
+                    </option>
+                    {availableStudents.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.lastName} {student.firstName}
+                      </option>
+                    ))}
+                  </select>
+                  <Button type="submit" className="mt-4 rounded-xl">
+                    Добавить участника
+                  </Button>
+                </form>
+              ) : null}
+            </CardContent>
+          </Card>
+
           <Card className="border-border/70 bg-card/88 shadow-none">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-base">

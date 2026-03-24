@@ -40,6 +40,15 @@ function buildProgressDeltaLabel(delta: number | null) {
   return `+${delta} п.п. за неделю`;
 }
 
+function formatProjectParticipants(project: {
+  memberNames: string[];
+  ownerStudentName: string;
+}) {
+  return project.memberNames.length > 0
+    ? project.memberNames.join(", ")
+    : project.ownerStudentName;
+}
+
 export async function buildProjectWeeklyStatusMarkdownReport() {
   const weekStart = toIsoDate(startOfCurrentWeek());
   const weekStartDate = new Date(`${weekStart}T00:00:00.000Z`);
@@ -112,7 +121,7 @@ export async function buildProjectWeeklyStatusMarkdownReport() {
   } else {
     lines.push(
       ...healthyMovingProjects.map(({ project, progressDelta }) => {
-        return `- ${project.studentName} / ${project.name} — ${project.progress}% (${buildProgressDeltaLabel(progressDelta)}; ${formatLastCommitLabel(project.lastCommitDaysAgo)})`;
+        return `- ${formatProjectParticipants(project)} / ${project.name} — ${project.progress}% (${buildProgressDeltaLabel(progressDelta)}; ${formatLastCommitLabel(project.lastCommitDaysAgo)})`;
       }),
     );
   }
@@ -125,7 +134,7 @@ export async function buildProjectWeeklyStatusMarkdownReport() {
   } else {
     lines.push(
       ...abandonedProjects.map(({ project, progressDelta }) => {
-        return `- ${project.studentName} / ${project.name} — ${project.hasAiAnalysisSnapshot ? `${project.progress}%` : "нет данных"} (${getProjectRiskLabel(project.risk)}; ${formatLastCommitLabel(project.lastCommitDaysAgo)}; ${buildProgressDeltaLabel(progressDelta)})`;
+        return `- ${formatProjectParticipants(project)} / ${project.name} — ${project.hasAiAnalysisSnapshot ? `${project.progress}%` : "нет данных"} (${getProjectRiskLabel(project.risk)}; ${formatLastCommitLabel(project.lastCommitDaysAgo)}; ${buildProgressDeltaLabel(progressDelta)})`;
       }),
     );
   }

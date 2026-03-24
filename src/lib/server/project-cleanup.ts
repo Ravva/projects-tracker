@@ -37,6 +37,39 @@ async function deleteAllProjectAiReports(projectId: string) {
   }
 }
 
+async function deleteAllProjectMemberships(projectId: string) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    throw new Error("Appwrite не настроен.");
+  }
+
+  while (true) {
+    const response = await appwrite.databases.listDocuments(
+      appwrite.databaseId,
+      config.collections.projectMemberships,
+      [Query.equal("project_id", projectId), Query.limit(100)],
+    );
+
+    if (response.documents.length === 0) {
+      break;
+    }
+
+    for (const membership of response.documents) {
+      await appwrite.databases.deleteDocument(
+        appwrite.databaseId,
+        config.collections.projectMemberships,
+        membership.$id,
+      );
+    }
+
+    if (response.documents.length < 100) {
+      break;
+    }
+  }
+}
+
 export async function deleteProjectCascade(projectId: string) {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
@@ -46,6 +79,7 @@ export async function deleteProjectCascade(projectId: string) {
   }
 
   await deleteAllProjectAiReports(projectId);
+  await deleteAllProjectMemberships(projectId);
 
   return appwrite.databases.deleteDocument(
     appwrite.databaseId,

@@ -25,9 +25,7 @@ import {
 import type { ProjectRecord } from "@/lib/types";
 
 export interface ProjectsTableRowData {
-  studentId: string;
-  studentName: string;
-  project: ProjectRecord | null;
+  project: ProjectRecord;
 }
 
 function formatLastCommitLabel(value: string) {
@@ -80,7 +78,7 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
       <Table className="w-max text-sm md:text-base">
         <TableHeader>
           <TableRow>
-            <TableHead>Ученик</TableHead>
+            <TableHead>Участники</TableHead>
             <TableHead>Проект</TableHead>
             <TableHead>Последнее изменение</TableHead>
             <TableHead>Статус</TableHead>
@@ -108,7 +106,7 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
     <Table className="w-max text-sm md:text-base">
       <TableHeader>
         <TableRow>
-          <TableHead>Ученик</TableHead>
+          <TableHead>Участники</TableHead>
           <TableHead>Проект</TableHead>
           <TableHead>Последнее изменение</TableHead>
           <TableHead>Статус</TableHead>
@@ -120,52 +118,24 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
       </TableHeader>
       <TableBody>
         {rows.map((row) => {
-          const project = row.project;
-
-          if (!project) {
-            return (
-              <TableRow
-                key={row.studentId}
-                className="transition-colors hover:bg-muted/40"
-              >
-                <TableCell className="font-medium">
-                  <div className="px-4 py-4">{row.studentName}</div>
-                </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
-                </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
-                </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
-                </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
-                </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
-                </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
-                </TableCell>
-              </TableRow>
-            );
-          }
-
+          const { project } = row;
           const href = `/projects/${project.id}`;
 
           return (
             <TableRow
-              key={row.studentId}
+              key={project.id}
               className="transition-colors hover:bg-muted/40"
             >
               <TableCell className="p-0 font-medium">
                 <RowLink href={href} padded={false}>
-                  {row.studentName}
+                  <div className="font-medium">
+                    {project.memberNames.join(", ")}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {project.membersCount > 1
+                      ? "групповой проект"
+                      : "индивидуальный проект"}
+                  </div>
                 </RowLink>
               </TableCell>
               <TableCell>

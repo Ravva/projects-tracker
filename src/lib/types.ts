@@ -2,6 +2,7 @@ export type WeeklyState = "critical" | "warning" | "success";
 export type TelegramLinkStatus = "not_invited" | "awaiting_start" | "linked";
 export type AuthRole = "teacher" | "student" | "guest";
 export type ProjectStatus = "draft" | "active" | "completed";
+export type ProjectMemberRole = "owner" | "member";
 export type ProjectSyncStatus =
   | "unknown"
   | "synced"
@@ -135,6 +136,11 @@ export type ProjectRecord = ProjectRepositoryMetrics & {
   id: string;
   studentId: string;
   studentName: string;
+  ownerStudentId: string;
+  ownerStudentName: string;
+  memberStudentIds: string[];
+  memberNames: string[];
+  membersCount: number;
   name: string;
   summary: string;
   status: ProjectStatus;
@@ -173,6 +179,15 @@ export type ProjectInput = {
   status: ProjectStatus;
   specMarkdown: string;
   planMarkdown: string;
+};
+
+export type ProjectMemberRecord = {
+  id: string;
+  projectId: string;
+  studentId: string;
+  studentName: string;
+  role: ProjectMemberRole;
+  joinedAt: string;
 };
 
 export type ProjectAiReportRecord = ProjectRepositoryMetrics & {
