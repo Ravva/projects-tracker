@@ -159,11 +159,7 @@ function parseDeliverableTableRow(line: string): ParsedDeliverable | null {
     .slice(1, -1)
     .map((column) => column.trim());
 
-  console.log("[DEBUG] Parsing row:", trimmed);
-  console.log("[DEBUG] Columns:", JSON.stringify(columns));
-
   if (columns.length < 4) {
-    console.log("[DEBUG] Rejected: columns.length < 4");
     return null;
   }
 
@@ -171,17 +167,13 @@ function parseDeliverableTableRow(line: string): ParsedDeliverable | null {
     columns.every((column) => /^:?-{3,}:?$/.test(column)) ||
     columns[0].toLowerCase() === "id"
   ) {
-    console.log("[DEBUG] Rejected: separator or header row");
     return null;
   }
 
   const status = normalizeDeliverableStatus(columns[2]);
   const weight = Number(columns[3].replace("%", "").trim());
 
-  console.log("[DEBUG] Status:", status, "Weight:", weight);
-
   if (!columns[0] || !columns[1] || !status || !Number.isFinite(weight)) {
-    console.log("[DEBUG] Rejected: missing required fields");
     return null;
   }
 
@@ -233,10 +225,7 @@ function parseDeliverableBullet(line: string): ParsedDeliverable | null {
 
 export function parseProjectDeliverables(content: string | null) {
   const section = extractMarkdownSection(content, "Project Deliverables");
-  console.log("[DEBUG] Section extracted, length:", section.length);
-  console.log("[DEBUG] Section content:", section.substring(0, 500));
   const lines = section.split(/\r?\n/);
-  console.log("[DEBUG] Lines count:", lines.length);
   const deliverables: ParsedDeliverable[] = [];
 
   for (const line of lines) {
