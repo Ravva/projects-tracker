@@ -376,23 +376,10 @@ export async function analyzeProjectRepository(input: {
     docsReadme ? "docs/README.md" : null,
   ].filter((path): path is string => Boolean(path));
   const parsedDeliverables = parseProjectDeliverables(projectBrief);
-  console.error("[DEBUG] projectBrief exists:", !!projectBrief);
-  console.error(
-    "[DEBUG] parsedDeliverables:",
-    JSON.stringify(parsedDeliverables),
-  );
   const progressCalculation = buildProgressCalculationDiagnostics({
     projectBrief,
     parsedDeliverables,
   });
-  console.error(
-    "[DEBUG] progressCalculation:",
-    JSON.stringify(progressCalculation),
-  );
-  console.log(
-    "[DEBUG] progressCalculation:",
-    JSON.stringify(progressCalculation),
-  );
   const deliverables =
     progressCalculation.status === "valid" &&
     parsedDeliverables.deliverables.length > 0
