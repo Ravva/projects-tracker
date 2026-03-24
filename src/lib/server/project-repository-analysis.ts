@@ -453,10 +453,7 @@ export async function analyzeProjectRepository(input: {
         hasMeaningfulMarkdown(projectBrief) &&
         hasMeaningfulMarkdown(productContext),
       hasPlan:
-        progressCalculation.status === "valid" &&
-        deliverables.length > 0 &&
-        hasMeaningfulMarkdown(activeContext) &&
-        hasMeaningfulMarkdown(progress),
+        progressCalculation.status === "valid" && deliverables.length > 0,
       trackedTasksTotal,
       trackedTasksCompleted,
       trackedTasksInProgress,
