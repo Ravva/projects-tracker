@@ -484,33 +484,53 @@ export default async function ProjectDetailsPage({
                 ))}
               </div>
               {availableStudents.length > 0 ? (
-                <form
-                  action={addProjectMemberAction}
-                  className="rounded-2xl border border-border/70 bg-background/70 p-4"
-                >
-                  <input type="hidden" name="projectId" value={project.id} />
+                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                   <div className="mb-3 font-medium text-foreground">
                     Добавить ученика в групповой проект
                   </div>
-                  <select
-                    name="studentId"
-                    defaultValue=""
-                    required
-                    className="flex h-11 w-full rounded-xl border border-input bg-background/90 px-3 text-sm outline-none"
-                  >
-                    <option value="" disabled>
-                      Выберите ученика
-                    </option>
+                  <div className="mb-4 text-xs leading-6 text-muted-foreground">
+                    Выберите ученика из списка. Мы специально не используем
+                    системный dropdown, чтобы блок выглядел нормально в текущей
+                    теме и не разваливался визуально.
+                  </div>
+                  <div className="app-scrollbar max-h-72 space-y-2 overflow-y-auto pr-1">
                     {availableStudents.map((student) => (
-                      <option key={student.id} value={student.id}>
-                        {student.lastName} {student.firstName}
-                      </option>
+                      <form
+                        key={student.id}
+                        action={addProjectMemberAction}
+                        className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card/70 px-4 py-3 transition-colors hover:bg-accent/40"
+                      >
+                        <input
+                          type="hidden"
+                          name="projectId"
+                          value={project.id}
+                        />
+                        <input
+                          type="hidden"
+                          name="studentId"
+                          value={student.id}
+                        />
+                        <div className="min-w-0">
+                          <div className="truncate font-medium text-foreground">
+                            {student.lastName} {student.firstName}
+                          </div>
+                          <div className="truncate text-xs text-muted-foreground">
+                            {student.githubUsername
+                              ? `GitHub: ${student.githubUsername}`
+                              : "GitHub еще не привязан"}
+                          </div>
+                        </div>
+                        <Button
+                          type="submit"
+                          variant="outline"
+                          className="shrink-0 rounded-xl bg-background/90"
+                        >
+                          Добавить
+                        </Button>
+                      </form>
                     ))}
-                  </select>
-                  <Button type="submit" className="mt-4 rounded-xl">
-                    Добавить участника
-                  </Button>
-                </form>
+                  </div>
+                </div>
               ) : null}
             </CardContent>
           </Card>
