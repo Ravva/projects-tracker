@@ -39,12 +39,6 @@ export default async function ProjectsPage({
   const currentProjects = projects.filter((project) =>
     isProjectCurrent(project.status),
   );
-  const studentNameById = new Map(
-    students.map((student) => [
-      student.id,
-      `${student.lastName} ${student.firstName}`,
-    ]),
-  );
   const rows = students
     .map((student) => {
       const studentName = `${student.lastName} ${student.firstName}`;
@@ -52,26 +46,15 @@ export default async function ProjectsPage({
         currentProjects.find((item) =>
           item.memberStudentIds.includes(student.id),
         ) ?? null;
-      const participantsLabel = project
-        ? project.memberStudentIds
-            .map(
-              (studentId) =>
-                studentNameById.get(studentId) ?? project.ownerStudentName,
-            )
-            .sort((left, right) => left.localeCompare(right, "ru"))
-        : [studentName];
 
       return {
         studentId: student.id,
         studentName,
-        participantsLabel,
         project,
       };
     })
     .sort((left, right) =>
-      left.participantsLabel
-        .join(", ")
-        .localeCompare(right.participantsLabel.join(", "), "ru"),
+      left.studentName.localeCompare(right.studentName, "ru"),
     );
   const sharePath = buildProjectReportSharePath(
     toIsoDate(startOfCurrentWeek()),

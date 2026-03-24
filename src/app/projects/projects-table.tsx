@@ -29,7 +29,6 @@ import type { ProjectRecord } from "@/lib/types";
 export interface ProjectsTableRowData {
   studentId: string;
   studentName: string;
-  participantsLabel: string[];
   project: ProjectRecord | null;
 }
 
@@ -152,10 +151,8 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
                 key={row.studentId}
                 className="transition-colors hover:bg-muted/40"
               >
-                <TableCell className="font-medium">
-                  <div className="px-4 py-4">
-                    {row.participantsLabel.join(", ")}
-                  </div>
+                <TableCell className="font-medium text-left">
+                  <div className="px-4 py-4">{row.studentName}</div>
                 </TableCell>
                 <TableCell>
                   <div className="px-4 py-4 text-muted-foreground">-</div>
@@ -191,9 +188,7 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
             >
               <TableCell className="p-0 font-medium">
                 <RowLink href={href} padded={false}>
-                  <div className="font-medium">
-                    {row.participantsLabel.join(", ")}
-                  </div>
+                  <div className="font-medium">{row.studentName}</div>
                 </RowLink>
               </TableCell>
               <TableCell>
