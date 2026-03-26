@@ -136,22 +136,22 @@ export function buildAttendanceReportData(
       attendanceRate,
     };
   });
-  const attentionItems = attendanceWeek.studentsNeedingAttention
+  const attentionItems = rows
+    .filter((row) => row.attendanceRate < 100)
     .toSorted((left, right) =>
       compareAttentionRates(left.attendanceRate, right.attendanceRate),
     )
-    .map((student) => ({
-      studentName: `${student.lastName} ${student.firstName}`,
-      attendanceRate: student.attendanceRate,
-      tone: getWeeklyStatusState(student.attendanceRate),
+    .map((row) => ({
+      studentName: row.studentName,
+      attendanceRate: row.attendanceRate,
+      tone: row.weeklyStatus,
     }));
 
   return {
     weekRangeLabel,
     studentCount: attendanceWeek.rows.length,
     averageAttendance,
-    studentsNeedingAttentionCount:
-      attendanceWeek.studentsNeedingAttention.length,
+    studentsNeedingAttentionCount: attentionItems.length,
     markedStudentsCount,
     lessons,
     rows,

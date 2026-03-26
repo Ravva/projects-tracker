@@ -142,6 +142,7 @@ export type ProjectRecord = ProjectRepositoryMetrics & {
   memberStudentIds: string[];
   memberNames: string[];
   membersCount: number;
+  isGroupProject: boolean;
   name: string;
   summary: string;
   status: ProjectStatus;

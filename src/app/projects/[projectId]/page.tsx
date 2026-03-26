@@ -14,6 +14,7 @@ import {
   deleteProjectAction,
   removeProjectMemberAction,
   runProjectAiAnalysisAction,
+  setProjectGroupModeAction,
   setProjectStatusAction,
   syncProjectAction,
 } from "@/app/projects/actions";
@@ -458,7 +459,56 @@ export default async function ProjectDetailsPage({
                       </div>
                     </div>
                     {member.role === "owner" ? (
-                      <StatusPill tone="calm" label="Owner" />
+                      <div className="flex flex-wrap items-center gap-3">
+                        <form action={setProjectGroupModeAction}>
+                          <input
+                            type="hidden"
+                            name="projectId"
+                            value={project.id}
+                          />
+                          <input
+                            type="hidden"
+                            name="isGroupProject"
+                            value={project.isGroupProject ? "false" : "true"}
+                          />
+                          <button
+                            type="submit"
+                            role="switch"
+                            aria-checked={project.isGroupProject}
+                            aria-label="Переключить режим группового проекта"
+                            className={`inline-flex items-center gap-3 rounded-2xl border px-3 py-2 text-left transition-colors hover:bg-accent/40 ${
+                              project.isGroupProject
+                                ? "border-[hsl(var(--status-calm)/0.35)] bg-[hsl(var(--status-calm)/0.12)] text-foreground"
+                                : "border-border/80 bg-background/80 text-foreground"
+                            }`}
+                          >
+                            <span className="flex flex-col">
+                              <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                                Режим проекта
+                              </span>
+                              <span className="text-sm font-medium">
+                                В групповой проект
+                              </span>
+                            </span>
+                            <span
+                              className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border transition-colors ${
+                                project.isGroupProject
+                                  ? "border-[hsl(var(--status-calm)/0.45)] bg-[hsl(var(--status-calm)/0.3)]"
+                                  : "border-border/80 bg-muted/70"
+                              }`}
+                            >
+                              <span
+                                className={`inline-flex size-5 rounded-full bg-background shadow-sm transition-transform ${
+                                  project.isGroupProject
+                                    ? "translate-x-6"
+                                    : "translate-x-1"
+                                }`}
+                              />
+                            </span>
+                          </button>
+                        </form>
+                        <StatusPill tone="calm" label="Owner" />
+                      </div>
                     ) : (
                       <form action={removeProjectMemberAction}>
                         <input
@@ -483,7 +533,7 @@ export default async function ProjectDetailsPage({
                   </div>
                 ))}
               </div>
-              {availableStudents.length > 0 ? (
+              {project.isGroupProject && availableStudents.length > 0 ? (
                 <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
                   <div className="mb-3 font-medium text-foreground">
                     Добавить ученика в групповой проект

@@ -200,14 +200,27 @@ export async function getAttendanceWeek(
 
     return { student, lessonStates };
   });
+  const activeLessons = lessons.filter((lesson) => !lesson.isClosed);
+  const requiredMin = Math.min(2, activeLessons.length);
+  const studentsNeedingAttention = rows
+    .filter((row) => {
+      const presentCount = activeLessons.reduce(
+        (total, lesson) =>
+          total + (row.lessonStates[lesson.id] === "present" ? 1 : 0),
+        0,
+      );
+      const attendanceRate =
+        requiredMin > 0 ? Math.round((presentCount / requiredMin) * 100) : 0;
+
+      return attendanceRate < 100;
+    })
+    .map((row) => row.student);
 
   return {
     weekStart,
     lessons,
     rows,
-    studentsNeedingAttention: students.filter(
-      (student) => student.weeklyState !== "success",
-    ),
+    studentsNeedingAttention,
   };
 }
 

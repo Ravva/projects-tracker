@@ -50,6 +50,7 @@ export function normalizeProjectState(input: {
   lastAiAnalysisAt?: string;
   aiSummary?: string;
   nextSteps?: string[];
+  isGroupProject?: boolean;
   hasRepository?: boolean;
   hasMemoryBank?: boolean;
   hasSpec?: boolean;
@@ -84,6 +85,7 @@ export function normalizeProjectState(input: {
     nextSteps: (input.nextSteps ?? [])
       .slice(0, PROJECT_STATE_LIMITS.nextSteps)
       .map((step) => trimToLimit(step, PROJECT_STATE_LIMITS.nextStepItem)),
+    isGroupProject: input.isGroupProject ?? false,
     hasRepository: input.hasRepository ?? false,
     hasMemoryBank: input.hasMemoryBank ?? false,
     hasSpec: input.hasSpec ?? false,

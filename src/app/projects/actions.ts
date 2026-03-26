@@ -11,6 +11,7 @@ import {
   getProject,
   removeProjectMember,
   runProjectAiAnalysis,
+  setProjectGroupMode,
   setProjectStatus,
   syncProjectGithub,
 } from "@/lib/server/repositories/projects";
@@ -332,4 +333,26 @@ export async function removeProjectMemberAction(formData: FormData) {
       success: "member-removed",
     }),
   );
+}
+
+export async function setProjectGroupModeAction(formData: FormData) {
+  await requireTeacherSession();
+
+  const projectId = readString(formData, "projectId");
+  const isGroupProject = readString(formData, "isGroupProject") === "true";
+
+  try {
+    await setProjectGroupMode(projectId, isGroupProject);
+  } catch (error) {
+    redirect(
+      buildProjectDetailsRedirect(projectId, {
+        error: getErrorMessage(
+          error,
+          "Не удалось обновить режим группового проекта.",
+        ),
+      }),
+    );
+  }
+
+  await revalidateProjectRelatedPaths(projectId);
 }

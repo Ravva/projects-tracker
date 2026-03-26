@@ -238,6 +238,7 @@ function buildProjectState(
     lastAiAnalysisAt: string;
     aiSummary: string;
     nextSteps: string[];
+    isGroupProject: boolean;
     hasRepository: boolean;
     hasMemoryBank: boolean;
     hasSpec: boolean;
@@ -358,6 +359,7 @@ function buildProjectStateFromProject(
       project.lastAiAnalysisAt === "Нет данных" ? "" : project.lastAiAnalysisAt,
     aiSummary: project.aiSummary,
     nextSteps: project.nextSteps,
+    isGroupProject: project.isGroupProject,
     hasRepository: project.hasRepository,
     hasMemoryBank: project.hasMemoryBank,
     hasSpec: project.hasSpec,
@@ -735,6 +737,7 @@ function buildProjectRecordWithMembers(
     memberStudentIds: [...uniqueMembers.keys()],
     memberNames: [...uniqueMembers.values()],
     membersCount: uniqueMembers.size,
+    isGroupProject: baseProject.isGroupProject,
   } satisfies ProjectRecord;
 }
 
@@ -1183,6 +1186,30 @@ export async function removeProjectMember(
     appwrite.databaseId,
     config.collections.projectMemberships,
     membershipDocument.$id,
+  );
+}
+
+export async function setProjectGroupMode(
+  projectId: string,
+  isGroupProject: boolean,
+) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+  const project = await getProject(projectId);
+
+  if (!appwrite || !config || !project) {
+    throw new Error("Проект не найден.");
+  }
+
+  return appwrite.databases.updateDocument(
+    appwrite.databaseId,
+    config.collections.projects,
+    projectId,
+    {
+      project_state_json: buildProjectStateFromProject(project, {
+        isGroupProject,
+      }),
+    },
   );
 }
 

@@ -220,6 +220,7 @@ export function mapProjectDocument(
     lastAiAnalysisAt?: string;
     aiSummary?: string;
     nextSteps?: unknown;
+    isGroupProject?: boolean;
     hasRepository?: boolean;
     hasMemoryBank?: boolean;
     hasSpec?: boolean;
@@ -259,6 +260,7 @@ export function mapProjectDocument(
     memberStudentIds: [],
     memberNames: studentName ? [studentName] : [],
     membersCount: studentName ? 1 : 0,
+    isGroupProject: Boolean(projectState.isGroupProject ?? false),
     name: String(getField(document, "name") ?? ""),
     summary: String(getField(document, "summary") ?? ""),
     status: normalizeProjectStatus(getField(document, "status")),
