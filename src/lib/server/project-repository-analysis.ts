@@ -193,14 +193,17 @@ function parseDeliverableBullet(line: string): ParsedDeliverable | null {
   }
 
   const content = trimmed.replace(/^\s*[-*]\s+/, "");
-  const idMatch = content.match(/(?:^|\|)\s*id\s*:\s*([^|]+?)(?=\s*\||$)/i);
-  const titleMatch = content.match(
+  const normalizedContent = content.replace(/\*\*([^*]+)\*\*/g, "$1");
+  const idMatch = normalizedContent.match(
+    /(?:^|\|)\s*id\s*:\s*([^|]+?)(?=\s*\||$)/i,
+  );
+  const titleMatch = normalizedContent.match(
     /(?:^|\|)\s*(?:title|deliverable|name)\s*:\s*([^|]+?)(?=\s*\||$)/i,
   );
-  const statusMatch = content.match(
+  const statusMatch = normalizedContent.match(
     /(?:^|\|)\s*status\s*:\s*([^|]+?)(?=\s*\||$)/i,
   );
-  const weightMatch = content.match(
+  const weightMatch = normalizedContent.match(
     /(?:^|\|)\s*weight\s*:\s*([^|]+?)(?=\s*\||$)/i,
   );
   const status = normalizeDeliverableStatus(statusMatch?.[1] ?? "");
@@ -239,7 +242,8 @@ function parseDeliverableBlock(lines: string[]): ParsedDeliverable | null {
   const keyValueLines = lines.slice(1).map((line) => {
     const trimmed = line.trim();
     const withoutBullet = trimmed.replace(/^\s*[-*]\s+/, "");
-    return withoutBullet.match(/^([^:]+):\s*(.+)$/);
+    const normalized = withoutBullet.replace(/\*\*([^*]+)\*\*/g, "$1");
+    return normalized.match(/^([^:]+):\s*(.+)$/);
   });
 
   const findValue = (keys: string[]) => {
