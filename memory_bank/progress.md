@@ -24,6 +24,7 @@
 
 ## Changelog
 
+- 2026-03-26: выполнен UI-polish attendance/report surfaces. В `src/app/attendance/attendance-weekly-report-card.tsx` удален служебный explanatory copy (`PDF-вид отчета`, teacher-only описание и поясняющий абзац) и оставлены только action-кнопки. В `src/app/attendance/attendance-grid-client.tsx` кнопка `Очистить отметки` перенесена в общий ряд действий рядом с сохранением и переключением недель. В `src/components/app/teacher-shell.tsx` theme toggle перенесен в правый верхний угол общего header, из `src/components/app/teacher-sidebar.tsx` удален его старый sidebar-вариант, а в `src/app/attendance/report/attendance-report-view.tsx` и `src/app/projects/report/project-report-view.tsx` тот же toggle добавлен в верхнюю панель printable/report view. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, `bun run lint` и `bun run build` проходят.
 - 2026-03-26: логика weekly attendance state приведена к product-правилу `меньше 100% = требует внимания`. В `src/lib/server/repositories/students.ts` helper `buildWeeklyState()` для attendance summaries больше не использует пороги `25/75`; теперь `0%` дает `critical`, `1-99%` дает `warning`, а только `100%` считается `success`. Это синхронизирует `studentsNeedingAttention`, PDF-отчет `/attendance/report`, страницу `/attendance` и attendance badges в teacher UI. Измененный не-Markdown файл прогнан через `bunx biome check --write`, `bun run lint` и `bun run build` проходят.
 - 2026-03-26: в `src/app/attendance/attendance-grid-client.tsx` порядок кнопок в modal подтверждения несохраненных attendance-изменений скорректирован под прямое требование пользователя: `Сохранить`, `Не сохранять`, `Отмена`. Измененный не-Markdown файл прогнан через `bunx biome check --write`, `bun run lint` и `bun run build` проходят.
 - 2026-03-26: на `/attendance` заменен пассивный баннер о несохраненных изменениях на активный navigation guard. В `src/app/attendance/attendance-grid-client.tsx` добавлен перехват внутренних переходов по ссылкам при `isDirty` и кастомное модальное окно `Сохранить / Не сохранять / Отмена` на базе `FeedbackModal`; стандартный `beforeunload`-guard отключен по явному запросу пользователя. Измененный не-Markdown файл прогнан через `bunx biome check --write`, `bun run lint` и `bun run build` проходят.
@@ -196,4 +197,4 @@
 
 ## Контроль изменений
 
-- `last_checked_commit`: `6117f15`
+- `last_checked_commit`: `d9e0857`

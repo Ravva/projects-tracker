@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { PrintReportButton } from "@/app/attendance/report/print-report-button";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import type { AttendanceReportData } from "@/lib/server/attendance-report";
 
@@ -15,7 +16,6 @@ const REPORT_LEGEND_ITEMS = [
   { label: "Отсутствовал", state: "absent" },
   { label: "Присутствовал", state: "present" },
   { label: "Не состоялось", state: "cancelled" },
-  { label: "Статус недели", state: "warning" },
 ] as const;
 
 function getStateDotClassName(
@@ -77,6 +77,7 @@ export function AttendanceReportView({
           ) : null}
           <PrintReportButton label="Сохранить PDF" />
           <PrintReportButton label="Печать" />
+          <ThemeToggle />
         </div>
       </div>
 

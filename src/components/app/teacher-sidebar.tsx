@@ -11,7 +11,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { BrandMark } from "@/components/app/brand-mark";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -135,9 +134,6 @@ export function TeacherSidebar({
       </SidebarContent>
 
       <SidebarFooter className="px-3 pb-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
-        <div className="flex justify-center group-data-[collapsible=icon]:w-full">
-          <ThemeToggle />
-        </div>
         <div className="flex shrink-0 items-center gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
           <Avatar size="lg">
             <AvatarFallback className="bg-[hsl(var(--status-warning)/0.18)] font-semibold text-[hsl(var(--status-warning))]">

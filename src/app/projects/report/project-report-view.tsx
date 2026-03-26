@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { PrintReportButton } from "@/app/attendance/report/print-report-button";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import type { ProjectReportData } from "@/lib/server/project-report";
 
@@ -162,6 +163,7 @@ export function ProjectReportView({
           ) : null}
           <PrintReportButton label="Сохранить PDF" />
           <PrintReportButton label="Печать" />
+          <ThemeToggle />
         </div>
       </div>
 

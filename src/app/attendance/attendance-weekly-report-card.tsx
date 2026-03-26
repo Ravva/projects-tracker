@@ -4,14 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardAction, CardHeader } from "@/components/ui/card";
 
 export function AttendanceWeeklyReportCard({
   sharePath,
@@ -32,16 +25,9 @@ export function AttendanceWeeklyReportCard({
 
   return (
     <Card className="border-border/70 bg-card/88 shadow-none">
-      <CardHeader>
-        <div>
-          <CardTitle>PDF-вид отчета</CardTitle>
-          <CardDescription>
-            Отдельная teacher-only страница с A4-like версткой для демонстрации
-            родителям и печати через `Сохранить как PDF`.
-          </CardDescription>
-        </div>
+      <CardHeader className="flex flex-wrap items-center justify-end gap-2">
         <CardAction>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <Button
               asChild
               variant="outline"
@@ -62,14 +48,6 @@ export function AttendanceWeeklyReportCard({
           </div>
         </CardAction>
       </CardHeader>
-      <CardContent>
-        <p className="mb-3 text-xs text-muted-foreground">
-          Страница рендерит аккуратный отчет с таблицей, цветными индикаторами и
-          блоком `Зона внимания`. Для родителей доступна отдельная share-ссылка
-          без авторизации сроком на один год. Если в журнале есть несохраненные
-          изменения, сначала нажмите «Сохранить изменения».
-        </p>
-      </CardContent>
     </Card>
   );
 }

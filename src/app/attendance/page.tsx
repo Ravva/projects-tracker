@@ -1,8 +1,6 @@
-import { clearAttendanceAction } from "@/app/attendance/actions";
 import { AttendanceGridClient } from "@/app/attendance/attendance-grid-client";
 import { AttendanceWeeklyReportCard } from "@/app/attendance/attendance-weekly-report-card";
 import { TeacherShell } from "@/components/app/teacher-shell";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { buildAttendanceReportSharePath } from "@/lib/server/attendance-report-share";
 import { requireTeacherSession } from "@/lib/server/auth";
@@ -32,14 +30,6 @@ export default async function AttendancePage({
       title="Attendance"
       teacherName={teacher.name}
       teacherEmail={teacher.email}
-      actions={
-        <form action={clearAttendanceAction}>
-          <input type="hidden" name="weekStart" value={weekStart} />
-          <Button variant="outline" className="rounded-xl bg-background/90">
-            Очистить отметки
-          </Button>
-        </form>
-      }
     >
       <section>
         <Card className="border-border/70 bg-card/88 shadow-none">

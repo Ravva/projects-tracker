@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
-import { saveAttendanceAction } from "@/app/attendance/actions";
+import {
+  clearAttendanceAction,
+  saveAttendanceAction,
+} from "@/app/attendance/actions";
 import { Button } from "@/components/ui/button";
 import { FeedbackModal } from "@/components/ui/feedback-modal";
 import {
@@ -110,7 +113,6 @@ const ATTENDANCE_LEGEND_ITEMS: Array<{
   { label: "Отсутствовал", state: "absent" },
   { label: "Присутствовал", state: "present" },
   { label: "Не состоялось", state: "cancelled" },
-  { label: "Статус недели", state: "warning" },
 ];
 
 function buildInitialState(rows: AttendanceGridRow[]) {
@@ -429,6 +431,16 @@ export function AttendanceGridClient({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <form action={clearAttendanceAction}>
+            <input type="hidden" name="weekStart" value={weekStart} />
+            <Button
+              variant="outline"
+              className="rounded-xl bg-background/90"
+              disabled={isPending}
+            >
+              Очистить отметки
+            </Button>
+          </form>
           <Button
             type="button"
             variant="outline"
@@ -478,11 +490,7 @@ export function AttendanceGridClient({
                   {lesson ? (
                     <button
                       type="button"
-                      className={`inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-center text-sm transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-60 ${
-                        lessonClosedStates[lesson.id]
-                          ? "bg-fuchsia-500/16 text-fuchsia-700 dark:bg-fuchsia-400/18 dark:text-fuchsia-300"
-                          : ""
-                      }`}
+                      className="inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-center text-sm transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-60"
                       disabled={isPending || !hasRows}
                       onClick={() => handleColumnToggle(lesson.id)}
                       title="Массово переключить весь столбец"
