@@ -79,6 +79,14 @@
 - `projects` и `project_ai_reports` остаются на компактных JSON-state полях из-за лимитов Appwrite.
 - каскадное удаление student-проектов и самого ученика выполняется через общий cleanup-helper, который сначала удаляет связанные `project_memberships` и `project_ai_reports`, а затем сам `projects` документ.
 
+## Attendance Pattern
+
+- `/attendance` разделяет два вида состояния:
+  - per-student attendance в коллекции `attendance`;
+  - per-lesson флаг `lessons.is_closed` для сценария `Не состоялось`;
+- `Не состоялось` переключается отдельным контролом в заголовке weekday-колонки и окрашивается во фуксию в обеих темах;
+- урок со статусом `Не состоялось` не участвует в weekly attendance rate и очищает сохраненные attendance-записи по этому дню, чтобы не хранить устаревшие отметки.
+
 ## Appwrite Anti-Pause Pattern
 
 - для `Appwrite Cloud Free` нельзя полагаться на API traffic как на защиту от pause, потому что Appwrite привязывает inactivity rule к Console activity;

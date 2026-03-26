@@ -1,4 +1,5 @@
 export type WeeklyState = "critical" | "warning" | "success";
+export type AttendanceState = "present" | "absent" | "unmarked" | "cancelled";
 export type TelegramLinkStatus = "not_invited" | "awaiting_start" | "linked";
 export type AuthRole = "teacher" | "student" | "guest";
 export type ProjectStatus = "draft" | "active" | "completed";
@@ -96,7 +97,7 @@ export type AttendanceLessonRecord = {
 
 export type AttendanceGridRow = {
   student: StudentRecord;
-  lessonStates: Record<string, "present" | "absent" | "unmarked">;
+  lessonStates: Record<string, AttendanceState>;
 };
 
 export type AttendanceWeekRecord = {

@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import { saveAttendanceAction } from "@/app/attendance/actions";
 import { Button } from "@/components/ui/button";
+import { FeedbackModal } from "@/components/ui/feedback-modal";
 import {
   Table,
   TableBody,
@@ -17,10 +18,9 @@ import {
 import type {
   AttendanceGridRow,
   AttendanceLessonRecord,
+  AttendanceState,
   WeeklyState,
 } from "@/lib/types";
-
-type AttendanceState = "present" | "absent" | "unmarked";
 
 const WEEKDAY_COLUMNS: Array<{
   code: AttendanceLessonRecord["weekdayCode"];
@@ -31,15 +31,20 @@ const WEEKDAY_COLUMNS: Array<{
   { code: "fri", label: "Пятница" },
 ];
 
-const STATE_ORDER: AttendanceState[] = ["unmarked", "absent", "present"];
+const STATE_ORDER: Array<Exclude<AttendanceState, "cancelled">> = [
+  "unmarked",
+  "absent",
+  "present",
+];
 
 const STATE_LABELS: Record<AttendanceState, string> = {
   unmarked: "Нет данных",
   present: "Присутствовал",
   absent: "Отсутствовал",
+  cancelled: "Не состоялось",
 };
 
-function getNextState(state: AttendanceState) {
+function getNextState(state: Exclude<AttendanceState, "cancelled">) {
   const index = STATE_ORDER.indexOf(state);
 
   return STATE_ORDER[(index + 1) % STATE_ORDER.length];
@@ -58,6 +63,10 @@ function buildWeeklyState(attendanceRate: number): WeeklyState {
 }
 
 function getAttendanceDotClassName(state: AttendanceState) {
+  if (state === "cancelled") {
+    return "bg-fuchsia-500 shadow-[0_0_0_1px_rgba(217,70,239,0.34)] dark:bg-fuchsia-400";
+  }
+
   if (state === "absent") {
     return "bg-[hsl(var(--status-critical))] shadow-[0_0_0_1px_hsl(var(--status-critical)/0.24)]";
   }
@@ -83,8 +92,22 @@ function getWeeklyStatusDotClassName(weeklyState: WeeklyState) {
 
 function buildInitialState(rows: AttendanceGridRow[]) {
   return Object.fromEntries(
-    rows.map((row) => [row.student.id, { ...row.lessonStates }]),
+    rows.map((row) => [
+      row.student.id,
+      Object.fromEntries(
+        Object.entries(row.lessonStates).map(([lessonId, state]) => [
+          lessonId,
+          state === "cancelled" ? "unmarked" : state,
+        ]),
+      ),
+    ]),
   ) as Record<string, Record<string, AttendanceState>>;
+}
+
+function buildInitialLessonClosedState(lessons: AttendanceLessonRecord[]) {
+  return Object.fromEntries(
+    lessons.map((lesson) => [lesson.id, lesson.isClosed]),
+  ) as Record<string, boolean>;
 }
 
 export function AttendanceGridClient({
@@ -105,46 +128,136 @@ export function AttendanceGridClient({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [draftStates, setDraftStates] = useState(() => buildInitialState(rows));
+  const [lessonClosedStates, setLessonClosedStates] = useState(() =>
+    buildInitialLessonClosedState(lessons),
+  );
   const [error, setError] = useState("");
+  const [pendingNavigationHref, setPendingNavigationHref] = useState<
+    string | null
+  >(null);
+  const skipNavigationGuardRef = useRef(false);
   const initialStates = buildInitialState(rows);
+  const initialLessonClosedStates = buildInitialLessonClosedState(lessons);
   const lessonsByWeekday = new Map(
     WEEKDAY_COLUMNS.map(({ code }) => [
       code,
       lessons.find((lesson) => lesson.weekdayCode === code) ?? null,
     ]),
   );
-  const requiredMin = Math.min(2, lessons.length);
   const hasRows = rows.length > 0;
-  const isDirty = rows.some((row) =>
+  const hasCellChanges = rows.some((row) =>
     Object.entries(initialStates[row.student.id] ?? {}).some(
       ([lessonId, state]) => draftStates[row.student.id]?.[lessonId] !== state,
     ),
   );
+  const hasLessonChanges = lessons.some(
+    (lesson) =>
+      lessonClosedStates[lesson.id] !== initialLessonClosedStates[lesson.id],
+  );
+  const isDirty = hasCellChanges || hasLessonChanges;
 
   useEffect(() => {
     setDraftStates(buildInitialState(rows));
   }, [rows]);
 
+  useEffect(() => {
+    setLessonClosedStates(buildInitialLessonClosedState(lessons));
+  }, [lessons]);
+
+  useEffect(() => {
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (
+        !isDirty ||
+        skipNavigationGuardRef.current ||
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const target = event.target;
+
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      const anchor = target.closest("a[href]");
+
+      if (!(anchor instanceof HTMLAnchorElement)) {
+        return;
+      }
+
+      if (
+        anchor.target === "_blank" ||
+        anchor.hasAttribute("download") ||
+        anchor.getAttribute("rel") === "external"
+      ) {
+        return;
+      }
+
+      const destinationUrl = new URL(anchor.href, window.location.href);
+
+      if (
+        destinationUrl.origin !== window.location.origin ||
+        destinationUrl.href === window.location.href
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      setPendingNavigationHref(
+        `${destinationUrl.pathname}${destinationUrl.search}${destinationUrl.hash}`,
+      );
+    };
+
+    document.addEventListener("click", handleDocumentClick, true);
+
+    return () => {
+      document.removeEventListener("click", handleDocumentClick, true);
+    };
+  }, [isDirty]);
+
   const handleCellToggle = (studentId: string, lessonId: string) => {
+    if (lessonClosedStates[lessonId]) {
+      return;
+    }
+
     setDraftStates((current) => {
       const studentStates = current[studentId] ?? {};
-      const currentState = studentStates[lessonId] ?? "unmarked";
+      const currentState = studentStates[lessonId];
+      const nextBaseState =
+        currentState === "present" ||
+        currentState === "absent" ||
+        currentState === "unmarked"
+          ? currentState
+          : "unmarked";
 
       return {
         ...current,
         [studentId]: {
           ...studentStates,
-          [lessonId]: getNextState(currentState),
+          [lessonId]: getNextState(nextBaseState),
         },
       };
     });
   };
 
   const handleColumnToggle = (lessonId: string) => {
+    if (lessonClosedStates[lessonId]) {
+      return;
+    }
+
     setDraftStates((current) => {
-      const columnStates = rows.map(
-        (row) => current[row.student.id]?.[lessonId] ?? "unmarked",
-      );
+      const columnStates = rows.map((row) => {
+        const state = current[row.student.id]?.[lessonId];
+        return state === "present" || state === "absent" || state === "unmarked"
+          ? state
+          : "unmarked";
+      });
       const allSame = columnStates.every((state) => state === columnStates[0]);
       const nextState = allSame
         ? getNextState(columnStates[0] ?? "unmarked")
@@ -162,9 +275,23 @@ export function AttendanceGridClient({
     });
   };
 
-  const handleSave = () => {
+  const handleLessonClosedToggle = (lessonId: string) => {
+    setLessonClosedStates((current) => ({
+      ...current,
+      [lessonId]: !current[lessonId],
+    }));
+  };
+
+  const saveDraft = async () => {
     const formData = new FormData();
     formData.set("weekStart", weekStart);
+
+    lessons.forEach((lesson) => {
+      formData.set(
+        `lessonClosed:${lesson.id}`,
+        String(lessonClosedStates[lesson.id]),
+      );
+    });
 
     rows.forEach((row) => {
       Object.entries(draftStates[row.student.id] ?? {}).forEach(
@@ -175,19 +302,64 @@ export function AttendanceGridClient({
     });
 
     setError("");
+    try {
+      await saveAttendanceAction(formData);
+      router.refresh();
+
+      return true;
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "Не удалось сохранить attendance. Повторите попытку.",
+      );
+
+      return false;
+    }
+  };
+
+  const handleSave = () => {
     startTransition(async () => {
-      try {
-        await saveAttendanceAction(formData);
-        router.refresh();
-      } catch (saveError) {
-        setError(
-          saveError instanceof Error
-            ? saveError.message
-            : "Не удалось сохранить attendance. Повторите попытку.",
-        );
+      await saveDraft();
+    });
+  };
+
+  const continueNavigation = (href: string) => {
+    skipNavigationGuardRef.current = true;
+    setPendingNavigationHref(null);
+    router.push(href);
+  };
+
+  const handleModalSave = () => {
+    if (!pendingNavigationHref) {
+      return;
+    }
+
+    startTransition(async () => {
+      const saved = await saveDraft();
+
+      if (saved) {
+        continueNavigation(pendingNavigationHref);
       }
     });
   };
+
+  const handleModalDiscard = () => {
+    if (!pendingNavigationHref) {
+      return;
+    }
+
+    continueNavigation(pendingNavigationHref);
+  };
+
+  const handleModalCancel = () => {
+    setPendingNavigationHref(null);
+  };
+
+  const activeLessons = lessons.filter(
+    (lesson) => !lessonClosedStates[lesson.id],
+  );
+  const requiredMin = Math.min(2, activeLessons.length);
 
   return (
     <>
@@ -232,12 +404,6 @@ export function AttendanceGridClient({
           {error}
         </div>
       ) : null}
-      {isDirty ? (
-        <div className="mt-4 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
-          Есть несохраненные изменения. Итог недели и данные в базе обновятся
-          после нажатия «Сохранить изменения».
-        </div>
-      ) : null}
       <Table className="mt-4 w-auto min-w-[34rem]">
         <TableHeader>
           <TableRow>
@@ -251,14 +417,32 @@ export function AttendanceGridClient({
                   className="w-24 px-1 text-center text-sm"
                 >
                   {lesson ? (
-                    <button
-                      type="button"
-                      className="inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-center text-sm transition-colors hover:bg-accent/25"
-                      disabled={isPending || !hasRows}
-                      onClick={() => handleColumnToggle(lesson.id)}
-                    >
-                      {column.label}
-                    </button>
+                    <div className="flex flex-col items-center gap-1">
+                      <button
+                        type="button"
+                        className="inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-center text-sm transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={
+                          isPending || !hasRows || lessonClosedStates[lesson.id]
+                        }
+                        onClick={() => handleColumnToggle(lesson.id)}
+                        title="Массово переключить весь столбец"
+                      >
+                        {column.label}
+                      </button>
+                      <button
+                        type="button"
+                        className={`inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-xs transition-colors ${
+                          lessonClosedStates[lesson.id]
+                            ? "bg-fuchsia-500/16 text-fuchsia-700 dark:bg-fuchsia-400/18 dark:text-fuchsia-300"
+                            : "text-muted-foreground hover:bg-accent/20"
+                        }`}
+                        disabled={isPending || !hasRows}
+                        onClick={() => handleLessonClosedToggle(lesson.id)}
+                        title="Переключить состояние урока"
+                      >
+                        Не состоялось
+                      </button>
+                    </div>
                   ) : (
                     column.label
                   )}
@@ -283,7 +467,7 @@ export function AttendanceGridClient({
           ) : (
             rows.map((row) => {
               const studentStates = draftStates[row.student.id] ?? {};
-              const presentCount = lessons.reduce(
+              const presentCount = activeLessons.reduce(
                 (total, lesson) =>
                   total + (studentStates[lesson.id] === "present" ? 1 : 0),
                 0,
@@ -312,14 +496,18 @@ export function AttendanceGridClient({
                       );
                     }
 
-                    const currentState = studentStates[lesson.id] ?? "unmarked";
+                    const currentState = lessonClosedStates[lesson.id]
+                      ? "cancelled"
+                      : (studentStates[lesson.id] ?? "unmarked");
 
                     return (
                       <TableCell key={column.code} className="px-1 py-2">
                         <div className="flex justify-center">
                           <button
                             type="button"
-                            disabled={isPending}
+                            disabled={
+                              isPending || lessonClosedStates[lesson.id]
+                            }
                             aria-label={STATE_LABELS[currentState]}
                             className="inline-flex items-center justify-center rounded-full p-1.5 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
                             title={STATE_LABELS[currentState]}
@@ -354,6 +542,43 @@ export function AttendanceGridClient({
           )}
         </TableBody>
       </Table>
+      <FeedbackModal
+        open={pendingNavigationHref !== null}
+        tone="error"
+        title="Есть несохраненные изменения"
+        description="График посещений изменен, но еще не сохранен. Сохранить изменения перед уходом со страницы?"
+        onClose={handleModalCancel}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-xl"
+              disabled={isPending}
+              onClick={handleModalDiscard}
+            >
+              Не сохранять
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-xl"
+              disabled={isPending}
+              onClick={handleModalCancel}
+            >
+              Отмена
+            </Button>
+            <Button
+              type="button"
+              className="rounded-xl"
+              disabled={isPending}
+              onClick={handleModalSave}
+            >
+              {isPending ? "Сохраняем..." : "Сохранить"}
+            </Button>
+          </>
+        }
+      />
     </>
   );
 }

@@ -1,14 +1,14 @@
 import "server-only";
 
 import { formatWeekRangeLabel } from "@/lib/server/date-utils";
-import type { AttendanceWeekRecord } from "@/lib/types";
+import type { AttendanceState, AttendanceWeekRecord } from "@/lib/types";
 
-type AttendanceState = "present" | "absent" | "unmarked";
 type WeeklyStatusState = "critical" | "warning" | "success";
 
 export interface AttendanceReportLesson {
   weekdayLabel: string;
   dateLabel: string;
+  isClosed: boolean;
 }
 
 export interface AttendanceReportRow {
@@ -71,16 +71,17 @@ export function buildAttendanceReportData(
   attendanceWeek: AttendanceWeekRecord,
 ): AttendanceReportData {
   const weekRangeLabel = formatWeekRangeLabel(attendanceWeek.weekStart);
-  const requiredMin = Math.min(2, attendanceWeek.lessons.length);
+  const activeLessons = attendanceWeek.lessons.filter(
+    (lesson) => !lesson.isClosed,
+  );
+  const requiredMin = Math.min(2, activeLessons.length);
   const markedStudentsCount = attendanceWeek.rows.filter((row) =>
-    attendanceWeek.lessons.some(
-      (lesson) => row.lessonStates[lesson.id] !== "unmarked",
-    ),
+    activeLessons.some((lesson) => row.lessonStates[lesson.id] !== "unmarked"),
   ).length;
   const averageAttendance = attendanceWeek.rows.length
     ? Math.round(
         attendanceWeek.rows.reduce((total, row) => {
-          const presentCount = attendanceWeek.lessons.reduce(
+          const presentCount = activeLessons.reduce(
             (lessonTotal, lesson) =>
               lessonTotal + (row.lessonStates[lesson.id] === "present" ? 1 : 0),
             0,
@@ -100,9 +101,10 @@ export function buildAttendanceReportData(
   const lessons = attendanceWeek.lessons.map((lesson) => ({
     weekdayLabel: WEEKDAY_LABELS[lesson.weekdayCode] ?? lesson.title,
     dateLabel: lesson.dateLabel,
+    isClosed: lesson.isClosed,
   }));
   const rows = attendanceWeek.rows.map((row) => {
-    const presentCount = attendanceWeek.lessons.reduce(
+    const presentCount = activeLessons.reduce(
       (total, lesson) =>
         total + (row.lessonStates[lesson.id] === "present" ? 1 : 0),
       0,
@@ -116,13 +118,19 @@ export function buildAttendanceReportData(
     return {
       studentName: `${row.student.lastName} ${row.student.firstName}`,
       tuesdayState: tuesdayLesson
-        ? (row.lessonStates[tuesdayLesson.id] ?? "unmarked")
+        ? tuesdayLesson.isClosed
+          ? "cancelled"
+          : (row.lessonStates[tuesdayLesson.id] ?? "unmarked")
         : null,
       thursdayState: thursdayLesson
-        ? (row.lessonStates[thursdayLesson.id] ?? "unmarked")
+        ? thursdayLesson.isClosed
+          ? "cancelled"
+          : (row.lessonStates[thursdayLesson.id] ?? "unmarked")
         : null,
       fridayState: fridayLesson
-        ? (row.lessonStates[fridayLesson.id] ?? "unmarked")
+        ? fridayLesson.isClosed
+          ? "cancelled"
+          : (row.lessonStates[fridayLesson.id] ?? "unmarked")
         : null,
       weeklyStatus: getWeeklyStatusState(attendanceRate),
       attendanceRate,

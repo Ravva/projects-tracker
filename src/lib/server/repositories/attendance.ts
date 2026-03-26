@@ -13,7 +13,7 @@ import {
 } from "@/lib/server/date-utils";
 import { mapAttendanceLessonDocument } from "@/lib/server/mappers";
 import { listStudents } from "@/lib/server/repositories/students";
-import type { AttendanceWeekRecord } from "@/lib/types";
+import type { AttendanceState, AttendanceWeekRecord } from "@/lib/types";
 
 async function getWeekLessonDocuments(weekStart: string) {
   const appwrite = getAppwriteDatabases();
@@ -175,25 +175,28 @@ export async function getAttendanceWeek(
   });
 
   const rows = students.map((student) => {
-    const lessonStates: Record<string, "present" | "absent" | "unmarked"> =
-      Object.fromEntries(
-        lessons.map((lesson) => {
-          const attendance = attendanceDocuments.find(
-            (item) =>
-              String(item.student_id ?? "") === student.id &&
-              String(item.lesson_id ?? "") === lesson.id,
-          );
+    const lessonStates: Record<string, AttendanceState> = Object.fromEntries(
+      lessons.map((lesson) => {
+        if (lesson.isClosed) {
+          return [lesson.id, "cancelled"];
+        }
 
-          const state =
-            attendance === undefined
-              ? "unmarked"
-              : attendance.present
-                ? "present"
-                : "absent";
+        const attendance = attendanceDocuments.find(
+          (item) =>
+            String(item.student_id ?? "") === student.id &&
+            String(item.lesson_id ?? "") === lesson.id,
+        );
 
-          return [lesson.id, state];
-        }),
-      ) as Record<string, "present" | "absent" | "unmarked">;
+        const state =
+          attendance === undefined
+            ? "unmarked"
+            : attendance.present
+              ? "present"
+              : "absent";
+
+        return [lesson.id, state];
+      }),
+    ) as Record<string, AttendanceState>;
 
     return { student, lessonStates };
   });
@@ -217,7 +220,7 @@ export async function saveWeekAttendance(
   entries: Array<{
     lessonId: string;
     studentId: string;
-    state: "present" | "absent" | "unmarked";
+    state: AttendanceState;
   }>,
 ) {
   const appwrite = getAppwriteDatabases();
@@ -257,7 +260,7 @@ export async function saveWeekAttendance(
     const key = `${entry.studentId}:${entry.lessonId}`;
     const existingId = existingByPair.get(key);
 
-    if (entry.state === "unmarked") {
+    if (entry.state === "unmarked" || entry.state === "cancelled") {
       if (existingId) {
         await appwrite.databases.deleteDocument(
           appwrite.databaseId,
@@ -308,6 +311,45 @@ export async function markLessonForAllStudents(
       state,
     })),
   );
+}
+
+export async function setLessonClosedState(
+  lessonId: string,
+  isClosed: boolean,
+) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    throw new Error("Appwrite не настроен.");
+  }
+
+  await appwrite.databases.updateDocument(
+    appwrite.databaseId,
+    config.collections.lessons,
+    lessonId,
+    {
+      is_closed: isClosed,
+    },
+  );
+
+  if (!isClosed) {
+    return;
+  }
+
+  const attendance = await appwrite.databases.listDocuments(
+    appwrite.databaseId,
+    config.collections.attendance,
+    [Query.equal("lesson_id", lessonId), Query.limit(5000)],
+  );
+
+  for (const document of attendance.documents) {
+    await appwrite.databases.deleteDocument(
+      appwrite.databaseId,
+      config.collections.attendance,
+      document.$id,
+    );
+  }
 }
 
 export async function clearWeekAttendance(weekStart: string) {

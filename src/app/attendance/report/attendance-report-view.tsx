@@ -11,8 +11,19 @@ const WEEKDAY_SHORT_LABELS: Record<string, string> = {
 };
 
 function getStateDotClassName(
-  state: "present" | "absent" | "unmarked" | "critical" | "warning" | "success",
+  state:
+    | "present"
+    | "absent"
+    | "unmarked"
+    | "cancelled"
+    | "critical"
+    | "warning"
+    | "success",
 ) {
+  if (state === "cancelled") {
+    return "bg-fuchsia-500 shadow-[0_0_20px_rgba(217,70,239,0.38)] dark:bg-fuchsia-400";
+  }
+
   if (state === "present" || state === "success") {
     return "bg-[hsl(var(--status-success))] shadow-[0_0_20px_hsl(var(--status-success)/0.35)]";
   }
@@ -97,6 +108,7 @@ export function AttendanceReportView({
                 {WEEKDAY_SHORT_LABELS[lesson.weekdayLabel] ??
                   lesson.weekdayLabel}
                 : {lesson.dateLabel}
+                {lesson.isClosed ? " — не состоялось" : ""}
               </div>
             ))}
           </div>
