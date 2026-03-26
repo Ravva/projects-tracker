@@ -10,6 +10,14 @@ const WEEKDAY_SHORT_LABELS: Record<string, string> = {
   Пятница: "Пт",
 };
 
+const REPORT_LEGEND_ITEMS = [
+  { label: "Нет данных", state: "unmarked" },
+  { label: "Отсутствовал", state: "absent" },
+  { label: "Присутствовал", state: "present" },
+  { label: "Не состоялось", state: "cancelled" },
+  { label: "Статус недели", state: "warning" },
+] as const;
+
 function getStateDotClassName(
   state:
     | "present"
@@ -96,6 +104,16 @@ export function AttendanceReportView({
               {report.studentCount}
             </li>
           </ul>
+          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-foreground/80 print:text-black">
+            {REPORT_LEGEND_ITEMS.map((item) => (
+              <span key={item.label} className="inline-flex items-center gap-2">
+                <span
+                  className={`inline-flex size-3 rounded-full ${getStateDotClassName(item.state)}`}
+                />
+                <span>{item.label}</span>
+              </span>
+            ))}
+          </div>
         </header>
 
         <div className="mt-8">

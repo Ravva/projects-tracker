@@ -102,6 +102,17 @@ function getWeeklyStatusDotClassName(weeklyState: WeeklyState) {
   return "bg-[hsl(var(--status-success))] shadow-[0_0_0_1px_hsl(var(--status-success)/0.22)]";
 }
 
+const ATTENDANCE_LEGEND_ITEMS: Array<{
+  label: string;
+  state: AttendanceState | WeeklyState;
+}> = [
+  { label: "Нет данных", state: "unmarked" },
+  { label: "Отсутствовал", state: "absent" },
+  { label: "Присутствовал", state: "present" },
+  { label: "Не состоялось", state: "cancelled" },
+  { label: "Статус недели", state: "warning" },
+];
+
 function buildInitialState(rows: AttendanceGridRow[]) {
   return Object.fromEntries(
     rows.map((row) => [
@@ -396,10 +407,26 @@ export function AttendanceGridClient({
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
             Неделя: {weekRangeLabel}
           </p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+            {ATTENDANCE_LEGEND_ITEMS.map((item) => (
+              <span key={item.label} className="inline-flex items-center gap-2">
+                <span
+                  className={`inline-flex size-3 rounded-full ${
+                    item.state === "critical" ||
+                    item.state === "warning" ||
+                    item.state === "success"
+                      ? getWeeklyStatusDotClassName(item.state)
+                      : getAttendanceDotClassName(item.state)
+                  }`}
+                />
+                <span>{item.label}</span>
+              </span>
+            ))}
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button
@@ -460,9 +487,7 @@ export function AttendanceGridClient({
                       onClick={() => handleColumnToggle(lesson.id)}
                       title="Массово переключить весь столбец"
                     >
-                      {lessonClosedStates[lesson.id]
-                        ? "Не состоялось"
-                        : column.label}
+                      {column.label}
                     </button>
                   ) : (
                     column.label
