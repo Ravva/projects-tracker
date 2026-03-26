@@ -59,7 +59,7 @@
 - пакетная teacher-only команда `Синхронизировать все` на `/projects` обрабатывает только проекты со статусом `sync_needed`, чтобы не делать лишние GitHub/API-вызовы по уже актуальным snapshot'ам;
 - GitHub Actions workflow `.github/workflows/project-sync.yml` каждые 4 часа по UTC вызывает production route `/api/github-actions/project-sync`; route авторизуется через `PROJECT_SYNC_CRON_SECRET` и переиспользует тот же server-side batch helper, что и teacher-only кнопка массовой синхронизации;
 - backend читает `memory_bank/projectbrief.md`, `productContext.md`, `activeContext.md`, `progress.md` и опциональный `docs/README.md` прямо из student GitHub repository;
-- `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; допустим только табличный формат `ID | Deliverable | Status | Weight`, а deliverables без валидной суммы весов `100` не участвуют в расчете процента;
+- `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; каноном остается таблица `ID | Deliverable | Status | Weight`, но parser также поддерживает legacy-блоки `### ID: Title` с полями `ID/Название/Статус/Вес`, а deliverables без валидной суммы весов `100` не участвуют в расчете процента;
 - commit metrics и флаг `abandoned` считаются по истории коммитов default branch;
 - snapshot AI-анализа сохраняет явную причину, почему progress не считается корректно: отсутствует `projectbrief.md`, отсутствует секция `Project Deliverables`, deliverables не распарсились или сумма весов не равна `100`;
 - AI используется только для нормализации summary, risks и next steps поверх уже рассчитанного snapshot;

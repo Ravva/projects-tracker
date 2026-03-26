@@ -80,6 +80,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - вызов модели идет через отдельный Cloudflare Worker gateway с Workers AI `@cf/qwen/qwen3-30b-a3b-fp8`; если Cloudflare возвращает quota/error по Workers AI или gateway временно не настроен, server-only AI client может уйти в fallback на Hugging Face Chat Completions через `HF_TOKEN`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
 - `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; вес завершенных deliverables дает итоговый процент, а `activeContext.md` и `progress.md` больше не используются как источник процента;
 - канонический формат `## Project Deliverables` фиксирован: Markdown-таблица `ID | Deliverable | Status | Weight`, где `Status` может быть только `pending`, `in_progress`, `completed` или `blocked`, а сумма всех `Weight` обязана быть ровно `100`;
+- для обратной совместимости teacher-side parser дополнительно понимает legacy-формат секции с блоками `### ID: Title` и многострочными полями `ID/Название/Статус/Вес`, но это fallback, а не новый канон;
 - AI используется только для нормализации summary и next steps поверх уже рассчитанных метрик;
 - до первого AI-анализа UI показывает состояние `данные отсутствуют`; флаги `missing_memory_bank`, `missing_spec` и `missing_plan` появляются только после реального анализа репозитория;
 - детальное ТЗ механизма: [Project Repo Analysis](./project-repo-analysis.md);

@@ -188,11 +188,11 @@ function parseDeliverableTableRow(line: string): ParsedDeliverable | null {
 function parseDeliverableBullet(line: string): ParsedDeliverable | null {
   const trimmed = line.trim();
 
-  if (!/^\s*-\s+/.test(trimmed)) {
+  if (!/^\s*[-*]\s+/.test(trimmed)) {
     return null;
   }
 
-  const content = trimmed.replace(/^\s*-\s+/, "");
+  const content = trimmed.replace(/^\s*[-*]\s+/, "");
   const idMatch = content.match(/(?:^|\|)\s*id\s*:\s*([^|]+?)(?=\s*\||$)/i);
   const titleMatch = content.match(
     /(?:^|\|)\s*(?:title|deliverable|name)\s*:\s*([^|]+?)(?=\s*\||$)/i,
@@ -223,12 +223,92 @@ function parseDeliverableBullet(line: string): ParsedDeliverable | null {
   };
 }
 
+function parseDeliverableBlock(lines: string[]): ParsedDeliverable | null {
+  if (lines.length === 0) {
+    return null;
+  }
+
+  const headingLine = lines[0]?.trim() ?? "";
+
+  if (!/^###\s+/.test(headingLine)) {
+    return null;
+  }
+
+  const headingContent = headingLine.replace(/^###\s+/, "").trim();
+  const headingMatch = headingContent.match(/^([A-Za-z0-9_-]+)\s*:\s*(.+)$/);
+  const keyValueLines = lines.slice(1).map((line) => {
+    const trimmed = line.trim();
+    const withoutBullet = trimmed.replace(/^\s*[-*]\s+/, "");
+    return withoutBullet.match(/^([^:]+):\s*(.+)$/);
+  });
+
+  const findValue = (keys: string[]) => {
+    for (const match of keyValueLines) {
+      if (!match) {
+        continue;
+      }
+
+      const key = match[1]?.trim().toLowerCase();
+
+      if (key && keys.includes(key)) {
+        return match[2]?.trim() ?? "";
+      }
+    }
+
+    return "";
+  };
+
+  const id = findValue(["id"]) || headingMatch?.[1]?.trim() || "";
+  const title =
+    findValue(["title", "deliverable", "name", "название"]) ||
+    headingMatch?.[2]?.trim() ||
+    "";
+  const status = normalizeDeliverableStatus(
+    findValue(["status", "статус"]) || "",
+  );
+  const weight = Number(
+    (findValue(["weight", "вес"]) || "").replace("%", "").trim(),
+  );
+
+  if (!id || !title || !status || !Number.isFinite(weight)) {
+    return null;
+  }
+
+  return {
+    id,
+    title,
+    status,
+    weight,
+  };
+}
+
 export function parseProjectDeliverables(content: string | null) {
   const section = extractMarkdownSection(content, "Project Deliverables");
   const lines = section.split(/\r?\n/);
   const deliverables: ParsedDeliverable[] = [];
+  let currentBlock: string[] = [];
+
+  const flushDeliverableBlock = () => {
+    const parsed = parseDeliverableBlock(currentBlock);
+
+    if (parsed) {
+      deliverables.push(parsed);
+    }
+
+    currentBlock = [];
+  };
 
   for (const line of lines) {
+    if (/^###\s+/.test(line.trim())) {
+      flushDeliverableBlock();
+      currentBlock = [line];
+      continue;
+    }
+
+    if (currentBlock.length > 0) {
+      currentBlock.push(line);
+    }
+
     const parsed =
       parseDeliverableTableRow(line) ?? parseDeliverableBullet(line);
 
@@ -236,6 +316,8 @@ export function parseProjectDeliverables(content: string | null) {
       deliverables.push(parsed);
     }
   }
+
+  flushDeliverableBlock();
 
   const totalWeight = deliverables.reduce(
     (sum, deliverable) => sum + deliverable.weight,
@@ -274,7 +356,7 @@ function buildProgressCalculationDiagnostics(input: {
     return {
       status: "no_parsable_deliverables" as const,
       details:
-        "Секция ## Project Deliverables найдена, но в ней нет валидных строк таблицы формата ID | Deliverable | Status | Weight.",
+        "Секция ## Project Deliverables найдена, но в ней нет распознаваемых deliverables ни в канонической markdown-таблице, ни в поддерживаемом legacy-блоке с заголовком ### и полями ID/Status/Weight.",
     };
   }
 
