@@ -36,6 +36,12 @@ const STATE_ORDER: Array<Exclude<AttendanceState, "cancelled">> = [
   "absent",
   "present",
 ];
+const COLUMN_STATE_ORDER: AttendanceState[] = [
+  "unmarked",
+  "absent",
+  "present",
+  "cancelled",
+];
 
 const STATE_LABELS: Record<AttendanceState, string> = {
   unmarked: "Нет данных",
@@ -48,6 +54,12 @@ function getNextState(state: Exclude<AttendanceState, "cancelled">) {
   const index = STATE_ORDER.indexOf(state);
 
   return STATE_ORDER[(index + 1) % STATE_ORDER.length];
+}
+
+function getNextColumnState(state: AttendanceState) {
+  const index = COLUMN_STATE_ORDER.indexOf(state);
+
+  return COLUMN_STATE_ORDER[(index + 1) % COLUMN_STATE_ORDER.length];
 }
 
 function buildWeeklyState(attendanceRate: number): WeeklyState {
@@ -247,11 +259,33 @@ export function AttendanceGridClient({
   };
 
   const handleColumnToggle = (lessonId: string) => {
-    if (lessonClosedStates[lessonId]) {
-      return;
-    }
-
     setDraftStates((current) => {
+      const columnState = lessonClosedStates[lessonId]
+        ? "cancelled"
+        : rows.every((row) => current[row.student.id]?.[lessonId] === "present")
+          ? "present"
+          : rows.every(
+                (row) => current[row.student.id]?.[lessonId] === "absent",
+              )
+            ? "absent"
+            : rows.every(
+                  (row) =>
+                    (current[row.student.id]?.[lessonId] ?? "unmarked") ===
+                    "unmarked",
+                )
+              ? "unmarked"
+              : "unmarked";
+      const nextColumnState = getNextColumnState(columnState);
+
+      setLessonClosedStates((closedState) => ({
+        ...closedState,
+        [lessonId]: nextColumnState === "cancelled",
+      }));
+
+      if (nextColumnState === "cancelled") {
+        return current;
+      }
+
       const columnStates = rows.map((row) => {
         const state = current[row.student.id]?.[lessonId];
         return state === "present" || state === "absent" || state === "unmarked"
@@ -259,9 +293,14 @@ export function AttendanceGridClient({
           : "unmarked";
       });
       const allSame = columnStates.every((state) => state === columnStates[0]);
-      const nextState = allSame
-        ? getNextState(columnStates[0] ?? "unmarked")
-        : "absent";
+      const nextState =
+        nextColumnState === "present" ||
+        nextColumnState === "absent" ||
+        nextColumnState === "unmarked"
+          ? nextColumnState
+          : allSame
+            ? getNextState(columnStates[0] ?? "unmarked")
+            : "absent";
 
       return Object.fromEntries(
         rows.map((row) => [
@@ -273,13 +312,6 @@ export function AttendanceGridClient({
         ]),
       );
     });
-  };
-
-  const handleLessonClosedToggle = (lessonId: string) => {
-    setLessonClosedStates((current) => ({
-      ...current,
-      [lessonId]: !current[lessonId],
-    }));
   };
 
   const saveDraft = async () => {
@@ -417,32 +449,21 @@ export function AttendanceGridClient({
                   className="w-24 px-1 text-center text-sm"
                 >
                   {lesson ? (
-                    <div className="flex flex-col items-center gap-1">
-                      <button
-                        type="button"
-                        className="inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-center text-sm transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-60"
-                        disabled={
-                          isPending || !hasRows || lessonClosedStates[lesson.id]
-                        }
-                        onClick={() => handleColumnToggle(lesson.id)}
-                        title="Массово переключить весь столбец"
-                      >
-                        {column.label}
-                      </button>
-                      <button
-                        type="button"
-                        className={`inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-xs transition-colors ${
-                          lessonClosedStates[lesson.id]
-                            ? "bg-fuchsia-500/16 text-fuchsia-700 dark:bg-fuchsia-400/18 dark:text-fuchsia-300"
-                            : "text-muted-foreground hover:bg-accent/20"
-                        }`}
-                        disabled={isPending || !hasRows}
-                        onClick={() => handleLessonClosedToggle(lesson.id)}
-                        title="Переключить состояние урока"
-                      >
-                        Не состоялось
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      className={`inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-center text-sm transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-60 ${
+                        lessonClosedStates[lesson.id]
+                          ? "bg-fuchsia-500/16 text-fuchsia-700 dark:bg-fuchsia-400/18 dark:text-fuchsia-300"
+                          : ""
+                      }`}
+                      disabled={isPending || !hasRows}
+                      onClick={() => handleColumnToggle(lesson.id)}
+                      title="Массово переключить весь столбец"
+                    >
+                      {lessonClosedStates[lesson.id]
+                        ? "Не состоялось"
+                        : column.label}
+                    </button>
                   ) : (
                     column.label
                   )}
