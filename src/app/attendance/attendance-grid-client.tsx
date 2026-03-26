@@ -598,6 +598,14 @@ export function AttendanceGridClient({
           <>
             <Button
               type="button"
+              className="rounded-xl"
+              disabled={isPending}
+              onClick={handleModalSave}
+            >
+              {isPending ? "Сохраняем..." : "Сохранить"}
+            </Button>
+            <Button
+              type="button"
               variant="outline"
               className="rounded-xl"
               disabled={isPending}
@@ -613,14 +621,6 @@ export function AttendanceGridClient({
               onClick={handleModalCancel}
             >
               Отмена
-            </Button>
-            <Button
-              type="button"
-              className="rounded-xl"
-              disabled={isPending}
-              onClick={handleModalSave}
-            >
-              {isPending ? "Сохраняем..." : "Сохранить"}
             </Button>
           </>
         }

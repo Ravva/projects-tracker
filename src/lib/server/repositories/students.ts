@@ -21,11 +21,11 @@ type StudentSummary = Pick<
 >;
 
 function buildWeeklyState(attendanceRate: number): WeeklyState {
-  if (attendanceRate < 25) {
+  if (attendanceRate <= 0) {
     return "critical";
   }
 
-  if (attendanceRate < 75) {
+  if (attendanceRate < 100) {
     return "warning";
   }
 
