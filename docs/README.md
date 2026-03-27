@@ -124,8 +124,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 
 ## Current Routes
 
-- `/` - teacher dashboard с app shell, weekly focus, KPI, risk table, AI summaries и кнопкой ручной отправки weekly digest в Telegram преподавателя.
-- `/` - teacher dashboard с app shell, weekly focus, KPI, risk table, AI summaries, кнопкой ручной отправки weekly digest в Telegram преподавателя и быстрым переходом в `Appwrite Console` для anti-pause workflow.
+- `/` - корневой route-резолвер: teacher получает dashboard с app shell, weekly focus, KPI, risk table, AI summaries, кнопкой ручной отправки weekly digest в Telegram преподавателя и быстрым переходом в `Appwrite Console`, а student сразу перенаправляется на `/my-project`.
 - `/students` - teacher-only список учеников.
 - `/students/[studentId]` - teacher-only страница редактирования ученика.
 - `/auth/complete` - post-login resolver для teacher/student.
