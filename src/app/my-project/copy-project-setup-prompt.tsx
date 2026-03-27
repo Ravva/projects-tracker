@@ -33,25 +33,34 @@ export function CopyProjectSetupPrompt({
   };
 
   return (
-    <div className="relative rounded-2xl border border-border/70 bg-background/80 p-4 pr-14 text-foreground">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        className="absolute top-3 right-3 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
-        onClick={handleCopy}
-        aria-label={copied ? "Промпт скопирован" : "Скопировать промпт"}
-        title={copied ? "Скопировано" : "Скопировать"}
-      >
-        <HugeiconsIcon
-          icon={copied ? Tick02Icon : Copy01Icon}
-          size={16}
-          strokeWidth={1.8}
-        />
-      </Button>
-      <pre className="whitespace-pre-wrap text-sm leading-6">
+    <div className="rounded-2xl border border-[hsl(var(--status-calm)/0.28)] bg-[hsl(var(--status-calm)/0.06)] p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1">
+          <div className="text-sm font-medium text-foreground">
+            Готовый промпт для ИИ
+          </div>
+          <p className="text-xs leading-6 text-muted-foreground">
+            Скопируйте и вставьте в ChatGPT, Cursor или другой ИИ-ассистент
+            после добавления <code>AGENTS.md</code> в репозиторий.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant={copied ? "outline" : "default"}
+          className="shrink-0 rounded-xl"
+          onClick={handleCopy}
+        >
+          <HugeiconsIcon
+            icon={copied ? Tick02Icon : Copy01Icon}
+            size={16}
+            strokeWidth={1.8}
+          />
+          {copied ? "Скопировано" : "Скопировать промпт"}
+        </Button>
+      </div>
+      <div className="mt-3 rounded-xl border border-border/50 bg-background/80 p-4 text-sm leading-6 text-muted-foreground">
         {projectSetupPrompt}
-      </pre>
+      </div>
     </div>
   );
 }

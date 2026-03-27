@@ -273,13 +273,13 @@ export default async function MyProjectPage({
                 </div>
                 <div className="space-y-2">
                   <CardTitle className="text-xl leading-tight">
-                    Подготовьте репозиторий, чтобы AI-анализ был точным
+                    Два шага — и репозиторий готов к AI-анализу
                   </CardTitle>
                   <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
-                    Projects Tracker оценивает проект по структуре{" "}
-                    <code>memory_bank</code> и правилам из{" "}
-                    <code>AGENTS.md</code>. Если репозиторий не подготовлен,
-                    процент выполнения и проектные сигналы будут искажены.
+                    Добавьте <code>AGENTS.md</code> и запустите готовый промпт в
+                    ИИ. Он проверит <code>memory_bank</code>, исправит{" "}
+                    <code>Project Deliverables</code> и подготовит репозиторий
+                    автоматически.
                   </p>
                 </div>
               </div>
@@ -292,12 +292,11 @@ export default async function MyProjectPage({
                   1
                 </div>
                 <div className="font-medium text-foreground">
-                  Добавьте AGENTS.md
+                  Скопируйте AGENTS.md
                 </div>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Создайте в корне проекта файл <code>AGENTS.md</code> и
-                  вставьте в него актуальную каноническую инструкцию для ИИ из
-                  этого репозитория.
+                  Вставьте файл в корень вашего репозитория. Он содержит
+                  правила, по которым ИИ оценивает прогресс проекта.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-3">
                   <CopyTextButton
@@ -332,41 +331,19 @@ export default async function MyProjectPage({
                   2
                 </div>
                 <div className="font-medium text-foreground">
-                  Запустите готовый промпт
+                  Вставьте промпт в ИИ
                 </div>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  После добавления <code>AGENTS.md</code> отправьте ИИ готовый
-                  промпт. Он сам проверит структуру <code>Memory Bank</code>,
-                  исправит <code>Project Deliverables</code> и проверит сумму
-                  весов перед commit/push.
+                  Скопируйте готовый промпт ниже и отправьте его в ChatGPT,
+                  Cursor или любой другой ИИ-ассистент, работающий с вашим
+                  репозиторием.
                 </p>
-                <Link
-                  href="https://digital-ai-news.vercel.app/posts/fb6be397-2bde-4c72-8baa-b82ecbe475d5"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-3 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  Посмотреть, как устроен Memory Bank
-                </Link>
-                <ul className="mt-3 space-y-1 text-xs leading-6 text-muted-foreground">
-                  <li>
-                    - файл <code>memory_bank/projectbrief.md</code> существует;
-                  </li>
-                  <li>
-                    - в нем есть секция <code>## Project Deliverables</code>.
-                  </li>
-                  <li>
-                    - таблица использует колонки{" "}
-                    <code>ID | Deliverable | Status | Weight</code>.
-                  </li>
-                  <li>
-                    - сумма всех <code>Weight</code> ровно <code>100</code>.
-                  </li>
-                </ul>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  ИИ автоматически проверит структуру <code>memory_bank</code>,
+                  создаст <code>projectbrief.md</code> с таблицей{" "}
+                  <code>Project Deliverables</code> и сделает коммит.
+                </p>
               </div>
-            </div>
-            <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              Готовый промпт
             </div>
             <CopyProjectSetupPrompt
               agentsSourceUrl={canonicalAgentsDocument.blobUrl}
