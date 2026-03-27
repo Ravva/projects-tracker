@@ -162,7 +162,7 @@ export async function buildProjectReportData(
   });
 
   const studentIdsWithProjects = new Set(
-    projects.map((project) => project.studentId),
+    projects.flatMap((project) => project.memberStudentIds),
   );
   const missingProjectData = students
     .filter((student) => !studentIdsWithProjects.has(student.id))
