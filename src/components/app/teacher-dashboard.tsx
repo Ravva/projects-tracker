@@ -34,7 +34,11 @@ import { parseIsoDate } from "@/lib/server/date-utils";
 import { getCurrentAttendanceWeek } from "@/lib/server/repositories/attendance";
 import { listProjects } from "@/lib/server/repositories/projects";
 import { listStudents } from "@/lib/server/repositories/students";
-import type { AttendanceLessonRecord, TeacherSessionUser } from "@/lib/types";
+import type {
+  AttendanceLessonRecord,
+  StudentRecord,
+  TeacherSessionUser,
+} from "@/lib/types";
 
 function getNearestLesson(lessons: AttendanceLessonRecord[]) {
   if (lessons.length === 0) return null;
@@ -48,14 +52,36 @@ function getNearestLesson(lessons: AttendanceLessonRecord[]) {
   );
 }
 
+function getWeeklyAttendanceStats(
+  students: StudentRecord[],
+  lessons: AttendanceLessonRecord[],
+) {
+  const requiredMin = Math.min(2, lessons.length);
+  const totalStudents = students.length;
+
+  if (totalStudents === 0) {
+    return { averageRate: 0, requiredMin, totalStudents };
+  }
+
+  const sum = students.reduce(
+    (acc, s) => acc + Math.min(100, s.attendanceRate),
+    0,
+  );
+  const averageRate = Math.min(100, Math.round(sum / totalStudents));
+
+  return { averageRate, requiredMin, totalStudents };
+}
+
 function KpiCard({
   icon,
+  title,
   value,
   label,
   tone,
   href,
 }: {
   icon: typeof Alert01Icon;
+  title?: string;
   value: string;
   label: string;
   tone: "critical" | "warning" | "success" | "calm";
@@ -75,11 +101,18 @@ function KpiCard({
       >
         <HugeiconsIcon icon={icon} size={18} strokeWidth={1.8} />
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
+        {title && (
+          <div className="mb-0.5 text-xs font-medium text-muted-foreground">
+            {title}
+          </div>
+        )}
         <div className="text-xl font-semibold leading-tight tracking-tight">
           {value}
         </div>
-        <div className="truncate text-xs text-muted-foreground">{label}</div>
+        {label && (
+          <div className="truncate text-xs text-muted-foreground">{label}</div>
+        )}
       </div>
     </div>
   );
@@ -117,17 +150,10 @@ export async function TeacherDashboard({
   const currentProjects = projects.filter((project) =>
     isProjectCurrent(project.status),
   );
-  const averageAttendance = students.length
-    ? Math.min(
-        100,
-        Math.round(
-          students.reduce(
-            (total, s) => total + Math.min(100, s.attendanceRate),
-            0,
-          ) / students.length,
-        ),
-      )
-    : 0;
+  const { averageRate, requiredMin } = getWeeklyAttendanceStats(
+    students,
+    attendanceLessons,
+  );
   const aiReportsCount = currentProjects.filter((p) => p.aiSummary).length;
 
   return (
@@ -148,34 +174,43 @@ export async function TeacherDashboard({
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           icon={Alert01Icon}
-          value={`${studentsNeedingAttention.length}`}
-          label={
-            studentsNeedingAttention.length
-              ? `из ${students.length} учеников`
-              : "все в норме"
+          title="Внимание"
+          value={
+            studentsNeedingAttention.length > 0
+              ? `${studentsNeedingAttention.length} ${
+                  studentsNeedingAttention.length === 1 ? "ученик" : "учеников"
+                }`
+              : "Все в норме"
           }
+          label={studentsNeedingAttention.length > 0 ? "требуют внимания" : ""}
           tone={studentsNeedingAttention.length > 0 ? "critical" : "success"}
           href="/students"
         />
         <KpiCard
           icon={Github01Icon}
-          value={`${riskyProjects.length}`}
-          label={
-            riskyProjects.length
-              ? `из ${currentProjects.length} проектов`
-              : "стабильно"
+          title="Риски"
+          value={
+            riskyProjects.length > 0
+              ? `${riskyProjects.length} ${
+                  riskyProjects.length === 1 ? "проект" : "проектов"
+                }`
+              : "Все стабильно"
           }
+          label={riskyProjects.length > 0 ? "в зоне риска" : ""}
           tone={riskyProjects.length > 0 ? "warning" : "success"}
           href="/projects"
         />
         <KpiCard
           icon={ChartUpIcon}
-          value={`${averageAttendance}%`}
-          label="посещаемость"
+          title="Посещаемость"
+          value={`${averageRate}%`}
+          label={`за неделю (${requiredMin} ${
+            requiredMin === 1 ? "урок" : requiredMin <= 4 ? "урока" : "уроков"
+          })`}
           tone={
-            averageAttendance >= 75
+            averageRate >= 75
               ? "success"
-              : averageAttendance >= 25
+              : averageRate >= 25
                 ? "warning"
                 : "critical"
           }
@@ -183,8 +218,9 @@ export async function TeacherDashboard({
         />
         <KpiCard
           icon={AiBrain03Icon}
-          value={`${aiReportsCount}/${currentProjects.length}`}
-          label="AI-отчетов"
+          title="AI-анализ"
+          value={`${aiReportsCount} из ${currentProjects.length}`}
+          label="проектов с отчетами"
           tone="calm"
           href="/projects"
         />
@@ -296,6 +332,11 @@ export async function TeacherDashboard({
                       />
                     </Link>
                   ))}
+                  {studentsNeedingAttention.length > 5 && (
+                    <div className="border-t border-border/40 px-5 py-2 text-center text-xs text-muted-foreground">
+                      +{studentsNeedingAttention.length - 5} еще
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -26,12 +26,12 @@
 | ID | Deliverable | Status | Weight |
 | --- | --- | --- | --- |
 | PT-01 | Teacher auth и role guard для teacher-only маршрутов | completed | 12 |
-| PT-02 | Teacher workspace для студентов с CRUD и массовой Telegram-рассылкой | completed | 14 |
-| PT-03 | Weekly attendance workspace с реальной записью в Appwrite | completed | 14 |
+| PT-02 | Teacher workspace для студентов с CRUD и массовой Telegram-рассылкой | completed | 13 |
+| PT-03 | Weekly attendance workspace с реальной записью в Appwrite | completed | 13 |
 | PT-04 | Student bind flow через Telegram и GitHub OAuth | completed | 12 |
 | PT-05 | Student page `/my-project` и создание draft-проекта из GitHub repository | completed | 9 |
 | PT-06 | Teacher workspace для проектов, GitHub sync и review-страницы | completed | 8 |
-| PT-07 | AI-analysis pipeline проекта с отчетами, risk flags и устойчивым расчетом прогресса | completed | 14 |
+| PT-07 | AI-analysis pipeline проекта с отчетами, risk flags и устойчивым расчетом прогресса | completed | 12 |
 | PT-08 | Production hardening, deployment и полная smoke-проверка teacher/student сценариев | completed | 6 |
 | PT-09 | Стабилизация документации и Memory Bank как надежного источника прогресса проекта | in_progress | 3 |
 | PT-10 | Последовательный multi-project lifecycle для одного ученика с историей состояний | completed | 4 |
