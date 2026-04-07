@@ -180,6 +180,10 @@ function parseGithubUrl(githubUrl: string) {
   };
 }
 
+function normalizeRepositoryUrl(value: string) {
+  return value.trim().replace(/\/+$/, "");
+}
+
 function buildProjectPayload(input: ProjectInput) {
   const normalizedInput = normalizeProjectInput(input);
 
@@ -483,6 +487,53 @@ function getProjectBaseRecord(project: ProjectRecord) {
   };
 }
 
+function buildGithubSyncSnapshotDrift(input: {
+  storedDefaultBranch: string;
+  storedLastCommitSha: string;
+  remoteDefaultBranch: string;
+  remoteLastCommitSha: string;
+}) {
+  const storedDefaultBranch = input.storedDefaultBranch.trim();
+  const storedLastCommitSha = input.storedLastCommitSha.trim();
+  const remoteDefaultBranch = input.remoteDefaultBranch.trim();
+  const remoteLastCommitSha = input.remoteLastCommitSha.trim();
+  const branchChanged =
+    Boolean(storedDefaultBranch) &&
+    Boolean(remoteDefaultBranch) &&
+    storedDefaultBranch !== remoteDefaultBranch;
+  const hasSyncSnapshot =
+    Boolean(storedLastCommitSha) || Boolean(storedDefaultBranch);
+  const commitChanged =
+    Boolean(remoteLastCommitSha) &&
+    (!storedLastCommitSha || remoteLastCommitSha !== storedLastCommitSha);
+  const syncNeeded = branchChanged || commitChanged;
+
+  return {
+    hasSyncSnapshot,
+    branchChanged,
+    syncNeeded,
+  };
+}
+
+function getGithubSyncStatusReason(input: {
+  branchChanged: boolean;
+  hasSyncSnapshot: boolean;
+  remoteDefaultBranch: string;
+  syncNeeded: boolean;
+}) {
+  if (input.syncNeeded) {
+    if (input.branchChanged) {
+      return `В GitHub изменилась default branch на ${input.remoteDefaultBranch}, сохраненный snapshot нужно пересинхронизировать.`;
+    }
+
+    return "В GitHub есть новые коммиты относительно сохраненного snapshot.";
+  }
+
+  return input.hasSyncSnapshot
+    ? ""
+    : "Проект еще не синхронизировался с GitHub.";
+}
+
 async function enrichProjectRepositoryStatus(
   project: ProjectRecord,
 ): Promise<ProjectRecord> {
@@ -516,26 +567,29 @@ async function enrichProjectRepositoryStatus(
     const lastCommit = commitData[0];
     const remoteLastCommitSha = lastCommit?.sha ?? "";
     const remoteLastCommit = lastCommit?.committedAt ?? "";
-    const hasSyncSnapshot = Boolean(project.lastCommitSha.trim());
-    const hasRepositoryUpdates =
-      Boolean(remoteLastCommitSha) &&
-      (!hasSyncSnapshot || remoteLastCommitSha !== project.lastCommitSha);
+    const snapshotDrift = buildGithubSyncSnapshotDrift({
+      storedDefaultBranch: project.defaultBranch,
+      storedLastCommitSha: project.lastCommitSha,
+      remoteDefaultBranch: metadata.defaultBranch,
+      remoteLastCommitSha,
+    });
 
     return {
       ...project,
-      syncStatus: hasRepositoryUpdates
+      syncStatus: snapshotDrift.syncNeeded
         ? "sync_needed"
-        : hasSyncSnapshot
+        : snapshotDrift.hasSyncSnapshot
           ? "synced"
           : "unknown",
-      syncStatusReason: hasRepositoryUpdates
-        ? "В GitHub есть новые коммиты относительно сохраненного snapshot."
-        : hasSyncSnapshot
-          ? ""
-          : "Проект еще не синхронизировался с GitHub.",
+      syncStatusReason: getGithubSyncStatusReason({
+        branchChanged: snapshotDrift.branchChanged,
+        hasSyncSnapshot: snapshotDrift.hasSyncSnapshot,
+        remoteDefaultBranch: metadata.defaultBranch,
+        syncNeeded: snapshotDrift.syncNeeded,
+      }),
       aiStatus: !project.hasAiAnalysisSnapshot
         ? "not_started"
-        : hasRepositoryUpdates
+        : snapshotDrift.syncNeeded
           ? "outdated"
           : "up_to_date",
       remoteLastCommit,
@@ -935,6 +989,7 @@ export async function createStudentProjectFromGithubSelection(input: {
   }
 
   const normalizedUrl = input.repositoryUrl.trim();
+  const normalizedRepositoryUrl = normalizeRepositoryUrl(normalizedUrl);
 
   if (!parseGithubUrl(normalizedUrl)) {
     throw new Error("Выбран некорректный GitHub URL.");
@@ -949,10 +1004,18 @@ export async function createStudentProjectFromGithubSelection(input: {
   try {
     const existingProjects = await listProjectsByStudentId(input.studentId);
     const allProjects = await listProjects();
+    const sameStudentRepositoryProjects = existingProjects.filter(
+      (project) =>
+        normalizeRepositoryUrl(project.githubUrl) === normalizedRepositoryUrl,
+    );
+    const conflictingRepositoryProjects = allProjects.filter(
+      (project) =>
+        normalizeRepositoryUrl(project.githubUrl) === normalizedRepositoryUrl,
+    );
 
     if (
-      existingProjects.some(
-        (project) => project.githubUrl.trim() === normalizedUrl,
+      sameStudentRepositoryProjects.some((project) =>
+        isProjectCurrent(project.status),
       )
     ) {
       throw new Error("Этот репозиторий уже выбран для текущего ученика.");
@@ -964,8 +1027,12 @@ export async function createStudentProjectFromGithubSelection(input: {
       );
     }
     if (
-      allProjects.some(
-        (project) => project.githubUrl.trim() === normalizedUrl.trim(),
+      conflictingRepositoryProjects.some(
+        (project) =>
+          isProjectCurrent(project.status) ||
+          project.memberStudentIds.some(
+            (studentId) => studentId !== input.studentId,
+          ),
       )
     ) {
       throw new Error(

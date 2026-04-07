@@ -33,6 +33,10 @@ function formatUpdatedAt(value: string) {
   }).format(parsed);
 }
 
+function normalizeRepositoryUrl(value: string) {
+  return value.trim().replace(/\/+$/, "");
+}
+
 const PREVIEW_PROJECTS: ProjectRecord[] = [
   {
     id: "preview-active-project",
@@ -215,12 +219,19 @@ export default async function MyProjectPage({
       });
     }
   }
-  const selectedUrls = new Set(projects.map((project) => project.githubUrl));
   const currentProjects = projects.filter((project) =>
     isProjectCurrent(project.status),
   );
   const completedProjects = projects.filter(
     (project) => !isProjectCurrent(project.status),
+  );
+  const currentProjectUrls = new Set(
+    currentProjects.map((project) => normalizeRepositoryUrl(project.githubUrl)),
+  );
+  const completedProjectUrls = new Set(
+    completedProjects.map((project) =>
+      normalizeRepositoryUrl(project.githubUrl),
+    ),
   );
   const canChooseNextProject = currentProjects.length === 0;
 
@@ -451,10 +462,18 @@ export default async function MyProjectPage({
                 </div>
               ) : repositories.length > 0 ? (
                 repositories.map((repository) => {
-                  const alreadySelected = selectedUrls.has(repository.url);
+                  const normalizedRepositoryUrl = normalizeRepositoryUrl(
+                    repository.url,
+                  );
+                  const alreadyCurrent = currentProjectUrls.has(
+                    normalizedRepositoryUrl,
+                  );
+                  const alreadyCompleted = completedProjectUrls.has(
+                    normalizedRepositoryUrl,
+                  );
                   const disabled =
                     repository.private ||
-                    alreadySelected ||
+                    alreadyCurrent ||
                     !canChooseNextProject;
 
                   return (
@@ -509,18 +528,26 @@ export default async function MyProjectPage({
                             className="rounded-xl"
                             disabled={disabled || isTeacherPreview}
                           >
-                            {alreadySelected
-                              ? "Уже в истории"
+                            {alreadyCurrent
+                              ? "Уже выбран"
                               : repository.private
                                 ? "Приватный"
                                 : !canChooseNextProject
                                   ? "Сначала завершите текущий"
                                   : isTeacherPreview
                                     ? "Недоступно в preview"
-                                    : "Начать следующий проект"}
+                                    : alreadyCompleted
+                                      ? "Начать проект заново"
+                                      : "Начать следующий проект"}
                           </Button>
                         </form>
                       </div>
+                      {alreadyCompleted && canChooseNextProject ? (
+                        <div className="mt-3 text-xs text-muted-foreground">
+                          Этот репозиторий уже был в истории, но его можно снова
+                          выбрать после завершения предыдущего проекта.
+                        </div>
+                      ) : null}
                     </div>
                   );
                 })
