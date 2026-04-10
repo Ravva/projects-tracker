@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireStudentSession } from "@/lib/server/auth";
+import {
+  getCurrentGithubAccessToken,
+  requireStudentSession,
+} from "@/lib/server/auth";
 import { listGithubRepositoriesForStudent } from "@/lib/server/github";
 import {
   createStudentProjectFromGithubSelection,
@@ -33,15 +36,15 @@ function inferAiProviderLabelFromMessage(message: string) {
 
 export async function chooseStudentProjectAction(formData: FormData) {
   const student = await requireStudentSession();
+  const githubAccessToken = await getCurrentGithubAccessToken();
   let autoAnalysisNotice = "";
   const repositoryName = readString(formData, "repositoryName");
   const repositoryUrl = readString(formData, "repositoryUrl");
   const repositoryDescription = readString(formData, "repositoryDescription");
 
   try {
-    const repositories = await listGithubRepositoriesForStudent(
-      student.githubAccessToken,
-    );
+    const repositories =
+      await listGithubRepositoriesForStudent(githubAccessToken);
     const selectedRepository = repositories.find(
       (repository) =>
         normalizeRepositoryUrl(repository.url) ===

@@ -13,13 +13,13 @@
 - GitHub REST API для чтения student repositories, `memory_bank` файлов и commit history;
 - Cloudflare Workers + Workers AI для server-side AI gateway и модели `@cf/qwen/qwen3-30b-a3b-fp8`;
 - Hugging Face Inference Providers Chat Completions как fallback-провайдер для AI-анализа при недоступности или исчерпании квоты Workers AI;
-- `xlsx` для teacher import students.
+- `exceljs` для teacher import students.
 
 ## Auth And Access
 
 - OAuth provider: GitHub;
 - GitHub OAuth scope включает доступ, достаточный для чтения списка student repositories владельца;
-- server session хранит `githubLogin`, `githubId` и OAuth access token;
+- server session хранит `githubLogin` и `githubId`, а OAuth access token остается только в server-side JWT `next-auth` и читается через server-only helper;
 - роль teacher вычисляется по env allowlist;
 - роль student вычисляется по `students.github_user_id`;
 - student bind использует поля Appwrite:
@@ -58,9 +58,10 @@
 - Telegram env:
   - `TELEGRAM_BOT_TOKEN`
   - `TELEGRAM_BOT_USERNAME`
-  - `TELEGRAM_WEBHOOK_SECRET`
+  - `TELEGRAM_WEBHOOK_SECRET` обязателен для production webhook
   - `TEACHER_TELEGRAM_CHAT_ID`
   - `PROJECT_REPORT_SHARE_SECRET` для отдельной подписи project report share-link
+  - `ATTENDANCE_REPORT_SHARE_SECRET` для отдельной подписи attendance share-link
 - AI env:
   - `AI_GATEWAY_URL`
   - `AI_GATEWAY_TOKEN`
@@ -73,6 +74,7 @@
   - `PROJECT_SYNC_CRON_SECRET` для защищенного route, который вызывается GitHub Actions
 - GitHub Actions workflow `project-sync.yml` использует repository secret `PROJECT_SYNC_ENDPOINT_URL` для production endpoint и `PROJECT_SYNC_CRON_SECRET` для авторизации фонового запуска.
 - auth guard в Next.js 16 перенесен на `src/proxy.ts`; `src/middleware.ts` больше не используется.
+- публичные report share-ссылки больше не fallback-ятся на `NEXTAUTH_SECRET`; каждый share-flow требует собственный env-secret.
 
 ## Ограничения
 

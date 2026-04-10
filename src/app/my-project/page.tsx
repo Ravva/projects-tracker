@@ -9,6 +9,7 @@ import { getProjectRiskLabel } from "@/lib/project-risk";
 import { getProjectStatusLabel, isProjectCurrent } from "@/lib/project-status";
 import {
   getCurrentAuthRole,
+  getCurrentGithubAccessToken,
   requireAuthenticatedSession,
   requireStudentSession,
 } from "@/lib/server/auth";
@@ -200,11 +201,10 @@ export default async function MyProjectPage({
     projects = PREVIEW_PROJECTS;
   } else {
     projects = await listProjectsByStudentId(student.studentId);
+    const githubAccessToken = await getCurrentGithubAccessToken();
 
     try {
-      repositories = await listGithubRepositoriesForStudent(
-        student.githubAccessToken,
-      );
+      repositories = await listGithubRepositoriesForStudent(githubAccessToken);
     } catch (error) {
       repositoryLoadError =
         error instanceof Error && error.message.trim()

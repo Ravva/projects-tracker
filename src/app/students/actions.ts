@@ -1,9 +1,8 @@
 "use server";
 
+import ExcelJS from "exceljs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
-import * as XLSX from "xlsx";
 import { requireTeacherSession } from "@/lib/server/auth";
 import {
   createStudent,
@@ -23,6 +22,68 @@ import type { BulkNotificationResult } from "@/lib/types";
 
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
+}
+
+function readCellValue(row: Record<string, string>, keys: string[]) {
+  for (const key of keys) {
+    const value = row[key]?.trim();
+
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
+async function readWorksheetRows(file: File) {
+  const workbook = new ExcelJS.Workbook();
+  const arrayBuffer = await file.arrayBuffer();
+
+  await workbook.xlsx.load(arrayBuffer);
+
+  const worksheet = workbook.worksheets[0];
+
+  if (!worksheet) {
+    return [] as Record<string, string>[];
+  }
+
+  const headerRow = worksheet.getRow(1);
+  const headerValues = Array.isArray(headerRow.values) ? headerRow.values : [];
+  const headers = headerValues
+    .slice(1)
+    .map((value) => String(value ?? "").trim());
+  const rows: Record<string, string>[] = [];
+
+  for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber += 1) {
+    const worksheetRow = worksheet.getRow(rowNumber);
+    const row: Record<string, string> = {};
+    let hasData = false;
+
+    for (let columnIndex = 1; columnIndex <= headers.length; columnIndex += 1) {
+      const header = headers[columnIndex - 1];
+
+      if (!header) {
+        continue;
+      }
+
+      const cellText = String(
+        worksheetRow.getCell(columnIndex).text ?? "",
+      ).trim();
+
+      if (cellText) {
+        hasData = true;
+      }
+
+      row[header] = cellText;
+    }
+
+    if (hasData) {
+      rows.push(row);
+    }
+  }
+
+  return rows;
 }
 
 export async function sendStudentNotificationAction(formData: FormData) {
@@ -172,25 +233,26 @@ export async function importStudentsAction(formData: FormData) {
     throw new Error("Файл не выбран или пуст");
   }
 
-  const buffer = await file.arrayBuffer();
-  const workbook = XLSX.read(buffer);
-  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(worksheet) as Record<string, unknown>[];
+  const rows = await readWorksheetRows(file);
 
   for (const row of rows) {
-    const fullName = String(row.ФИО || row.Имя || row.Name || "").trim();
+    const fullName = readCellValue(row, ["ФИО", "Имя", "Name"]);
     if (!fullName) continue;
 
     const parts = fullName.split(/\s+/);
     const lastName = parts[0] || "Не указано";
     const firstName = parts.slice(1).join(" ") || "Ученик";
 
-    const githubUsername = String(
-      row.GitHub || row.github || row.github_username || "",
-    ).trim();
-    const telegramUsername = String(
-      row.Telegram || row.telegram || row.telegram_username || "",
-    ).trim();
+    const githubUsername = readCellValue(row, [
+      "GitHub",
+      "github",
+      "github_username",
+    ]);
+    const telegramUsername = readCellValue(row, [
+      "Telegram",
+      "telegram",
+      "telegram_username",
+    ]);
 
     await createStudent({
       firstName,

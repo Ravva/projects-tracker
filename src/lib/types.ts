@@ -22,7 +22,6 @@ export type AuthenticatedSessionUser = {
   image?: string;
   githubLogin: string;
   githubId: string;
-  githubAccessToken: string;
 };
 
 export type TeacherSessionUser = AuthenticatedSessionUser;

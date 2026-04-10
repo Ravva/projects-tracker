@@ -108,7 +108,7 @@ export function parseTelegramStartToken(text: string) {
 
 export function verifyTelegramWebhookRequest(request: Request) {
   if (!TELEGRAM_WEBHOOK_SECRET) {
-    return true;
+    return false;
   }
 
   return (

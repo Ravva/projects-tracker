@@ -35,6 +35,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - реализация на `next-auth`;
 - teacher определяется только по `TEACHER_GITHUB_USER_ID` в production и по `TEACHER_GITHUB_USER_ID` либо fallback `TEACHER_GITHUB_LOGIN` вне production;
 - student определяется поиском по `students.github_user_id`;
+- GitHub OAuth access token сохраняется только в server-side JWT `next-auth` и больше не прокидывается в client session;
 - post-login redirect идет через `/auth/complete`;
 - маршруты `/auth/complete`, `/student/link` и `/my-project` защищены через `src/proxy.ts`, а role-check выполняется на сервере;
 - в production допуск учителя идет только по `TEACHER_GITHUB_USER_ID`; `TEACHER_GITHUB_LOGIN` остается fallback только для локальной разработки и других non-production сред.
@@ -154,7 +155,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - production env должен включать корректный `NEXTAUTH_URL` для публичного Vercel URL;
 - production env должен включать `TEACHER_GITHUB_USER_ID`; без него teacher login считается не настроенным;
 - production env должен включать `AI_GATEWAY_URL` и `AI_GATEWAY_TOKEN`; `AI_GATEWAY_MODEL` опционален и по умолчанию равен `@cf/qwen/qwen3-30b-a3b-fp8`. Для fallback на Hugging Face нужен `HF_TOKEN`; `HF_BASE_URL`, `HF_CHAT_MODEL` и `AI_FORCE_HF` остаются опциональными;
-- production env должен включать `PROJECT_REPORT_SHARE_SECRET` для публичных project share-ссылок; `ATTENDANCE_REPORT_SHARE_SECRET` остается только для attendance share-флоу и совместимости;
+- production env должен включать `PROJECT_REPORT_SHARE_SECRET` для публичных project share-ссылок и `ATTENDANCE_REPORT_SHARE_SECRET` для attendance share-флоу; fallback на `NEXTAUTH_SECRET` для этих ссылок больше не используется;
 - отдельный Worker разворачивается через `wrangler` из подпроекта `workers/ai-worker` и использует binding `[ai]`;
 - Telegram webhook уже привязан к `https://projects-tracker-one.vercel.app/api/telegram/webhook`;
 - на 2026-03-11 production smoke test teacher-only сценариев `/students`, `/attendance`, `/projects`, массовой Telegram-рассылки и teacher weekly digest подтвержден вручную.
@@ -162,7 +163,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 ## Telegram Setup
 
 - для автоматической привязки ученика нужно настроить у бота webhook на публичный URL вида `https://<domain>/api/telegram/webhook`;
-- если задан `TELEGRAM_WEBHOOK_SECRET`, Telegram должен отправлять тот же secret в заголовке `x-telegram-bot-api-secret-token`;
+- `TELEGRAM_WEBHOOK_SECRET` обязателен для production webhook; Telegram должен отправлять тот же secret в заголовке `x-telegram-bot-api-secret-token`, иначе `/api/telegram/webhook` возвращает `401`;
 - в production teacher-only страница ученика уже выпускает персональную `start`-ссылку, webhook автоматически сохраняет `telegram_chat_id` после нажатия `Start`, а затем бот отправляет student login-ссылку для bind flow по `github_user_id`.
 
 ## Risk Rules

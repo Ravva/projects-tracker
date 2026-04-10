@@ -6,6 +6,8 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 
 ## Задача в работе
 
+- план следующего security-этапа сохранен в Memory Bank: отдельно разобрать оставшиеся `bun audit` находки на runtime и dev-only, затем по возможности обновить или изолировать транзитивные зависимости `path-to-regexp`, `picomatch`, `hono` и `brace-expansion`, не затрагивая рабочий teacher/student flow без отдельной регрессионной проверки;
+- закрыто в текущей сессии: выполнен security-hardening auth/share/webhook flow — GitHub OAuth access token больше не уходит в client session `next-auth`, student `/my-project` получает его только через server-only helper, public share-links для attendance/project report больше не используют fallback на `NEXTAUTH_SECRET`, а Telegram webhook переведен в fail-closed режим и отклоняет запросы без `TELEGRAM_WEBHOOK_SECRET`;
 - закрыто в текущей сессии: student GitHub bind flow больше не должен застревать на `/login` с сообщением `Связать GitHub-аккаунт не удалось...`, если после OAuth уже есть сессия, но в URL остались `callbackUrl/error`; `src/app/login/page.tsx` теперь устойчиво извлекает student token даже из вложенных redirect-URL и автоматически продолжает привязку в `/student/link` только для сценариев продолжения flow, сохраняя ручной выбор аккаунта при первом открытии student-ссылки;
 - закрыто в текущей сессии: student-flow `/my-project` больше не блокирует повторный выбор репозитория только из-за того, что он уже есть в завершенной истории ученика; UI теперь дизейблит только текущий repo, а server-side guard разрешает снова создать проект из того же GitHub-репозитория после завершения предыдущего проекта этого ученика, сохраняя блокировку для активных и чужих/групповых конфликтов;
 - закрыто в текущей сессии: teacher-side GitHub sync дополнительно защищен от drift после переименования ветки `master -> main`; `src/lib/server/repositories/projects.ts` теперь считает `sync_needed` не только по новому commit SHA, но и по смене `default branch`, а reason явно сообщает о необходимости пересинхронизации snapshot после branch rename;
@@ -165,7 +167,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 - реализованы маршруты `/students` и `/students/[studentId]`;
 - реализованы первые teacher-only маршруты `/attendance` и `/projects`;
 - реализованы маршруты `/projects/[projectId]`;
-- реализован импорт студентов из XLSX через библиотеку `xlsx` и Server Actions;
+- реализован импорт студентов из XLSX через библиотеку `exceljs` и Server Actions;
 - реализована интеграция с Telegram Bot API для отправки уведомлений студентам;
 - страницы читают данные через `src/lib/server/repositories/*`;
 - `.env.example` задает минимальный набор Appwrite переменных;

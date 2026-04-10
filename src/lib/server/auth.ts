@@ -1,8 +1,10 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { DefaultSession, NextAuthOptions } from "next-auth";
 import { getServerSession } from "next-auth";
+import { getToken } from "next-auth/jwt";
 import GitHubProvider from "next-auth/providers/github";
 
 import { getStudentByGithubUserId } from "@/lib/server/repositories/students";
@@ -19,7 +21,6 @@ declare module "next-auth" {
       id: string;
       githubLogin: string;
       githubId: string;
-      githubAccessToken: string;
       role: AuthRole;
     };
   }
@@ -76,7 +77,6 @@ function buildAuthenticatedUser(
     image: session.user.image ?? undefined,
     githubLogin: session.user.githubLogin ?? "",
     githubId: session.user.githubId ?? "",
-    githubAccessToken: session.user.githubAccessToken ?? "",
   } satisfies AuthenticatedSessionUser;
 }
 
@@ -166,7 +166,6 @@ export const authOptions: NextAuthOptions = {
       session.user.id = String(token.sub ?? "");
       session.user.githubLogin = String(token.githubLogin ?? "");
       session.user.githubId = String(token.githubId ?? "");
-      session.user.githubAccessToken = String(token.githubAccessToken ?? "");
       session.user.role =
         token.role === "teacher" || token.role === "student"
           ? token.role
@@ -179,6 +178,29 @@ export const authOptions: NextAuthOptions = {
 
 export async function getAuthSession() {
   return getServerSession(authOptions);
+}
+
+export async function getCurrentGithubAccessToken() {
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore
+    .getAll()
+    .map(({ name, value }) => `${name}=${value}`)
+    .join("; ");
+
+  if (!cookieHeader) {
+    return "";
+  }
+
+  const token = await getToken({
+    req: {
+      headers: {
+        cookie: cookieHeader,
+      },
+    } as Parameters<typeof getToken>[0]["req"],
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  return String(token?.githubAccessToken ?? "");
 }
 
 export async function requireAuthenticatedSession(): Promise<AuthenticatedSessionUser> {
