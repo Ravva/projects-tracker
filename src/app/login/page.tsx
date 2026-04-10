@@ -12,6 +12,32 @@ import {
 import { LoginButton } from "./login-button";
 import { StudentBindSessionCard } from "./student-bind-session-card";
 
+function extractStudentLinkToken(value: string): string {
+  const normalizedValue = value.trim();
+
+  if (!normalizedValue) {
+    return "";
+  }
+
+  const parsedUrl = new URL(normalizedValue, "http://localhost");
+  const directToken =
+    parsedUrl.searchParams.get("token")?.trim() ??
+    parsedUrl.searchParams.get("studentLinkToken")?.trim() ??
+    "";
+
+  if (directToken) {
+    return directToken;
+  }
+
+  const nestedCallbackUrl = parsedUrl.searchParams.get("callbackUrl")?.trim();
+
+  if (!nestedCallbackUrl || nestedCallbackUrl === normalizedValue) {
+    return "";
+  }
+
+  return extractStudentLinkToken(nestedCallbackUrl);
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
@@ -33,14 +59,13 @@ export default async function LoginPage({
     ? buildStudentGithubCallbackPath(normalizedStudentLinkToken)
     : "/auth/complete";
   const normalizedCallbackUrl = requestedCallbackUrl?.trim() ?? "";
-  const callbackUrlObject = normalizedCallbackUrl
-    ? new URL(normalizedCallbackUrl, "http://localhost")
-    : null;
-  const callbackStudentLinkToken =
-    callbackUrlObject?.searchParams.get("token")?.trim() ?? "";
+  const callbackStudentLinkToken = extractStudentLinkToken(
+    normalizedCallbackUrl,
+  );
   const effectiveStudentLinkToken =
     normalizedStudentLinkToken || callbackStudentLinkToken;
   const isStudentBindFlow = Boolean(effectiveStudentLinkToken);
+  const isStudentBindContinuation = Boolean(normalizedCallbackUrl || error);
   const resolvedCallbackUrl = normalizedCallbackUrl || fallbackCallbackUrl;
   const oauthCallbackUrl = isStudentBindFlow
     ? buildStudentGithubCallbackPath(effectiveStudentLinkToken)
@@ -50,6 +75,10 @@ export default async function LoginPage({
     : "";
 
   if (session?.user) {
+    if (effectiveStudentLinkToken && isStudentBindContinuation) {
+      redirect(buildStudentGithubCallbackPath(effectiveStudentLinkToken));
+    }
+
     if (!effectiveStudentLinkToken) {
       const role = await getCurrentAuthRole();
 
