@@ -33,6 +33,6 @@
 | PT-06 | Teacher workspace для проектов, GitHub sync и review-страницы | completed | 8 |
 | PT-07 | AI-analysis pipeline проекта с отчетами, risk flags и устойчивым расчетом прогресса | completed | 12 |
 | PT-08 | Production hardening, deployment и полная smoke-проверка teacher/student сценариев | completed | 6 |
-| PT-09 | Стабилизация документации и Memory Bank как надежного источника прогресса проекта | in_progress | 3 |
+| PT-09 | Стабилизация документации и Memory Bank как надежного источника прогресса проекта | completed | 3 |
 | PT-10 | Последовательный multi-project lifecycle для одного ученика с историей состояний | completed | 4 |
 | PT-11 | Групповой проект с несколькими учениками, единым GitHub-репозиторием и общим teacher/student доступом | completed | 8 |
