@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 const ONE_YEAR_IN_MS = 365 * 24 * 60 * 60 * 1000;
 
 function getAttendanceReportShareSecret() {
-  return process.env.ATTENDANCE_REPORT_SHARE_SECRET?.trim() || "";
+  return process.env.PROJECT_REPORT_SHARE_SECRET?.trim() || "";
 }
 
 function buildSignature(input: { weekStart: string; expiresAt: string }) {
@@ -13,7 +13,7 @@ function buildSignature(input: { weekStart: string; expiresAt: string }) {
 
   if (!secret) {
     throw new Error(
-      "Не настроен секрет share report. Добавьте ATTENDANCE_REPORT_SHARE_SECRET.",
+      "Не настроен секрет share report. Добавьте PROJECT_REPORT_SHARE_SECRET.",
     );
   }
 

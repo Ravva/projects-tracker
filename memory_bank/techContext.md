@@ -60,8 +60,7 @@
   - `TELEGRAM_BOT_USERNAME`
   - `TELEGRAM_WEBHOOK_SECRET` обязателен для production webhook
   - `TEACHER_TELEGRAM_CHAT_ID`
-  - `PROJECT_REPORT_SHARE_SECRET` для отдельной подписи project report share-link
-  - `ATTENDANCE_REPORT_SHARE_SECRET` для отдельной подписи attendance share-link
+  - `PROJECT_REPORT_SHARE_SECRET` для подписи public share-link и project report, и attendance report
 - AI env:
   - `AI_GATEWAY_URL`
   - `AI_GATEWAY_TOKEN`
@@ -74,7 +73,7 @@
   - `PROJECT_SYNC_CRON_SECRET` для защищенного route, который вызывается GitHub Actions
 - GitHub Actions workflow `project-sync.yml` использует repository secret `PROJECT_SYNC_ENDPOINT_URL` для production endpoint и `PROJECT_SYNC_CRON_SECRET` для авторизации фонового запуска.
 - auth guard в Next.js 16 перенесен на `src/proxy.ts`; `src/middleware.ts` больше не используется.
-- публичные report share-ссылки больше не fallback-ятся на `NEXTAUTH_SECRET`; каждый share-flow требует собственный env-secret.
+- публичные report share-ссылки больше не fallback-ятся на `NEXTAUTH_SECRET`; оба share-flow используют общий `PROJECT_REPORT_SHARE_SECRET`.
 
 ## Ограничения
 

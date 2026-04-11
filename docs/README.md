@@ -155,7 +155,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - production env должен включать корректный `NEXTAUTH_URL` для публичного Vercel URL;
 - production env должен включать `TEACHER_GITHUB_USER_ID`; без него teacher login считается не настроенным;
 - production env должен включать `AI_GATEWAY_URL` и `AI_GATEWAY_TOKEN`; `AI_GATEWAY_MODEL` опционален и по умолчанию равен `@cf/qwen/qwen3-30b-a3b-fp8`. Для fallback на Hugging Face нужен `HF_TOKEN`; `HF_BASE_URL`, `HF_CHAT_MODEL` и `AI_FORCE_HF` остаются опциональными;
-- production env должен включать `PROJECT_REPORT_SHARE_SECRET` для публичных project share-ссылок и `ATTENDANCE_REPORT_SHARE_SECRET` для attendance share-флоу; fallback на `NEXTAUTH_SECRET` для этих ссылок больше не используется;
+- production env должен включать `PROJECT_REPORT_SHARE_SECRET` для публичных share-ссылок и project report, и attendance report; fallback на `NEXTAUTH_SECRET` для этих ссылок больше не используется;
 - отдельный Worker разворачивается через `wrangler` из подпроекта `workers/ai-worker` и использует binding `[ai]`;
 - Telegram webhook уже привязан к `https://projects-tracker-one.vercel.app/api/telegram/webhook`;
 - на 2026-03-11 production smoke test teacher-only сценариев `/students`, `/attendance`, `/projects`, массовой Telegram-рассылки и teacher weekly digest подтвержден вручную.
