@@ -48,20 +48,48 @@ export interface ProjectReportData {
   missingProjectData: string[];
 }
 
-function formatLastUpdateLabel(lastUpdateDaysAgo: number | null) {
-  if (lastUpdateDaysAgo === null) {
+function formatLastUpdateLabel(
+  lastCommit: string,
+  lastUpdateDaysAgo: number | null,
+) {
+  if (
+    !lastCommit ||
+    lastCommit === "Нет данных" ||
+    lastUpdateDaysAgo === null
+  ) {
     return "нет данных по обновлениям";
   }
 
-  if (lastUpdateDaysAgo < 1) {
-    return "сегодня";
+  const lastCommitDate = new Date(lastCommit);
+
+  if (Number.isNaN(lastCommitDate.getTime())) {
+    if (lastUpdateDaysAgo < 1) {
+      return "меньше часа назад";
+    }
+
+    if (lastUpdateDaysAgo === 1) {
+      return "1 дн. назад";
+    }
+
+    return `${lastUpdateDaysAgo} дн. назад`;
   }
 
-  if (lastUpdateDaysAgo === 1) {
-    return "1 дн. назад";
+  const diffMs = Date.now() - lastCommitDate.getTime();
+  const diffMinutes = Math.max(1, Math.floor(diffMs / (60 * 1000)));
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes} мин. назад`;
   }
 
-  return `${lastUpdateDaysAgo} дн. назад`;
+  const diffHours = Math.max(1, Math.floor(diffMs / (60 * 60 * 1000)));
+
+  if (diffHours < 24) {
+    return `${diffHours} ч. назад`;
+  }
+
+  const diffDays = Math.max(1, Math.floor(diffMs / (24 * 60 * 60 * 1000)));
+
+  return `${diffDays} дн. назад`;
 }
 
 function formatStudentName(lastName: string, firstName: string) {
@@ -137,7 +165,10 @@ export async function buildProjectReportData(
       progress: project.hasAiAnalysisSnapshot ? project.progress : null,
       progressDelta,
       lastUpdateDaysAgo: project.lastCommitDaysAgo,
-      updateLabel: formatLastUpdateLabel(project.lastCommitDaysAgo),
+      updateLabel: formatLastUpdateLabel(
+        project.lastCommit,
+        project.lastCommitDaysAgo,
+      ),
       isGoodDynamics:
         project.hasAiAnalysisSnapshot &&
         project.risk === "healthy" &&

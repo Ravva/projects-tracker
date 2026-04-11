@@ -6,7 +6,7 @@
 
 ## Контроль изменений
 
-last_checked_commit: 77d1811b2c22794e85d05c66013f4d11d84257ed
+last_checked_commit: b46938cd9e5e1ba6ee3cf5c3c70568ef4fcbd3b6
 
 ## Known Issues
 
@@ -31,6 +31,7 @@ last_checked_commit: 77d1811b2c22794e85d05c66013f4d11d84257ed
 
 ## Changelog
 
+- 2026-04-11: исправлен источник данных для столбца `Последнее обновление` в printable project report. В `src/lib/server/project-report.ts` label больше не строится только по `lastCommitDaysAgo`, из-за чего все коммиты младше суток схлопывались в `сегодня`; теперь форматирование идет от реального `project.lastCommit` с правилом `минуты`, затем `часы`, затем `дни`, а `lastCommitDaysAgo` остается только fallback при невалидной дате. Измененный не-Markdown файл прогнан через `bunx biome check --write`, `bun run build` проходит.
 - 2026-04-11: исправлено рассогласование share-secret конфигурации. Teacher route `/attendance` падал не из-за таблицы, а потому что attendance helper ожидал `ATTENDANCE_REPORT_SHARE_SECRET`, хотя по согласованному решению проект использует один общий `PROJECT_REPORT_SHARE_SECRET` и для project report, и для attendance share-flow. `src/lib/server/attendance-report-share.ts` переведен на общий секрет, `src/app/attendance/page.tsx` и `AttendanceWeeklyReportCard` возвращены к штатной генерации share-ссылки, `.env.example`, `docs/README.md` и Memory Bank синхронизированы с этим правилом. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, `bun run build` проходит.
 - 2026-04-11: завершен оставшийся security/dependency cleanup без удаления `shadcn`, который нужен для будущего редизайна. Пакет обновлен до `shadcn@4.2.0`, `bun.lock` пересобран, повторный `bun audit` вернул `No vulnerabilities found`. Одновременно Memory Bank синхронизирован с текущим `HEAD`: в `projectbrief.md` deliverable `PT-09` переведен в `completed`, в `activeContext.md` сняты устаревшие пометки про незавершенный multi-project/security этап, а в `progress.md` удален дублирующийся нижний блок `Контроль изменений` и обновлен `last_checked_commit`.
 - 2026-04-10: обновлены прямые уязвимые зависимости. `next` поднят с `16.1.6` до `16.2.3`, после чего `bun audit` больше не показывает advisory по Next.js. Для teacher import flow небезопасный `xlsx` удален и заменен на `exceljs@4.4.0`: в `src/app/students/actions.ts` чтение XLSX переписано на `ExcelJS.Workbook().xlsx.load(...)` с разбором первой worksheet по заголовкам. Измененный не-Markdown файл прогнан через `bunx biome check --write`, затем успешно прошли `bun run build` и повторный `bun audit`.
