@@ -117,6 +117,11 @@ export async function chooseStudentProjectAction(formData: FormData) {
   const params = new URLSearchParams({
     success: "project-created",
   });
+  const createdProjectName = repositoryName || repositoryUrl;
+
+  if (createdProjectName) {
+    params.set("projectName", createdProjectName);
+  }
 
   if (autoAnalysisNotice) {
     params.set("notice", autoAnalysisNotice);

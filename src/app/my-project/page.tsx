@@ -172,13 +172,14 @@ export default async function MyProjectPage({
   searchParams: Promise<{
     error?: string;
     notice?: string;
+    projectName?: string;
     preview?: string;
     success?: string;
   }>;
 }) {
   const role = await getCurrentAuthRole();
   const sessionUser = await requireAuthenticatedSession();
-  const { error, notice, preview, success } = await searchParams;
+  const { error, notice, projectName, preview, success } = await searchParams;
   const isTeacherPreview = role === "teacher" && preview === "teacher";
 
   if (role === "teacher" && !isTeacherPreview) {
@@ -266,9 +267,19 @@ export default async function MyProjectPage({
             </div>
           ) : null}
           {success === "project-created" ? (
-            <div className="mt-4 rounded-2xl border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] px-4 py-3 text-sm text-foreground">
-              Репозиторий успешно привязан к новому проекту, AI-анализ запущен
-              автоматически.
+            <div className="mt-4 rounded-[1.75rem] border border-[hsl(var(--status-calm)/0.34)] bg-[linear-gradient(135deg,hsl(var(--status-calm)/0.2),hsl(var(--status-calm)/0.08)_58%,hsl(var(--background)))] px-5 py-4 text-foreground shadow-none">
+              <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--status-calm))]">
+                Проект создан
+              </div>
+              <div className="mt-2 text-lg font-semibold leading-tight">
+                {projectName
+                  ? `Репозиторий ${projectName} успешно привязан.`
+                  : "Репозиторий успешно привязан к новому проекту."}
+              </div>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Новый проект уже появился в блоке текущих проектов ниже.
+                Автоматический AI-анализ запущен сразу после привязки.
+              </p>
             </div>
           ) : null}
           {notice ? (

@@ -6,6 +6,7 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 
 ## Задача в работе
 
+- закрыто в текущей сессии: student-flow `/my-project` получил явное визуальное подтверждение после успешной привязки проекта; `chooseStudentProjectAction` теперь передает `projectName` в redirect, а `src/app/my-project/page.tsx` показывает более заметную success-карточку с названием привязанного репозитория и пояснением, что новый проект уже появился в списке текущих;
 - закрыто в текущей сессии: student-flow `/my-project` больше не должен терять список репозиториев после успешной GitHub-авторизации, если student access token отсутствует или GitHub временно не принимает запрос `/user/repos`; `src/lib/server/github.ts` теперь сначала запрашивает owner-репозитории по OAuth token, а затем мягко падает назад на публичные репозитории по `githubLogin`, и тот же fallback используется в page render и `chooseStudentProjectAction`;
 - закрыто в текущей сессии: printable project report больше не должен показывать ложное `Сегодня` почти для всех проектов; столбец `Последнее обновление` теперь форматируется от реального `lastCommit` (`мин. < 1 ч. < ч. < 24 ч. < дн.`), а не только по грубому `lastCommitDaysAgo`;
 - закрыто в текущей сессии: найдено и исправлено рассогласование share-secret конфигурации — attendance и project report снова используют один общий `PROJECT_REPORT_SHARE_SECRET`, как и было согласовано для parent share-flow;
