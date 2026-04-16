@@ -204,7 +204,10 @@ export default async function MyProjectPage({
     const githubAccessToken = await getCurrentGithubAccessToken();
 
     try {
-      repositories = await listGithubRepositoriesForStudent(githubAccessToken);
+      repositories = await listGithubRepositoriesForStudent({
+        accessToken: githubAccessToken,
+        githubLogin: student.githubLogin,
+      });
     } catch (error) {
       repositoryLoadError =
         error instanceof Error && error.message.trim()

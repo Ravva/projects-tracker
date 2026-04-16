@@ -43,8 +43,10 @@ export async function chooseStudentProjectAction(formData: FormData) {
   const repositoryDescription = readString(formData, "repositoryDescription");
 
   try {
-    const repositories =
-      await listGithubRepositoriesForStudent(githubAccessToken);
+    const repositories = await listGithubRepositoriesForStudent({
+      accessToken: githubAccessToken,
+      githubLogin: student.githubLogin,
+    });
     const selectedRepository = repositories.find(
       (repository) =>
         normalizeRepositoryUrl(repository.url) ===

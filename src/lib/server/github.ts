@@ -67,6 +67,21 @@ export class GithubRequestError extends Error {
   }
 }
 
+function mapGithubRepositoryOption(
+  repository: GithubRepositoryResponse,
+): GithubRepositoryOption {
+  return {
+    id: repository.id,
+    name: repository.name,
+    fullName: repository.full_name,
+    description: repository.description ?? "",
+    url: repository.html_url,
+    private: repository.private,
+    updatedAt: repository.updated_at,
+    defaultBranch: repository.default_branch,
+  };
+}
+
 function buildGithubHeaders(accessToken?: string) {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
@@ -115,38 +130,71 @@ async function fetchGithubJson<T>(
 }
 
 export async function listGithubRepositoriesForStudent(
-  accessToken: string,
+  input:
+    | string
+    | {
+        accessToken?: string;
+        githubLogin?: string;
+      },
 ): Promise<GithubRepositoryOption[]> {
-  const normalizedAccessToken = accessToken.trim();
+  const normalizedAccessToken =
+    typeof input === "string"
+      ? input.trim()
+      : (input.accessToken?.trim() ?? "");
+  const normalizedGithubLogin =
+    typeof input === "string" ? "" : (input.githubLogin?.trim() ?? "");
 
-  if (!normalizedAccessToken) {
+  if (normalizedAccessToken) {
+    try {
+      const repositories = await fetchGithubJson<GithubRepositoryResponse[]>(
+        "https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner",
+        {
+          accessToken: normalizedAccessToken,
+        },
+      );
+
+      return (repositories ?? []).map(mapGithubRepositoryOption);
+    } catch (error) {
+      if (!normalizedGithubLogin) {
+        if (error instanceof GithubRequestError) {
+          if (error.status === 401) {
+            throw new Error(
+              "GitHub-сессия ученика устарела. Выйдите и войдите через GitHub заново.",
+            );
+          }
+
+          if (error.isRateLimit) {
+            throw new Error(
+              "GitHub временно ограничил запросы. Повторите попытку чуть позже.",
+            );
+          }
+        }
+
+        throw new Error("Не удалось получить список GitHub-репозиториев.");
+      }
+    }
+  }
+
+  if (!normalizedGithubLogin) {
     return [];
   }
 
-  const response = await fetch(
-    "https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner",
-    {
-      headers: buildGithubHeaders(normalizedAccessToken),
-      cache: "no-store",
-    },
-  );
+  try {
+    const repositories = await fetchGithubJson<GithubRepositoryResponse[]>(
+      `https://api.github.com/users/${encodeURIComponent(normalizedGithubLogin)}/repos?per_page=100&sort=updated&type=owner`,
+      {},
+    );
 
-  if (!response.ok) {
+    return (repositories ?? []).map(mapGithubRepositoryOption);
+  } catch (error) {
+    if (error instanceof GithubRequestError && error.isRateLimit) {
+      throw new Error(
+        "GitHub временно ограничил запросы. Повторите попытку чуть позже.",
+      );
+    }
+
     throw new Error("Не удалось получить список GitHub-репозиториев.");
   }
-
-  const repositories = (await response.json()) as GithubRepositoryResponse[];
-
-  return repositories.map((repository) => ({
-    id: repository.id,
-    name: repository.name,
-    fullName: repository.full_name,
-    description: repository.description ?? "",
-    url: repository.html_url,
-    private: repository.private,
-    updatedAt: repository.updated_at,
-    defaultBranch: repository.default_branch,
-  }));
 }
 
 export async function getGithubRepositoryMetadata(
