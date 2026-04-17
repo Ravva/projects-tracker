@@ -534,7 +534,9 @@ function getGithubSyncStatusReason(input: {
     : "Проект еще не синхронизировался с GitHub.";
 }
 
-function enrichProjectRepositoryStatusFromSnapshot(project: ProjectRecord) {
+function enrichProjectRepositoryStatusFromSnapshot(
+  project: ProjectRecord,
+): ProjectRecord {
   const parsed = parseGithubUrl(project.githubUrl);
 
   if (!parsed) {
@@ -646,7 +648,9 @@ async function enrichProjectRepositoryStatus(
   }
 }
 
-function enrichProjectsRepositoryStatusFromSnapshot(projects: ProjectRecord[]) {
+function enrichProjectsRepositoryStatusFromSnapshot(
+  projects: ProjectRecord[],
+): ProjectRecord[] {
   return projects.map((project) =>
     enrichProjectRepositoryStatusFromSnapshot(getProjectBaseRecord(project)),
   );

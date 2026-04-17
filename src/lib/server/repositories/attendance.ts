@@ -13,7 +13,11 @@ import {
 } from "@/lib/server/date-utils";
 import { mapAttendanceLessonDocument } from "@/lib/server/mappers";
 import { listStudents } from "@/lib/server/repositories/students";
-import type { AttendanceState, AttendanceWeekRecord } from "@/lib/types";
+import type {
+  AttendanceLessonRecord,
+  AttendanceState,
+  AttendanceWeekRecord,
+} from "@/lib/types";
 
 async function getWeekLessonDocuments(weekStart: string) {
   const appwrite = getAppwriteDatabases();
@@ -255,7 +259,7 @@ export async function getCurrentAttendanceLessons(): Promise<
 async function runWithConcurrencyLimit<T>(
   items: T[],
   limit: number,
-  worker: (item: T) => Promise<void>,
+  worker: (item: T) => Promise<unknown>,
 ) {
   if (items.length === 0) {
     return;
@@ -315,7 +319,7 @@ export async function saveWeekAttendance(
     }),
   );
 
-  const operations: Array<() => Promise<void>> = [];
+  const operations: Array<() => Promise<unknown>> = [];
 
   for (const entry of entries) {
     const key = `${entry.studentId}:${entry.lessonId}`;
