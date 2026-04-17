@@ -39,13 +39,17 @@ export default async function ProjectsPage({
   const currentProjects = projects.filter((project) =>
     isProjectCurrent(project.status),
   );
+  const currentProjectsByStudentId = new Map(
+    currentProjects.flatMap((project) =>
+      project.memberStudentIds.map(
+        (studentId) => [studentId, project] as const,
+      ),
+    ),
+  );
   const rows = students
     .map((student) => {
       const studentName = `${student.lastName} ${student.firstName}`;
-      const project =
-        currentProjects.find((item) =>
-          item.memberStudentIds.includes(student.id),
-        ) ?? null;
+      const project = currentProjectsByStudentId.get(student.id) ?? null;
 
       return {
         studentId: student.id,

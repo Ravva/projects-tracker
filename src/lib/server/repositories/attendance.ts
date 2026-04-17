@@ -224,8 +224,50 @@ export async function getAttendanceWeek(
   };
 }
 
+export async function getAttendanceLessons(
+  inputWeekStart?: string,
+): Promise<AttendanceLessonRecord[]> {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+  const weekStart = normalizeWeekStart(inputWeekStart);
+
+  if (!appwrite || !config) {
+    return [];
+  }
+
+  const lessonDocuments = await ensureAttendanceWeekLessons(weekStart);
+
+  return lessonDocuments.map((document) =>
+    mapAttendanceLessonDocument(document),
+  );
+}
+
 export async function getCurrentAttendanceWeek(): Promise<AttendanceWeekRecord> {
   return getAttendanceWeek(toIsoDate(startOfCurrentWeek()));
+}
+
+export async function getCurrentAttendanceLessons(): Promise<
+  AttendanceLessonRecord[]
+> {
+  return getAttendanceLessons(toIsoDate(startOfCurrentWeek()));
+}
+
+async function runWithConcurrencyLimit<T>(
+  items: T[],
+  limit: number,
+  worker: (item: T) => Promise<void>,
+) {
+  if (items.length === 0) {
+    return;
+  }
+
+  const normalizedLimit = Math.max(1, limit);
+
+  for (let index = 0; index < items.length; index += normalizedLimit) {
+    await Promise.all(
+      items.slice(index, index + normalizedLimit).map((item) => worker(item)),
+    );
+  }
 }
 
 export async function saveWeekAttendance(
@@ -262,12 +304,18 @@ export async function saveWeekAttendance(
   const existingByPair = new Map(
     response.documents.map((document) => {
       const record = document as Record<string, unknown>;
+
       return [
         `${String(record.student_id)}:${String(record.lesson_id)}`,
-        document.$id,
+        {
+          id: document.$id,
+          present: Boolean(record.present),
+        },
       ];
     }),
   );
+
+  const operations: Array<() => Promise<void>> = [];
 
   for (const entry of entries) {
     const key = `${entry.studentId}:${entry.lessonId}`;
@@ -275,10 +323,12 @@ export async function saveWeekAttendance(
 
     if (entry.state === "unmarked" || entry.state === "cancelled") {
       if (existingId) {
-        await appwrite.databases.deleteDocument(
-          appwrite.databaseId,
-          config.collections.attendance,
-          existingId,
+        operations.push(() =>
+          appwrite.databases.deleteDocument(
+            appwrite.databaseId,
+            config.collections.attendance,
+            existingId.id,
+          ),
         );
       }
 
@@ -293,21 +343,33 @@ export async function saveWeekAttendance(
     };
 
     if (existingId) {
-      await appwrite.databases.updateDocument(
-        appwrite.databaseId,
-        config.collections.attendance,
-        existingId,
-        payload,
+      if (existingId.present === payload.present) {
+        continue;
+      }
+
+      operations.push(() =>
+        appwrite.databases.updateDocument(
+          appwrite.databaseId,
+          config.collections.attendance,
+          existingId.id,
+          payload,
+        ),
       );
     } else {
-      await appwrite.databases.createDocument(
-        appwrite.databaseId,
-        config.collections.attendance,
-        ID.unique(),
-        payload,
+      operations.push(() =>
+        appwrite.databases.createDocument(
+          appwrite.databaseId,
+          config.collections.attendance,
+          ID.unique(),
+          payload,
+        ),
       );
     }
   }
+
+  await runWithConcurrencyLimit(operations, 8, async (operation) =>
+    operation(),
+  );
 }
 
 export async function markLessonForAllStudents(
@@ -356,13 +418,13 @@ export async function setLessonClosedState(
     [Query.equal("lesson_id", lessonId), Query.limit(5000)],
   );
 
-  for (const document of attendance.documents) {
+  await runWithConcurrencyLimit(attendance.documents, 8, async (document) => {
     await appwrite.databases.deleteDocument(
       appwrite.databaseId,
       config.collections.attendance,
       document.$id,
     );
-  }
+  });
 }
 
 export async function clearWeekAttendance(weekStart: string) {
@@ -391,13 +453,13 @@ export async function clearWeekAttendance(weekStart: string) {
     ],
   );
 
-  for (const document of attendance.documents) {
+  await runWithConcurrencyLimit(attendance.documents, 8, async (document) => {
     await appwrite.databases.deleteDocument(
       appwrite.databaseId,
       config.collections.attendance,
       document.$id,
     );
-  }
+  });
 }
 
 export async function deleteLesson(lessonId: string) {

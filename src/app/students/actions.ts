@@ -139,7 +139,6 @@ export async function issueStudentGithubLinkAction(
 
   revalidatePath("/students");
   revalidatePath(`/students/${studentId}`);
-  revalidatePath("/");
 
   return issued;
 }
@@ -266,7 +265,6 @@ export async function importStudentsAction(formData: FormData) {
   }
 
   revalidatePath("/students");
-  revalidatePath("/");
 }
 
 export async function createStudentAction(formData: FormData) {
@@ -283,7 +281,6 @@ export async function createStudentAction(formData: FormData) {
   });
 
   revalidatePath("/students");
-  revalidatePath("/");
 }
 
 export async function updateStudentAction(formData: FormData) {
@@ -303,7 +300,6 @@ export async function updateStudentAction(formData: FormData) {
 
   revalidatePath("/students");
   revalidatePath(`/students/${studentId}`);
-  revalidatePath("/");
 }
 
 export async function deleteStudentAction(formData: FormData) {
@@ -316,6 +312,5 @@ export async function deleteStudentAction(formData: FormData) {
   revalidatePath("/students");
   revalidatePath("/projects");
   revalidatePath("/attendance");
-  revalidatePath("/");
   redirect("/students");
 }

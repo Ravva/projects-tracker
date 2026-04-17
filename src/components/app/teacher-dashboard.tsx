@@ -31,9 +31,9 @@ import {
 } from "@/lib/project-risk";
 import { getProjectStatusLabel, isProjectCurrent } from "@/lib/project-status";
 import { parseIsoDate } from "@/lib/server/date-utils";
-import { getCurrentAttendanceWeek } from "@/lib/server/repositories/attendance";
+import { getCurrentAttendanceLessons } from "@/lib/server/repositories/attendance";
 import { listProjects } from "@/lib/server/repositories/projects";
-import { listStudents } from "@/lib/server/repositories/students";
+import { listStudentsForDashboard } from "@/lib/server/repositories/students";
 import type {
   AttendanceLessonRecord,
   StudentRecord,
@@ -133,12 +133,11 @@ export async function TeacherDashboard({
 }: {
   teacher: TeacherSessionUser;
 }) {
-  const [students, projects, attendanceWeek] = await Promise.all([
-    listStudents(),
+  const [students, projects, attendanceLessons] = await Promise.all([
+    listStudentsForDashboard(),
     listProjects(),
-    getCurrentAttendanceWeek(),
+    getCurrentAttendanceLessons(),
   ]);
-  const attendanceLessons = attendanceWeek.lessons;
   const nearestLesson = getNearestLesson(attendanceLessons);
 
   const studentsNeedingAttention = students.filter(
@@ -154,7 +153,10 @@ export async function TeacherDashboard({
     students,
     attendanceLessons,
   );
-  const aiReportsCount = currentProjects.filter((p) => p.aiSummary).length;
+  const projectsWithAiReports = projects.filter((project) => project.aiSummary);
+  const aiReportsCount = currentProjects.filter(
+    (project) => project.aiSummary,
+  ).length;
 
   return (
     <TeacherShell
@@ -342,42 +344,39 @@ export async function TeacherDashboard({
             </Card>
           )}
 
-          {projects.filter((p) => p.aiSummary).length > 0 && (
+          {aiReportsCount > 0 && (
             <Card className="border-border/60 bg-card/80 shadow-none">
               <CardContent className="p-0">
                 <div className="border-b border-border/60 px-5 py-3 text-sm font-medium">
                   Последние AI-отчеты
                 </div>
                 <div className="divide-y divide-border/40">
-                  {projects
-                    .filter((p) => p.aiSummary)
-                    .slice(0, 3)
-                    .map((project) => (
-                      <Link
-                        key={project.id}
-                        href={`/projects/${project.id}`}
-                        className="block px-5 py-2.5 transition-colors hover:bg-muted/40"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="truncate text-sm font-medium">
-                            {project.name}
-                          </span>
-                          <StatusPill
-                            tone={
-                              project.status === "completed"
-                                ? "success"
-                                : project.status === "active"
-                                  ? "calm"
-                                  : "warning"
-                            }
-                            label={getProjectStatusLabel(project.status)}
-                          />
-                        </div>
-                        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                          {project.aiSummary}
-                        </p>
-                      </Link>
-                    ))}
+                  {projectsWithAiReports.slice(0, 3).map((project) => (
+                    <Link
+                      key={project.id}
+                      href={`/projects/${project.id}`}
+                      className="block px-5 py-2.5 transition-colors hover:bg-muted/40"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate text-sm font-medium">
+                          {project.name}
+                        </span>
+                        <StatusPill
+                          tone={
+                            project.status === "completed"
+                              ? "success"
+                              : project.status === "active"
+                                ? "calm"
+                                : "warning"
+                          }
+                          label={getProjectStatusLabel(project.status)}
+                        />
+                      </div>
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                        {project.aiSummary}
+                      </p>
+                    </Link>
+                  ))}
                 </div>
               </CardContent>
             </Card>

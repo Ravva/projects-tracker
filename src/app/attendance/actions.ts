@@ -47,7 +47,6 @@ export async function saveAttendanceAction(formData: FormData) {
 
   revalidatePath("/attendance");
   revalidatePath("/students");
-  revalidatePath("/");
 }
 
 export async function setAttendanceCellAction(formData: FormData) {
@@ -68,7 +67,6 @@ export async function setAttendanceCellAction(formData: FormData) {
 
   revalidatePath("/attendance");
   revalidatePath("/students");
-  revalidatePath("/");
 }
 
 export async function markAllPresentAction(formData: FormData) {
@@ -80,7 +78,6 @@ export async function markAllPresentAction(formData: FormData) {
 
   revalidatePath("/attendance");
   revalidatePath("/students");
-  revalidatePath("/");
 }
 
 export async function clearAttendanceAction(formData: FormData) {
@@ -92,7 +89,6 @@ export async function clearAttendanceAction(formData: FormData) {
 
   revalidatePath("/attendance");
   revalidatePath("/students");
-  revalidatePath("/");
 }
 
 export async function deleteLessonAction(formData: FormData) {
@@ -104,5 +100,4 @@ export async function deleteLessonAction(formData: FormData) {
 
   revalidatePath("/attendance");
   revalidatePath("/students");
-  revalidatePath("/");
 }

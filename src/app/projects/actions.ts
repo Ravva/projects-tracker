@@ -92,7 +92,6 @@ async function revalidateProjectRelatedPaths(projectId: string) {
   revalidatePath("/projects");
   revalidatePath(`/projects/${projectId}`);
   revalidatePath("/my-project");
-  revalidatePath("/");
   revalidatePath("/students");
 
   if (!project) {
@@ -115,7 +114,6 @@ export async function deleteProjectAction(formData: FormData) {
   revalidatePath("/projects");
   revalidatePath("/my-project");
   revalidatePath("/students");
-  revalidatePath("/");
 
   if (project) {
     for (const studentId of project.memberStudentIds) {
@@ -206,7 +204,6 @@ export async function syncAllProjectsAction() {
   }
 
   revalidatePath("/projects");
-  revalidatePath("/");
 
   const resultSummary = `Обновлено ${result.syncedProjects} из ${result.targetedProjects} проект(ов).`;
   const noticeParts = [

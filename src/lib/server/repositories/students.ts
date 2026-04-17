@@ -20,6 +20,11 @@ type StudentSummary = Pick<
   | "aiSummary"
 >;
 
+type DashboardStudentSummary = Pick<
+  StudentRecord,
+  "attendanceRate" | "weeklyState"
+>;
+
 function buildWeeklyState(attendanceRate: number): WeeklyState {
   if (attendanceRate <= 0) {
     return "critical";
@@ -226,6 +231,68 @@ async function buildStudentSummaries(
   );
 }
 
+async function buildDashboardStudentSummaries(
+  studentIds: string[],
+  inputWeekStart?: string,
+) {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config || studentIds.length === 0) {
+    return new Map<string, DashboardStudentSummary>();
+  }
+
+  const weekStart = normalizeWeekStart(inputWeekStart);
+  const [lessonsResponse, attendanceResponse] = await Promise.all([
+    appwrite.databases.listDocuments(
+      appwrite.databaseId,
+      config.collections.lessons,
+      [Query.equal("lesson_week_start", weekStart), Query.limit(10)],
+    ),
+    appwrite.databases.listDocuments(
+      appwrite.databaseId,
+      config.collections.attendance,
+      [Query.equal("student_id", studentIds), Query.limit(1000)],
+    ),
+  ]);
+
+  const lessonIds = lessonsResponse.documents.map((lesson) => lesson.$id);
+  const requiredMin = Math.min(2, lessonIds.length);
+  const attendanceCountMap = new Map<string, number>();
+
+  for (const document of attendanceResponse.documents) {
+    const record = document as Record<string, unknown>;
+    const studentId = String(record.student_id ?? "");
+    const lessonId = String(record.lesson_id ?? "");
+    const present = Boolean(record.present ?? false);
+
+    if (!studentId || !lessonIds.includes(lessonId) || !present) {
+      continue;
+    }
+
+    attendanceCountMap.set(
+      studentId,
+      (attendanceCountMap.get(studentId) ?? 0) + 1,
+    );
+  }
+
+  return new Map<string, DashboardStudentSummary>(
+    studentIds.map((studentId) => {
+      const presentCount = attendanceCountMap.get(studentId) ?? 0;
+      const attendanceRate =
+        requiredMin > 0 ? Math.round((presentCount / requiredMin) * 100) : 0;
+
+      return [
+        studentId,
+        {
+          attendanceRate,
+          weeklyState: buildWeeklyState(attendanceRate),
+        },
+      ];
+    }),
+  );
+}
+
 export async function listStudents(
   inputWeekStart?: string,
 ): Promise<StudentRecord[]> {
@@ -247,6 +314,39 @@ export async function listStudents(
       ],
     );
     const summaries = await buildStudentSummaries(
+      response.documents.map((doc) => doc.$id),
+      inputWeekStart,
+    );
+
+    return response.documents.map((document) =>
+      mapStudentDocument(document, summaries.get(document.$id)),
+    );
+  } catch {
+    return [];
+  }
+}
+
+export async function listStudentsForDashboard(
+  inputWeekStart?: string,
+): Promise<StudentRecord[]> {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    return [];
+  }
+
+  try {
+    const response = await appwrite.databases.listDocuments(
+      appwrite.databaseId,
+      config.collections.students,
+      [
+        Query.orderAsc("last_name"),
+        Query.orderAsc("first_name"),
+        Query.limit(500),
+      ],
+    );
+    const summaries = await buildDashboardStudentSummaries(
       response.documents.map((doc) => doc.$id),
       inputWeekStart,
     );

@@ -534,6 +534,40 @@ function getGithubSyncStatusReason(input: {
     : "Проект еще не синхронизировался с GitHub.";
 }
 
+function enrichProjectRepositoryStatusFromSnapshot(project: ProjectRecord) {
+  const parsed = parseGithubUrl(project.githubUrl);
+
+  if (!parsed) {
+    return {
+      ...project,
+      syncStatus: "unavailable" as const,
+      syncStatusReason: "Некорректный GitHub URL.",
+      aiStatus: project.hasAiAnalysisSnapshot
+        ? ("status_unknown" as const)
+        : ("not_started" as const),
+    };
+  }
+
+  const hasSyncSnapshot =
+    Boolean(project.lastCommitSha.trim()) ||
+    Boolean(project.defaultBranch.trim());
+  const syncStatus = hasSyncSnapshot ? "synced" : "unknown";
+
+  return {
+    ...project,
+    syncStatus,
+    syncStatusReason: getGithubSyncStatusReason({
+      branchChanged: false,
+      hasSyncSnapshot,
+      remoteDefaultBranch: project.defaultBranch,
+      syncNeeded: false,
+    }),
+    aiStatus: project.hasAiAnalysisSnapshot ? "up_to_date" : "not_started",
+    remoteLastCommit: project.lastCommit,
+    remoteLastCommitSha: project.lastCommitSha,
+  };
+}
+
 async function enrichProjectRepositoryStatus(
   project: ProjectRecord,
 ): Promise<ProjectRecord> {
@@ -612,11 +646,9 @@ async function enrichProjectRepositoryStatus(
   }
 }
 
-async function enrichProjectsRepositoryStatus(projects: ProjectRecord[]) {
-  return Promise.all(
-    projects.map(async (project) =>
-      enrichProjectRepositoryStatus(getProjectBaseRecord(project)),
-    ),
+function enrichProjectsRepositoryStatusFromSnapshot(projects: ProjectRecord[]) {
+  return projects.map((project) =>
+    enrichProjectRepositoryStatusFromSnapshot(getProjectBaseRecord(project)),
   );
 }
 
@@ -849,7 +881,7 @@ export async function listProjects(): Promise<ProjectRecord[]> {
       ),
     );
 
-    return enrichProjectsRepositoryStatus(projects);
+    return enrichProjectsRepositoryStatusFromSnapshot(projects);
   } catch {
     return [];
   }
@@ -899,7 +931,7 @@ export async function listProjectsByStudentId(
         ),
       );
 
-    return enrichProjectsRepositoryStatus(projects);
+    return enrichProjectsRepositoryStatusFromSnapshot(projects);
   } catch {
     return [];
   }
