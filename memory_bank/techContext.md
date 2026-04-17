@@ -8,6 +8,7 @@
 - `shadcn/ui` preset `a1F9UU9Q`;
 - `Biome` для lint/format;
 - `bun` как пакетный менеджер и runtime для скриптов;
+- `skills` CLI для project-level установки agent skills; в текущем workspace установлен `appwrite-typescript` из `appwrite/agent-skills` и зафиксирован в `skills-lock.json`;
 - `next-auth` для GitHub OAuth;
 - `node-appwrite` для server-side доступа к Appwrite;
 - GitHub REST API для чтения student repositories, `memory_bank` файлов и commit history;
@@ -79,6 +80,7 @@
 
 - Markdown-файлы не проверяются через Biome;
 - dev server на `127.0.0.1:3300` управляется пользователем и не должен запускаться агентом;
+- project-level установка через `skills` CLI создала локальные agent directories (`.agents`, `skills`, provider-specific dotfolders), поэтому их нужно считать intentional tooling artifacts этой среды, а не случайным мусором;
 - teacher-only AI-анализ student projects опирается на публично доступные или доступные через `GITHUB_TOKEN` данные GitHub repo;
 - teacher-only AI-анализ по умолчанию вызывает модели через Cloudflare Worker gateway с Workers AI; при quota error `4006` или отсутствии gateway-конфига server-only client может переключиться на Hugging Face через `HF_TOKEN`, `HF_BASE_URL` и `HF_CHAT_MODEL`;
 - student-access не дает student права на teacher-only маршруты и ручные teacher actions.
