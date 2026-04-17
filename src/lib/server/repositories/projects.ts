@@ -1016,7 +1016,10 @@ export async function createStudentProjectFromGithubSelection(input: {
   repositoryUrl: string;
   repositoryDescription: string;
   repositoryPrivate: boolean;
-}) {
+}): Promise<{
+  project: Awaited<ReturnType<typeof createProject>>;
+  selectionMode: "new" | "restart";
+}> {
   const appwrite = getAppwriteDatabases();
   const config = getAppwriteConfig();
 
@@ -1076,7 +1079,10 @@ export async function createStudentProjectFromGithubSelection(input: {
       );
     }
 
-    return await createProject({
+    const reusedCompletedRepository = sameStudentRepositoryProjects.some(
+      (project) => project.status === "completed",
+    );
+    const project = await createProject({
       studentId: input.studentId,
       name: input.repositoryName.trim() || `Проект ${input.studentName}`,
       summary: input.repositoryDescription.trim(),
@@ -1085,6 +1091,11 @@ export async function createStudentProjectFromGithubSelection(input: {
       specMarkdown: "",
       planMarkdown: "",
     });
+
+    return {
+      project,
+      selectionMode: reusedCompletedRepository ? "restart" : "new",
+    };
   } finally {
     await lock.release();
   }

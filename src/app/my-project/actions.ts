@@ -38,6 +38,7 @@ export async function chooseStudentProjectAction(formData: FormData) {
   const student = await requireStudentSession();
   const githubAccessToken = await getCurrentGithubAccessToken();
   let autoAnalysisNotice = "";
+  let selectionMode: "new" | "restart" = "new";
   const repositoryName = readString(formData, "repositoryName");
   const repositoryUrl = readString(formData, "repositoryUrl");
   const repositoryDescription = readString(formData, "repositoryDescription");
@@ -65,7 +66,7 @@ export async function chooseStudentProjectAction(formData: FormData) {
       );
     }
 
-    const project = await createStudentProjectFromGithubSelection({
+    const selectionResult = await createStudentProjectFromGithubSelection({
       studentId: student.studentId,
       studentName: student.studentName,
       repositoryName: repositoryName || selectedRepository.name,
@@ -74,6 +75,9 @@ export async function chooseStudentProjectAction(formData: FormData) {
         repositoryDescription || selectedRepository.description,
       repositoryPrivate: selectedRepository.private,
     });
+    const project = selectionResult.project;
+
+    selectionMode = selectionResult.selectionMode;
 
     try {
       await runProjectAiAnalysis(project.$id);
@@ -115,7 +119,8 @@ export async function chooseStudentProjectAction(formData: FormData) {
   revalidatePath("/");
 
   const params = new URLSearchParams({
-    success: "project-created",
+    success:
+      selectionMode === "restart" ? "project-restarted" : "project-created",
   });
   const createdProjectName = repositoryName || repositoryUrl;
 
