@@ -6,7 +6,7 @@
 
 ## Контроль изменений
 
-last_checked_commit: 4483b1541f72085a1d9c29024926b1aab514d641
+last_checked_commit: 5ada5518d7e4be48f9a74cedcde2b383d49bb3be
 
 ## Known Issues
 
@@ -30,6 +30,8 @@ last_checked_commit: 4483b1541f72085a1d9c29024926b1aab514d641
 - `PROJECT_REPORT_SHARE_SECRET` остается обязательным общим секретом для публичных share-ссылок attendance и project report;
 
 ## Changelog
+
+- 2026-04-18: Исправлен критический блокер сборки в `src/app/students/actions.ts`. Возвращен импорт `exceljs`, отсутствие которого приводило к ошибке `Module not found` при выполнении `next build`. Теперь CI/CD контур снова стабилен, а функционал импорта студентов из XLSX восстановлен. Файлы проверены через Biome.
 
 - 2026-04-17: экран `/login` отполирован под student bind flow. В `src/app/login/page.tsx` добавлены явный badge `Student bind flow`, блок `Как это работает`, пошаговые карточки сценария и более структурированный error-state, а правая колонка теперь показывает контекст именно для bind flow, а не общий teacher-login copy. В `src/app/login/student-bind-session-card.tsx` карточка проверки текущего GitHub-аккаунта получила status-pill, отдельный warning-блок и более явное разделение между продолжением bind flow и сменой аккаунта. Измененные не-Markdown файлы прогнаны через `bunx biome check --write`, полный `bun run build` проходит успешно.
 - 2026-04-17: student GitHub bind flow `/student/link` получил отдельный UX-polish. В `src/app/student/link/page.tsx` success-state и error-state переработаны в более ясный формат: добавлены status-pill, структурированные блоки `Что произошло` и `Что делать сейчас`, явные CTA для перехода к выбору проекта или повторной попытки, а также удалена устаревшая внешняя ссылка на стороннюю инструкцию по Memory Bank. Теперь после OAuth student сразу понимает, что именно произошло с привязкой, что делать дальше и куда нажимать. Измененный не-Markdown файл прогнан через `bunx biome check --write`, полный `bun run build` проходит успешно.
