@@ -26,6 +26,14 @@ interface GithubRepositoryMetadataResponse {
   default_branch: string;
   private: boolean;
   html_url: string;
+  pushed_at: string;
+}
+
+export interface GithubRepositoryMetadata {
+  defaultBranch: string;
+  private: boolean;
+  htmlUrl: string;
+  pushedAt: string;
 }
 
 interface GithubContentFileResponse {
@@ -101,12 +109,20 @@ async function fetchGithubJson<T>(
   options: {
     accessToken?: string;
     allow404?: boolean;
+    revalidate?: number;
   } = {},
 ): Promise<T | null> {
-  const response = await fetch(url, {
+  const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
     headers: buildGithubHeaders(options.accessToken),
-    cache: "no-store",
-  });
+  };
+
+  if (typeof options.revalidate === "number") {
+    fetchOptions.next = { revalidate: options.revalidate };
+  } else {
+    fetchOptions.cache = "no-store";
+  }
+
+  const response = await fetch(url, fetchOptions);
 
   if (options.allow404 && response.status === 404) {
     return null;
@@ -204,7 +220,7 @@ export async function getGithubRepositoryMetadata(
 ): Promise<GithubRepositoryMetadata> {
   const response = await fetchGithubJson<GithubRepositoryMetadataResponse>(
     `https://api.github.com/repos/${owner}/${repo}`,
-    { accessToken },
+    { accessToken, revalidate: 60 },
   );
 
   if (!response) {
@@ -215,6 +231,7 @@ export async function getGithubRepositoryMetadata(
     defaultBranch: response.default_branch,
     private: response.private,
     htmlUrl: response.html_url,
+    pushedAt: response.pushed_at,
   };
 }
 
@@ -262,7 +279,7 @@ export async function listGithubRepositoryCommits(
   for (let page = 1; page <= maxPages; page += 1) {
     const response = await fetchGithubJson<GithubCommitResponse[]>(
       `https://api.github.com/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(ref)}&per_page=${perPage}&page=${page}`,
-      { accessToken },
+      { accessToken, revalidate: 60 },
     );
 
     if (!response || response.length === 0) {

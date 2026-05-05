@@ -6,7 +6,8 @@
 
 ## Контроль изменений
 
-last_checked_commit: 5ada5518d7e4be48f9a74cedcde2b383d49bb3be
+last_checked_commit: 27ce086e35defcef22a3f011525124f7a3647825
+
 
 ## Known Issues
 
@@ -30,6 +31,9 @@ last_checked_commit: 5ada5518d7e4be48f9a74cedcde2b383d49bb3be
 - `PROJECT_REPORT_SHARE_SECRET` остается обязательным общим секретом для публичных share-ссылок attendance и project report;
 
 ## Changelog
+
+- 2026-05-05: восстановлено отслеживание изменений в GitHub на teacher-only странице `/projects`. Функции `listProjects()` и `listProjectsByStudentId()` снова выполняют живой drift-check последнего коммита в GitHub вместо использования только snapshot-данных, что позволяет преподавателю видеть необходимость синхронизации (`нужен sync`). Для сохранения производительности в `src/lib/server/github.ts` добавлено 60-секундное кеширование запросов через `next: { revalidate: 60 }`, а в `enrichProjectRepositoryStatus()` внедрен short-circuit check: если `metadata.pushedAt` из GitHub не новее даты последнего известного коммита в Appwrite, запрос списка коммитов пропускается. Измененные файлы проверены через Biome.
+
 
 - 2026-04-18: Исправлен критический блокер сборки в `src/app/students/actions.ts`. Возвращен импорт `exceljs`, отсутствие которого приводило к ошибке `Module not found` при выполнении `next build`. Теперь CI/CD контур снова стабилен, а функционал импорта студентов из XLSX восстановлен. Файлы проверены через Biome.
 

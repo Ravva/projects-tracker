@@ -534,42 +534,6 @@ function getGithubSyncStatusReason(input: {
     : "Проект еще не синхронизировался с GitHub.";
 }
 
-function enrichProjectRepositoryStatusFromSnapshot(
-  project: ProjectRecord,
-): ProjectRecord {
-  const parsed = parseGithubUrl(project.githubUrl);
-
-  if (!parsed) {
-    return {
-      ...project,
-      syncStatus: "unavailable" as const,
-      syncStatusReason: "Некорректный GitHub URL.",
-      aiStatus: project.hasAiAnalysisSnapshot
-        ? ("status_unknown" as const)
-        : ("not_started" as const),
-    };
-  }
-
-  const hasSyncSnapshot =
-    Boolean(project.lastCommitSha.trim()) ||
-    Boolean(project.defaultBranch.trim());
-  const syncStatus = hasSyncSnapshot ? "synced" : "unknown";
-
-  return {
-    ...project,
-    syncStatus,
-    syncStatusReason: getGithubSyncStatusReason({
-      branchChanged: false,
-      hasSyncSnapshot,
-      remoteDefaultBranch: project.defaultBranch,
-      syncNeeded: false,
-    }),
-    aiStatus: project.hasAiAnalysisSnapshot ? "up_to_date" : "not_started",
-    remoteLastCommit: project.lastCommit,
-    remoteLastCommitSha: project.lastCommitSha,
-  };
-}
-
 async function enrichProjectRepositoryStatus(
   project: ProjectRecord,
 ): Promise<ProjectRecord> {
@@ -591,18 +555,35 @@ async function enrichProjectRepositoryStatus(
       parsed.owner,
       parsed.repo,
     );
-    const commitData = await listGithubRepositoryCommits(
-      parsed.owner,
-      parsed.repo,
-      metadata.defaultBranch,
-      {
-        maxPages: 1,
-        perPage: 1,
-      },
-    );
-    const lastCommit = commitData[0];
-    const remoteLastCommitSha = lastCommit?.sha ?? "";
-    const remoteLastCommit = lastCommit?.committedAt ?? "";
+
+    // Оптимизация: если дата последнего push в репозиторий не новее сохраненного коммита,
+    // значит на default branch точно нет новых изменений.
+    const hasPossibleChanges =
+      !project.lastCommit ||
+      !metadata.pushedAt ||
+      new Date(metadata.pushedAt) > new Date(project.lastCommit);
+
+    let remoteLastCommitSha = project.lastCommitSha;
+    let remoteLastCommit = project.lastCommit;
+
+    if (
+      hasPossibleChanges ||
+      project.defaultBranch !== metadata.defaultBranch
+    ) {
+      const commitData = await listGithubRepositoryCommits(
+        parsed.owner,
+        parsed.repo,
+        metadata.defaultBranch,
+        {
+          maxPages: 1,
+          perPage: 1,
+        },
+      );
+      const lastCommit = commitData[0];
+      remoteLastCommitSha = lastCommit?.sha ?? "";
+      remoteLastCommit = lastCommit?.committedAt ?? "";
+    }
+
     const snapshotDrift = buildGithubSyncSnapshotDrift({
       storedDefaultBranch: project.defaultBranch,
       storedLastCommitSha: project.lastCommitSha,
@@ -646,14 +627,6 @@ async function enrichProjectRepositoryStatus(
         : "not_started",
     };
   }
-}
-
-function enrichProjectsRepositoryStatusFromSnapshot(
-  projects: ProjectRecord[],
-): ProjectRecord[] {
-  return projects.map((project) =>
-    enrichProjectRepositoryStatusFromSnapshot(getProjectBaseRecord(project)),
-  );
 }
 
 async function listProjectDocuments() {
@@ -885,7 +858,11 @@ export async function listProjects(): Promise<ProjectRecord[]> {
       ),
     );
 
-    return enrichProjectsRepositoryStatusFromSnapshot(projects);
+    return Promise.all(
+      projects.map((project) =>
+        enrichProjectRepositoryStatus(getProjectBaseRecord(project)),
+      ),
+    );
   } catch {
     return [];
   }
@@ -935,7 +912,11 @@ export async function listProjectsByStudentId(
         ),
       );
 
-    return enrichProjectsRepositoryStatusFromSnapshot(projects);
+    return Promise.all(
+      projects.map((project) =>
+        enrichProjectRepositoryStatus(getProjectBaseRecord(project)),
+      ),
+    );
   } catch {
     return [];
   }

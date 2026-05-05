@@ -6,6 +6,9 @@ UI-фундамент приложения поднят: Next.js, shadcn preset 
 
 ## Задача в работе
 
+- закрыто в текущей сессии: восстановлено отслеживание изменений в GitHub на teacher-only странице `/projects`; функции `listProjects()` и `listProjectsByStudentId()` снова выполняют живой drift-check последнего коммита в GitHub вместо использования только snapshot-данных;
+- закрыто в текущей сессии: производительность живых GitHub-проверок оптимизирована; в `src/lib/server/github.ts` добавлено кеширование запросов на 60 секунд через `next: { revalidate: 60 }`, а в `enrichProjectRepositoryStatus()` добавлен short-circuit check по `metadata.pushedAt` — если репозиторий не обновлялся в GitHub с момента последнего известного коммита, тяжелый запрос списка коммитов пропускается;
+
 - закрыто в текущей сессии: экран `/login` для student bind flow теперь согласован с обновленными `/student/link` и `/my-project`; `src/app/login/page.tsx` получил явный режим `Student bind flow` с пошаговым объяснением сценария, улучшенный error-state и более релевантные правые карточки, а `src/app/login/student-bind-session-card.tsx` теперь структурирован как отдельная проверка текущего GitHub-аккаунта с status-pill и более понятными CTA `Продолжить / Выйти и сменить аккаунт`;
 - закрыто в текущей сессии: исправлен критический блокер сборки в `src/app/students/actions.ts`. Возвращен импорт `exceljs`, отсутствие которого приводило к ошибке `Module not found: Can't resolve 'exceljs'` при выполнении `next build`. Функционал импорта студентов из XLSX восстановлен и проверен через Biome.
 - закрыто в текущей сессии: student bind flow `/student/link` доведен до того же уровня понятности, что и обновленный `/my-project`; `src/app/student/link/page.tsx` больше не показывает сухой текстовый результат привязки, а рендерит явные success/error states с status-pill, блоком `Что произошло`, отдельным `Что дальше`, понятными CTA и без устаревшей внешней ссылки на стороннюю инструкцию по Memory Bank;
