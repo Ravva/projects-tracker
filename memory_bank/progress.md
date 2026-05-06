@@ -6,7 +6,7 @@
 
 ## Контроль изменений
 
-last_checked_commit: 27ce086e35defcef22a3f011525124f7a3647825
+last_checked_commit: 94d940350c8819e9d0c8a3c5d3f9752f7a3d8abf
 
 
 ## Known Issues
