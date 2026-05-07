@@ -224,3 +224,29 @@ body {
     pointer-events: none;
     z-index: -1;
 }
+
+/* ─── Gradient orb breathing animation ─── */
+@keyframes orb-breathe {
+    0%,
+    100% {
+        opacity: 0.7;
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.12);
+    }
+}
+
+/* Non-centered orbs don’t use translateX, so override just scale+opacity */
+@keyframes orb-breathe-free {
+    0%,
+    100% {
+        opacity: 0.65;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
