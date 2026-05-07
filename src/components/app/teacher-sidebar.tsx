@@ -57,16 +57,7 @@ export function TeacherSidebar({
   };
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="border-r border-white/5"
-      style={{
-        background:
-          "linear-gradient(180deg, rgba(14,17,26,0.68) 0%, rgba(12,15,23,0.72) 100%)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-      }}
-    >
+    <Sidebar collapsible="icon" className="border-r border-white/5">
       <SidebarHeader className="gap-4 px-3 py-4">
         <div className="flex items-start justify-between gap-3">
           {/* Logo tile — gradient-border shell */}
