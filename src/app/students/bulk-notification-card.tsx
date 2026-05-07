@@ -5,7 +5,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo, useState, useTransition } from "react";
 
 import { sendBulkStudentNotificationAction } from "@/app/students/actions";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FeedbackModal } from "@/components/ui/feedback-modal";
@@ -194,16 +193,32 @@ export function BulkNotificationCard({ students }: BulkNotificationCardProps) {
             </div>
           </div>
 
-          <Button
+          <button
             type="button"
             disabled={isPending || selectedIds.length === 0 || !message.trim()}
-            className="w-full rounded-xl"
+            className="w-full rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40"
+            style={{
+              background: "rgba(6,182,212,0.1)",
+              border: "1px solid rgba(6,182,212,0.35)",
+              color: "hsl(189 94% 43%)",
+            }}
+            onMouseEnter={(e) => {
+              if (!e.currentTarget.disabled) {
+                e.currentTarget.style.background = "rgba(6,182,212,0.18)";
+                e.currentTarget.style.boxShadow =
+                  "0 0 16px rgba(6,182,212,0.25)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(6,182,212,0.1)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
             onClick={handleSubmit}
           >
             {isPending
               ? "Отправка..."
               : `Отправить выбранным (${selectedIds.length})`}
-          </Button>
+          </button>
         </CardContent>
       </Card>
 
