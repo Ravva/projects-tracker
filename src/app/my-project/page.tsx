@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { chooseStudentProjectAction } from "@/app/my-project/actions";
 import { CopyProjectSetupPrompt } from "@/app/my-project/copy-project-setup-prompt";
 import { CopyTextButton } from "@/app/my-project/copy-text-button";
+import { RepoSubmitButton } from "@/app/my-project/repo-submit-button";
+import { ScrollToElement } from "@/components/app/scroll-to-element";
 import { StatusPill } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -374,36 +376,48 @@ export default async function MyProjectPage({
             </div>
           ) : null}
           {success === "project-created" ? (
-            <div className="mt-4 rounded-[1.75rem] border border-[hsl(var(--status-calm)/0.34)] bg-[linear-gradient(135deg,hsl(var(--status-calm)/0.2),hsl(var(--status-calm)/0.08)_58%,hsl(var(--background)))] px-5 py-4 text-foreground shadow-none">
-              <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--status-calm))]">
-                Проект создан
+            <>
+              <ScrollToElement elementId="success-banner" />
+              <div
+                id="success-banner"
+                className="mt-4 rounded-[1.75rem] border border-[hsl(var(--status-calm)/0.34)] bg-[linear-gradient(135deg,hsl(var(--status-calm)/0.2),hsl(var(--status-calm)/0.08)_58%,hsl(var(--background)))] px-5 py-4 text-foreground shadow-none"
+              >
+                <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--status-calm))]">
+                  Проект создан
+                </div>
+                <div className="mt-2 text-lg font-semibold leading-tight">
+                  {projectName
+                    ? `Репозиторий ${projectName} успешно привязан.`
+                    : "Репозиторий успешно привязан к новому проекту."}
+                </div>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Новый проект уже появился в блоке текущих проектов ниже.
+                  Автоматический AI-анализ запущен сразу после привязки.
+                </p>
               </div>
-              <div className="mt-2 text-lg font-semibold leading-tight">
-                {projectName
-                  ? `Репозиторий ${projectName} успешно привязан.`
-                  : "Репозиторий успешно привязан к новому проекту."}
-              </div>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Новый проект уже появился в блоке текущих проектов ниже.
-                Автоматический AI-анализ запущен сразу после привязки.
-              </p>
-            </div>
+            </>
           ) : null}
           {success === "project-restarted" ? (
-            <div className="mt-4 rounded-[1.75rem] border border-[hsl(var(--status-success)/0.32)] bg-[linear-gradient(135deg,hsl(var(--status-success)/0.2),hsl(var(--status-calm)/0.08)_58%,hsl(var(--background)))] px-5 py-4 text-foreground shadow-none">
-              <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--status-success))]">
-                Проект запущен заново
+            <>
+              <ScrollToElement elementId="success-banner" />
+              <div
+                id="success-banner"
+                className="mt-4 rounded-[1.75rem] border border-[hsl(var(--status-success)/0.32)] bg-[linear-gradient(135deg,hsl(var(--status-success)/0.2),hsl(var(--status-calm)/0.08)_58%,hsl(var(--background)))] px-5 py-4 text-foreground shadow-none"
+              >
+                <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--status-success))]">
+                  Проект запущен заново
+                </div>
+                <div className="mt-2 text-lg font-semibold leading-tight">
+                  {projectName
+                    ? `Репозиторий ${projectName} снова добавлен в текущие проекты.`
+                    : "Репозиторий снова добавлен в текущие проекты."}
+                </div>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Это новая итерация проекта из вашей истории. Автоматический
+                  AI-анализ тоже запущен сразу после привязки.
+                </p>
               </div>
-              <div className="mt-2 text-lg font-semibold leading-tight">
-                {projectName
-                  ? `Репозиторий ${projectName} снова добавлен в текущие проекты.`
-                  : "Репозиторий снова добавлен в текущие проекты."}
-              </div>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Это новая итерация проекта из вашей истории. Автоматический
-                AI-анализ тоже запущен сразу после привязки.
-              </p>
-            </div>
+            </>
           ) : null}
           {notice ? (
             <div className="mt-4 rounded-2xl border border-[hsl(var(--status-warning)/0.3)] bg-[hsl(var(--status-warning)/0.08)] px-4 py-3 text-sm text-foreground">
@@ -690,13 +704,10 @@ export default async function MyProjectPage({
                             name="repositoryDescription"
                             value={repository.description}
                           />
-                          <Button
-                            type="submit"
-                            className="rounded-xl"
+                          <RepoSubmitButton
+                            label={repositoryState.actionLabel}
                             disabled={repositoryState.disabled}
-                          >
-                            {repositoryState.actionLabel}
-                          </Button>
+                          />
                         </form>
                       </div>
                     </div>

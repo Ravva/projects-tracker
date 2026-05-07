@@ -2,10 +2,12 @@
 
 ## Текущий фокус
 
-UI-фундамент приложения поднят: Next.js, shadcn preset `a1F9UU9Q`, teacher dashboard и app shell работают. Реализованы teacher-only модули `students`, `attendance` и `projects` с server actions, GitHub OAuth и реальными Appwrite-коллекциями.
+Student-flow `/my-project` получил явную обратную связь при выборе и привязке репозитория: кнопка сабмита теперь показывает pending-спиннер через `useFormStatus`, а после успешной привязки страница плавно прокручивается к success-баннеру через `ScrollToElement`. UI-фундамент приложения поднят: Next.js, shadcn preset `a1F9UU9Q`, teacher dashboard и app shell работают. Реализованы teacher-only модули `students`, `attendance` и `projects` с server actions, GitHub OAuth и реальными Appwrite-коллекциями.
 
 ## Задача в работе
 
+- закрыто в текущей сессии: student-flow `/my-project` получил явный pending-state при выборе репозитория — новый клиентский компонент `src/app/my-project/repo-submit-button.tsx` использует `useFormStatus` из `react-dom`, блокирует кнопку и показывает спиннер «Привязка…» пока server action выполняется (AI-анализ занимает несколько секунд); до этого исправления кнопка оставалась неизменной и студент не видел, что запрос принят;
+- закрыто в текущей сессии: после успешной привязки репозитория страница `/my-project` теперь плавно прокручивается к success-баннеру через новый клиентский компонент `src/components/app/scroll-to-element.tsx` (`ScrollToElement`); success-баннеры `project-created` и `project-restarted` получили `id="success-banner"`, а раньше баннер скрывался за большим блоком «Project readiness» и студент его не замечал;
 - закрыто в текущей сессии: восстановлено отслеживание изменений в GitHub на teacher-only странице `/projects`; функции `listProjects()` и `listProjectsByStudentId()` снова выполняют живой drift-check последнего коммита в GitHub вместо использования только snapshot-данных;
 - закрыто в текущей сессии: производительность живых GitHub-проверок оптимизирована; в `src/lib/server/github.ts` добавлено кеширование запросов на 60 секунд через `next: { revalidate: 60 }`, а в `enrichProjectRepositoryStatus()` добавлен short-circuit check по `metadata.pushedAt` — если репозиторий не обновлялся в GitHub с момента последнего известного коммита, тяжелый запрос списка коммитов пропускается;
 
