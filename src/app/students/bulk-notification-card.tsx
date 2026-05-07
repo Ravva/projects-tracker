@@ -7,6 +7,7 @@ import { useMemo, useState, useTransition } from "react";
 import { sendBulkStudentNotificationAction } from "@/app/students/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FeedbackModal } from "@/components/ui/feedback-modal";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import type {
@@ -155,13 +156,10 @@ export function BulkNotificationCard({ students }: BulkNotificationCardProps) {
                         onClick={() => toggleStudent(student.id)}
                       >
                         <TableCell>
-                          <input
-                            type="checkbox"
+                          <Checkbox
                             aria-label={`Выбрать ${student.lastName} ${student.firstName}`}
-                            className="size-4 cursor-pointer rounded-[0.3rem] border-border bg-background align-middle accent-primary shadow-[0_1px_2px_hsl(var(--foreground)/0.08)] transition-[border-color,box-shadow,opacity] outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
                             checked={isSelected}
-                            style={{ accentColor: "hsl(var(--primary))" }}
-                            onChange={() => toggleStudent(student.id)}
+                            onCheckedChange={() => toggleStudent(student.id)}
                             onClick={(event) => event.stopPropagation()}
                           />
                         </TableCell>

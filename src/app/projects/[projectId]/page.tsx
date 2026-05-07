@@ -476,33 +476,63 @@ export default async function ProjectDetailsPage({
                             role="switch"
                             aria-checked={project.isGroupProject}
                             aria-label="Переключить режим группового проекта"
-                            className={`inline-flex items-center gap-3 rounded-2xl border px-3 py-2 text-left transition-colors hover:bg-accent/40 ${
-                              project.isGroupProject
-                                ? "border-[hsl(var(--status-calm)/0.35)] bg-[hsl(var(--status-calm)/0.12)] text-foreground"
-                                : "border-border/80 bg-background/80 text-foreground"
-                            }`}
+                            className="inline-flex items-center gap-3 rounded-2xl px-3 py-2 text-left transition-all duration-200 hover:bg-white/5"
+                            style={{
+                              background: project.isGroupProject
+                                ? "rgba(6,182,212,0.08)"
+                                : "rgba(255,255,255,0.04)",
+                              border: project.isGroupProject
+                                ? "1px solid rgba(6,182,212,0.3)"
+                                : "1px solid rgba(255,255,255,0.08)",
+                              boxShadow: project.isGroupProject
+                                ? "0 0 12px rgba(6,182,212,0.18)"
+                                : "none",
+                            }}
                           >
                             <span className="flex flex-col">
                               <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                                 Режим проекта
                               </span>
-                              <span className="text-sm font-medium">
+                              <span
+                                className="text-sm font-medium"
+                                style={{
+                                  color: project.isGroupProject
+                                    ? "hsl(189 94% 43%)"
+                                    : "hsl(var(--foreground))",
+                                }}
+                              >
                                 В групповой проект
                               </span>
                             </span>
+                            {/* Track */}
                             <span
-                              className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border transition-colors ${
-                                project.isGroupProject
-                                  ? "border-[hsl(var(--status-calm)/0.45)] bg-[hsl(var(--status-calm)/0.3)]"
-                                  : "border-border/80 bg-muted/70"
-                              }`}
+                              className="relative inline-flex h-6 w-10 shrink-0 items-center rounded-full border transition-all duration-200"
+                              style={{
+                                background: project.isGroupProject
+                                  ? "rgba(6,182,212,0.25)"
+                                  : "rgba(255,255,255,0.08)",
+                                borderColor: project.isGroupProject
+                                  ? "rgba(6,182,212,0.4)"
+                                  : "rgba(255,255,255,0.1)",
+                                boxShadow: project.isGroupProject
+                                  ? "0 0 8px rgba(6,182,212,0.3)"
+                                  : "none",
+                              }}
                             >
+                              {/* Thumb */}
                               <span
-                                className={`inline-flex size-5 rounded-full bg-background shadow-sm transition-transform ${
-                                  project.isGroupProject
-                                    ? "translate-x-6"
-                                    : "translate-x-1"
-                                }`}
+                                className="inline-flex size-4 rounded-full shadow-sm transition-all duration-200"
+                                style={{
+                                  transform: project.isGroupProject
+                                    ? "translateX(20px)"
+                                    : "translateX(4px)",
+                                  background: project.isGroupProject
+                                    ? "hsl(189 94% 43%)"
+                                    : "rgba(255,255,255,0.4)",
+                                  boxShadow: project.isGroupProject
+                                    ? "0 0 6px rgba(6,182,212,0.6)"
+                                    : "none",
+                                }}
                               />
                             </span>
                           </button>

@@ -1,31 +1,25 @@
 "use client";
 
-import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
+import { Moon02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useTheme } from "@/components/theme/theme-provider";
-import { Button } from "@/components/ui/button";
 
+/**
+ * Dark-mode indicator.
+ * The app is dark-only — this component shows a decorative moon badge
+ * without interactive theme switching.
+ */
 export function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const isDarkTheme = resolvedTheme === "dark";
-  const nextTheme = isDarkTheme ? "light" : "dark";
-  const Icon = isDarkTheme ? Sun03Icon : Moon02Icon;
-  const label = isDarkTheme
-    ? "Переключить на светлую тему"
-    : "Переключить на темную тему";
-
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="icon-sm"
-      className="rounded-full bg-background/90"
-      aria-label={label}
-      title={label}
-      onClick={() => setTheme(nextTheme)}
+    <span
+      title="Тёмная тема"
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium text-muted-foreground"
+      style={{
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,255,255,0.08)",
+      }}
     >
-      <HugeiconsIcon icon={Icon} strokeWidth={1.9} />
-      <span className="sr-only">{label}</span>
-    </Button>
+      <HugeiconsIcon icon={Moon02Icon} size={13} strokeWidth={2} />
+      <span className="hidden sm:inline">Dark</span>
+    </span>
   );
 }

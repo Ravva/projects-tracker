@@ -94,10 +94,10 @@ export function TeacherShell({
               ].join(" ")}
               style={{
                 background:
-                  "linear-gradient(135deg, rgba(17,20,29,0.88) 0%, rgba(22,26,38,0.82) 100%)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
+                  "linear-gradient(135deg, rgba(14,17,26,0.58) 0%, rgba(17,21,32,0.52) 100%)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                borderBottom: "1px solid rgba(255,255,255,0.07)",
                 borderRadius: 0,
               }}
             >

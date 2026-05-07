@@ -62,7 +62,7 @@ export function TeacherSidebar({
       className="border-r border-white/5"
       style={{
         background:
-          "linear-gradient(180deg, rgba(17,20,29,0.96) 0%, rgba(14,17,26,0.98) 100%)",
+          "linear-gradient(180deg, rgba(14,17,26,0.68) 0%, rgba(12,15,23,0.72) 100%)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
       }}
