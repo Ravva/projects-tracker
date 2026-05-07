@@ -25,18 +25,6 @@ import { listStudents } from "@/lib/server/repositories/students";
 import { BulkNotificationCard } from "./bulk-notification-card";
 import { ImportStudentsButton } from "./import-button";
 
-function getAttendanceBadgeClassName(attendanceRate: number) {
-  if (attendanceRate <= 0) {
-    return "bg-[hsl(var(--destructive))] shadow-[0_0_0_1px_hsl(var(--destructive)/0.22)]";
-  }
-
-  if (attendanceRate < 100) {
-    return "bg-[hsl(var(--status-warning))] shadow-[0_0_0_1px_hsl(var(--status-warning)/0.22)]";
-  }
-
-  return "bg-[hsl(var(--status-success))] shadow-[0_0_0_1px_hsl(var(--status-success)/0.2)]";
-}
-
 export default async function StudentsPage() {
   const teacher = await requireTeacherSession();
   const students = await listStudents();
@@ -60,7 +48,7 @@ export default async function StudentsPage() {
       }
     >
       <section className="grid gap-4 xl:grid-cols-[1.45fr_0.55fr]">
-        <Card className="border-border/70 bg-card/88 shadow-none">
+        <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Список учеников</CardTitle>
           </CardHeader>
@@ -139,15 +127,29 @@ export default async function StudentsPage() {
                       </TableCell>
                       <TableCell>
                         <span
-                          className="inline-flex items-center"
-                          title={`${student.attendanceRate}%`}
+                          className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
+                          style={{
+                            background:
+                              student.attendanceRate >= 100
+                                ? "rgba(34,197,94,0.12)"
+                                : student.attendanceRate > 0
+                                  ? "rgba(245,158,11,0.12)"
+                                  : "rgba(239,68,68,0.12)",
+                            border:
+                              student.attendanceRate >= 100
+                                ? "1px solid rgba(34,197,94,0.3)"
+                                : student.attendanceRate > 0
+                                  ? "1px solid rgba(245,158,11,0.3)"
+                                  : "1px solid rgba(239,68,68,0.3)",
+                            color:
+                              student.attendanceRate >= 100
+                                ? "hsl(160 60% 48%)"
+                                : student.attendanceRate > 0
+                                  ? "hsl(37 88% 61%)"
+                                  : "hsl(8 79% 66%)",
+                          }}
                         >
-                          <span
-                            className={`inline-flex size-3 rounded-full ${getAttendanceBadgeClassName(student.attendanceRate)}`}
-                          />
-                          <span className="sr-only">
-                            Посещаемость {student.attendanceRate}%
-                          </span>
+                          {student.attendanceRate}%
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
@@ -174,7 +176,7 @@ export default async function StudentsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-card/88 shadow-none">
+        <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Сводка модуля</CardTitle>
           </CardHeader>
@@ -192,7 +194,13 @@ export default async function StudentsPage() {
             <form
               id="create-student"
               action={createStudentAction}
-              className="space-y-3 rounded-2xl border border-border/70 bg-background/70 p-4"
+              className="space-y-3 rounded-2xl"
+              style={{
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "1rem",
+                padding: "1rem",
+              }}
             >
               <div className="font-medium">Новый ученик</div>
               <Input
@@ -227,7 +235,7 @@ export default async function StudentsPage() {
               />
               <textarea
                 name="notes"
-                className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none"
+                className="min-h-24 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground backdrop-blur-sm transition-all duration-200 focus:border-primary/50 focus:shadow-[0_0_0_3px_rgba(6,182,212,0.12)] resize-none"
                 placeholder="Заметка преподавателя"
               />
               <Button type="submit" className="w-full rounded-xl">
@@ -235,7 +243,15 @@ export default async function StudentsPage() {
               </Button>
             </form>
 
-            <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+            <div
+              className="rounded-2xl"
+              style={{
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "1rem",
+                padding: "1rem",
+              }}
+            >
               <div className="flex items-center gap-3 font-medium">
                 <HugeiconsIcon icon={User02Icon} size={18} strokeWidth={1.8} />
                 Активные карточки
@@ -246,7 +262,15 @@ export default async function StudentsPage() {
                   : "После настройки Appwrite здесь появятся реальные карточки учеников."}
               </p>
             </div>
-            <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+            <div
+              className="rounded-2xl"
+              style={{
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "1rem",
+                padding: "1rem",
+              }}
+            >
               <div className="flex items-center gap-3 font-medium">
                 <HugeiconsIcon
                   icon={Notification01Icon}

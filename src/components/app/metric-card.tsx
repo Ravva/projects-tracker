@@ -9,14 +9,21 @@ import { cn } from "@/lib/utils";
 type MetricTone = "critical" | "warning" | "calm" | "success";
 type MetricIcon = ComponentProps<typeof HugeiconsIcon>["icon"];
 
-const toneStyles: Record<MetricTone, string> = {
+const toneGradients: Record<MetricTone, string> = {
   critical:
-    "border-l-[hsl(var(--status-critical))] bg-[hsl(var(--status-critical)/0.08)]",
+    "linear-gradient(90deg, transparent, rgba(239,68,68,0.5) 40%, rgba(239,68,68,0.5) 60%, transparent)",
   warning:
-    "border-l-[hsl(var(--status-warning))] bg-[hsl(var(--status-warning)/0.08)]",
-  calm: "border-l-[hsl(var(--status-calm))] bg-[hsl(var(--status-calm)/0.09)]",
+    "linear-gradient(90deg, transparent, rgba(245,158,11,0.5) 40%, rgba(245,158,11,0.5) 60%, transparent)",
+  calm: "linear-gradient(90deg, transparent, rgba(6,182,212,0.5) 40%, rgba(6,182,212,0.5) 60%, transparent)",
   success:
-    "border-l-[hsl(var(--status-success))] bg-[hsl(var(--status-success)/0.08)]",
+    "linear-gradient(90deg, transparent, rgba(34,197,94,0.5) 40%, rgba(34,197,94,0.5) 60%, transparent)",
+};
+
+const topGlowStyles: Record<MetricTone, React.CSSProperties> = {
+  critical: { boxShadow: "inset 0 1px 0 rgba(239,68,68,0.4)" },
+  warning: { boxShadow: "inset 0 1px 0 rgba(245,158,11,0.4)" },
+  calm: { boxShadow: "inset 0 1px 0 rgba(6,182,212,0.4)" },
+  success: { boxShadow: "inset 0 1px 0 rgba(34,197,94,0.4)" },
 };
 
 export function MetricCard({
@@ -38,21 +45,23 @@ export function MetricCard({
 }) {
   return (
     <Card
-      className={cn(
-        "border-border/70 border-l-4 shadow-none backdrop-blur-sm",
-        toneStyles[tone],
-      )}
+      className="relative overflow-hidden border border-white/8 bg-card/80 shadow-none backdrop-blur-sm"
+      style={topGlowStyles[tone]}
     >
+      <div
+        className="absolute inset-x-0 top-0 h-px"
+        style={{ background: toneGradients[tone] }}
+      />
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
         <div className="space-y-1">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             {title}
           </CardTitle>
-          <div className="text-3xl font-semibold tracking-tight">{value}</div>
+          <div className="text-2xl font-bold tracking-tight">{value}</div>
         </div>
         <div className="flex items-center gap-2">
           {badge}
-          <div className="rounded-2xl border border-border/60 bg-background/80 p-2.5 text-foreground shadow-sm">
+          <div className="rounded-xl border border-white/8 bg-white/6 p-2">
             <HugeiconsIcon icon={icon} size={18} strokeWidth={1.8} />
           </div>
         </div>
@@ -61,7 +70,7 @@ export function MetricCard({
         <p className="text-sm leading-6 text-muted-foreground">{description}</p>
         {typeof progress === "number" ? (
           <div className="space-y-2">
-            <Progress value={progress} className="h-2.5 bg-background/70" />
+            <Progress value={progress} className="h-1.5 bg-background/70" />
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>Текущий уровень контроля</span>
               <span>{progress}%</span>

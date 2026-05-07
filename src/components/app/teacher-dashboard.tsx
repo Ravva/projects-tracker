@@ -72,6 +72,37 @@ function getWeeklyAttendanceStats(
   return { averageRate, requiredMin, totalStudents };
 }
 
+const toneConfig = {
+  critical: {
+    bg: "rgba(239,68,68,0.08)",
+    border: "rgba(239,68,68,0.2)",
+    glow: "rgba(239,68,68,0.15)",
+    icon: "rgba(239,68,68,0.15)",
+    text: "hsl(var(--status-critical))",
+  },
+  warning: {
+    bg: "rgba(245,158,11,0.08)",
+    border: "rgba(245,158,11,0.2)",
+    glow: "rgba(245,158,11,0.15)",
+    icon: "rgba(245,158,11,0.15)",
+    text: "hsl(var(--status-warning))",
+  },
+  success: {
+    bg: "rgba(34,197,94,0.08)",
+    border: "rgba(34,197,94,0.2)",
+    glow: "rgba(34,197,94,0.15)",
+    icon: "rgba(34,197,94,0.15)",
+    text: "hsl(var(--status-success))",
+  },
+  calm: {
+    bg: "rgba(6,182,212,0.08)",
+    border: "rgba(6,182,212,0.2)",
+    glow: "rgba(6,182,212,0.15)",
+    icon: "rgba(6,182,212,0.15)",
+    text: "hsl(var(--status-calm))",
+  },
+};
+
 function KpiCard({
   icon,
   title,
@@ -87,31 +118,52 @@ function KpiCard({
   tone: "critical" | "warning" | "success" | "calm";
   href?: string;
 }) {
-  const toneMap = {
-    critical: "text-[hsl(var(--status-critical))]",
-    warning: "text-[hsl(var(--status-warning))]",
-    success: "text-[hsl(var(--status-success))]",
-    calm: "text-[hsl(var(--status-calm))]",
-  };
+  const config = toneConfig[tone];
 
   const content = (
-    <div className="group flex items-center gap-3 rounded-2xl border border-border/60 bg-card/80 px-4 py-3 transition-colors hover:border-border">
+    <div
+      style={{
+        background: config.bg,
+        border: `1px solid ${config.border}`,
+        boxShadow: `0 0 20px ${config.glow}`,
+        backdropFilter: "blur(12px)",
+      }}
+      className="group relative flex items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-300 hover:scale-[1.01]"
+    >
       <div
-        className={`rounded-xl bg-background p-2 ${toneMap[tone]} transition-transform group-hover:scale-105`}
+        className="absolute inset-x-0 top-0 h-px rounded-t-2xl"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${config.border} 50%, transparent)`,
+        }}
+      />
+      <div
+        className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+        style={{
+          background: config.icon,
+          border: `1px solid ${config.border}`,
+        }}
       >
-        <HugeiconsIcon icon={icon} size={18} strokeWidth={1.8} />
+        <HugeiconsIcon
+          icon={icon}
+          size={18}
+          strokeWidth={1.8}
+          style={{ color: config.text }}
+        />
       </div>
       <div className="min-w-0 flex-1">
         {title && (
-          <div className="mb-0.5 text-xs font-medium text-muted-foreground">
+          <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
             {title}
           </div>
         )}
-        <div className="text-xl font-semibold leading-tight tracking-tight">
+        <div
+          className="mt-0.5 text-xl font-bold leading-tight tracking-tight"
+          style={{ color: config.text }}
+        >
           {value}
         </div>
         {label && (
-          <div className="truncate text-xs text-muted-foreground">{label}</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">{label}</div>
         )}
       </div>
     </div>
@@ -229,7 +281,14 @@ export async function TeacherDashboard({
       </section>
 
       <section className="mt-4 grid gap-4 xl:grid-cols-[1.6fr_1fr]">
-        <Card className="border-border/60 bg-card/80 shadow-none">
+        <Card
+          className="overflow-hidden"
+          style={{
+            background: "rgba(26,31,43,0.7)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
           <CardContent className="p-0">
             <div className="flex items-center justify-between border-b border-border/60 px-5 py-3">
               <div className="flex items-center gap-2 text-sm font-medium">
@@ -305,7 +364,14 @@ export async function TeacherDashboard({
 
         <div className="grid gap-4">
           {studentsNeedingAttention.length > 0 && (
-            <Card className="border-border/60 bg-card/80 shadow-none">
+            <Card
+              className="overflow-hidden"
+              style={{
+                background: "rgba(26,31,43,0.7)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                backdropFilter: "blur(12px)",
+              }}
+            >
               <CardContent className="p-0">
                 <div className="border-b border-border/60 px-5 py-3 text-sm font-medium">
                   Требуют внимания
@@ -345,7 +411,14 @@ export async function TeacherDashboard({
           )}
 
           {aiReportsCount > 0 && (
-            <Card className="border-border/60 bg-card/80 shadow-none">
+            <Card
+              className="overflow-hidden"
+              style={{
+                background: "rgba(26,31,43,0.7)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                backdropFilter: "blur(12px)",
+              }}
+            >
               <CardContent className="p-0">
                 <div className="border-b border-border/60 px-5 py-3 text-sm font-medium">
                   Последние AI-отчеты

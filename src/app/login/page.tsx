@@ -118,9 +118,18 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--status-calm)/0.12),transparent_28%),radial-gradient(circle_at_top_right,hsl(var(--status-warning)/0.12),transparent_22%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--background-secondary)))] px-5 py-10">
+    <main className="relative min-h-screen px-5 py-10">
       <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-[2rem] border border-border/70 bg-card/88 p-8 shadow-none">
+        <section
+          className="shadow-none"
+          style={{
+            background: "rgba(26,31,43,0.75)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            backdropFilter: "blur(12px)",
+            borderRadius: "2rem",
+            padding: "2rem",
+          }}
+        >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <div className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
@@ -194,7 +203,14 @@ export default async function LoginPage({
           ) : null}
 
           {error ? (
-            <div className="mt-6 rounded-[1.75rem] border border-destructive/30 bg-destructive/10 px-5 py-4 text-sm text-destructive">
+            <div
+              className="mt-6 px-5 py-4 text-sm text-destructive"
+              style={{
+                background: "rgba(239,68,68,0.1)",
+                border: "1px solid rgba(239,68,68,0.25)",
+                borderRadius: "1.25rem",
+              }}
+            >
               <div className="text-[11px] font-medium uppercase tracking-[0.22em]">
                 Ошибка входа
               </div>
@@ -228,7 +244,14 @@ export default async function LoginPage({
         <section className="grid gap-4">
           {isStudentBindFlow ? (
             <>
-              <div className="rounded-[2rem] border border-border/70 bg-card/88 p-6">
+              <div
+                className="rounded-[2rem] p-6"
+                style={{
+                  background: "rgba(26,31,43,0.75)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(12px)",
+                }}
+              >
                 <div className="text-sm font-medium">
                   Что произойдет после входа
                 </div>
@@ -238,7 +261,14 @@ export default async function LoginPage({
                   проекта.
                 </p>
               </div>
-              <div className="rounded-[2rem] border border-border/70 bg-card/88 p-6">
+              <div
+                className="rounded-[2rem] p-6"
+                style={{
+                  background: "rgba(26,31,43,0.75)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(12px)",
+                }}
+              >
                 <div className="text-sm font-medium">
                   Если открыт не тот аккаунт
                 </div>
@@ -251,7 +281,14 @@ export default async function LoginPage({
             </>
           ) : (
             <>
-              <div className="rounded-[2rem] border border-border/70 bg-card/88 p-6">
+              <div
+                className="rounded-[2rem] p-6"
+                style={{
+                  background: "rgba(26,31,43,0.75)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(12px)",
+                }}
+              >
                 <div className="text-sm font-medium">Что защищено</div>
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
                   Преподаватель попадает в dashboard, а ученик после
@@ -259,7 +296,14 @@ export default async function LoginPage({
                   маршруту выбора проекта.
                 </p>
               </div>
-              <div className="rounded-[2rem] border border-border/70 bg-card/88 p-6">
+              <div
+                className="rounded-[2rem] p-6"
+                style={{
+                  background: "rgba(26,31,43,0.75)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(12px)",
+                }}
+              >
                 <div className="text-sm font-medium">Что потребуется</div>
                 <p className="mt-2 text-sm leading-7 text-muted-foreground">
                   `GITHUB_ID`, `GITHUB_SECRET`, `NEXTAUTH_SECRET`, teacher

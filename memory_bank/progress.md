@@ -6,7 +6,7 @@
 
 ## Контроль изменений
 
-last_checked_commit: 69102b8
+last_checked_commit: cc48c6f
 
 
 ## Known Issues
@@ -32,7 +32,9 @@ last_checked_commit: 69102b8
 
 ## Changelog
 
-- 2025-07-18 (текущая сессия): выполнен полный визуальный редизайн приложения по спецификации AI Platform Interface DESIGN.md. Система токенов переведена на dark-only палитру (#11141D фон, #06B6D4/#14B8A6 акценты, Inter с кириллицей). Добавлен WebGL dot-matrix background на Three.js (ShaderMaterial, breathing pulse, pointer drift). Teacher shell и sidebar получили glass treatment с backdrop-blur и gradient-border shell. Card компонент переведён на glassmorphism поверхность. Все legacy-файлы сохранены с суффиксом `-legacy` для отката. `bun run build` прошёл успешно, Biome — без ошибок.
+- 2025-07-18 (текущая сессия): UI-polish трёх компонентов под AI Platform Interface dark design system. `StatusPill` переписан с `Badge` на чистый `<span>` с inline rgba-стилями: subtle tonal border `rgba(color, 0.3)` + tonal bg `rgba(color, 0.12)`, без Tailwind opacity-modifier. `MetricCard` получил glass-карточку: убран `border-l-4`, добавлена абсолютная top h-px градиентная полоса через `toneGradients`, `boxShadow: inset 0 1px 0` glow через `topGlowStyles`; value уменьшен `text-3xl → text-2xl font-bold`, icon-container `rounded-xl border-white/8 bg-white/6`, progress bar `h-2.5 → h-1.5`. `KpiCard` в `teacher-dashboard.tsx` переработан в premium glass tile: `toneConfig` с bg/border/glow/icon/text, inline style для background/border/boxShadow/backdropFilter, top accent h-px line, icon-div `size-10 rounded-xl`, value со style color. Три карточки секции (`риски`, `внимание`, `AI-отчёты`) переведены на inline style с `rgba(26,31,43,0.7)` bg, `rgba(255,255,255,0.08)` border, `blur(12px)`. Biome: 0 ошибок.
+
+- 2025-07-18 (предыдущая сессия): выполнен полный визуальный редизайн приложения по спецификации AI Platform Interface DESIGN.md. Система токенов переведена на dark-only палитру (#11141D фон, #06B6D4/#14B8A6 акценты, Inter с кириллицей). Добавлен WebGL dot-matrix background на Three.js (ShaderMaterial, breathing pulse, pointer drift). Teacher shell и sidebar получили glass treatment с backdrop-blur и gradient-border shell. Card компонент переведён на glassmorphism поверхность. Все legacy-файлы сохранены с суффиксом `-legacy` для отката. `bun run build` прошёл успешно, Biome — без ошибок.
 
 - 2026-05-05 (предыдущая сессия): student-flow `/my-project` получил явную обратную связь при выборе репозитория. Добавлен клиентский компонент `src/app/my-project/repo-submit-button.tsx` с `useFormStatus` — кнопка «Начать проект» / «Начать заново» теперь блокируется и показывает спиннер «Привязка…» пока server action выполняется. Добавлен клиентский компонент `src/components/app/scroll-to-element.tsx` (`ScrollToElement`) — после редиректа с `?success=project-created` или `?success=project-restarted` страница плавно прокручивается к success-баннеру, который получил `id="success-banner"`. До этого баннер скрывался за блоком «Project readiness» и студент не видел подтверждения успешной привязки. Измененные tsx-файлы проверены через `bunx biome check --write`, TypeScript компилируется без ошибок.
 

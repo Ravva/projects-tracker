@@ -2,7 +2,7 @@
 
 ## Текущий фокус
 
-Student-flow `/my-project` получил явную обратную связь при выборе и привязке репозитория: кнопка сабмита теперь показывает pending-спиннер через `useFormStatus`, а после успешной привязки страница плавно прокручивается к success-баннеру через `ScrollToElement`. UI-фундамент приложения поднят: Next.js, shadcn preset `a1F9UU9Q`, teacher dashboard и app shell работают. Реализованы teacher-only модули `students`, `attendance` и `projects` с server actions, GitHub OAuth и реальными Appwrite-коллекциями.
+Выполнен UI-polish трёх компонентов под AI Platform Interface dark design system: `StatusPill`, `MetricCard`, `KpiCard` (в `teacher-dashboard.tsx`) и стили трёх карточек секции. Предыдущий фокус: Student-flow `/my-project` получил явную обратную связь при выборе и привязке репозитория: кнопка сабмита теперь показывает pending-спиннер через `useFormStatus`, а после успешной привязки страница плавно прокручивается к success-баннеру через `ScrollToElement`. UI-фундамент приложения поднят: Next.js, shadcn preset `a1F9UU9Q`, teacher dashboard и app shell работают. Реализованы teacher-only модули `students`, `attendance` и `projects` с server actions, GitHub OAuth и реальными Appwrite-коллекциями.
 
 ## Задача в работе
 

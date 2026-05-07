@@ -1,3 +1,4 @@
+import type React from "react";
 import { syncAllProjectsAction } from "@/app/projects/actions";
 import { ProjectWeeklyStatusReportCard } from "@/app/projects/project-weekly-status-report-card";
 import { ProjectsTable } from "@/app/projects/projects-table";
@@ -12,6 +13,54 @@ import { startOfCurrentWeek, toIsoDate } from "@/lib/server/date-utils";
 import { buildProjectReportSharePath } from "@/lib/server/project-report-share";
 import { listProjects } from "@/lib/server/repositories/projects";
 import { listStudents } from "@/lib/server/repositories/students";
+
+function AlertBanner({
+  tone,
+  children,
+}: {
+  tone: "success" | "error" | "warning";
+  children: React.ReactNode;
+}) {
+  const config = {
+    success: {
+      bg: "rgba(34,197,94,0.08)",
+      border: "rgba(34,197,94,0.25)",
+      iconColor: "hsl(160 60% 48%)",
+      icon: "✓",
+    },
+    error: {
+      bg: "rgba(239,68,68,0.08)",
+      border: "rgba(239,68,68,0.25)",
+      iconColor: "hsl(8 79% 66%)",
+      icon: "✕",
+    },
+    warning: {
+      bg: "rgba(245,158,11,0.08)",
+      border: "rgba(245,158,11,0.25)",
+      iconColor: "hsl(37 88% 61%)",
+      icon: "!",
+    },
+  }[tone];
+
+  return (
+    <div
+      className="mb-4 flex items-start gap-3 rounded-2xl px-4 py-3 text-sm"
+      style={{
+        background: config.bg,
+        border: `1px solid ${config.border}`,
+        backdropFilter: "blur(8px)",
+      }}
+    >
+      <span
+        className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+        style={{ background: config.border, color: config.iconColor }}
+      >
+        {config.icon}
+      </span>
+      <span className="text-foreground/90 leading-6">{children}</span>
+    </div>
+  );
+}
 
 export default async function ProjectsPage({
   searchParams,
@@ -93,32 +142,24 @@ export default async function ProjectsPage({
         </div>
       }
     >
-      {error ? (
-        <div className="mb-6 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
-        </div>
-      ) : null}
+      {error ? <AlertBanner tone="error">{error}</AlertBanner> : null}
       {success === "sync-complete" ? (
-        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+        <AlertBanner tone="success">
           GitHub sync и автоматический AI-анализ{providerSuffix} завершены
           {projectId ? " для выбранного проекта" : ""}.
-        </div>
+        </AlertBanner>
       ) : null}
       {success === "sync-complete-with-warning" ? (
-        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+        <AlertBanner tone="success">
           GitHub sync выполнен{projectId ? " для выбранного проекта" : ""}.
-        </div>
+        </AlertBanner>
       ) : null}
       {success === "sync-all-complete" ? (
-        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+        <AlertBanner tone="success">
           Пакетная синхронизация завершена.
-        </div>
+        </AlertBanner>
       ) : null}
-      {notice ? (
-        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-warning)/0.3)] bg-[hsl(var(--status-warning)/0.08)] px-4 py-3 text-sm text-foreground">
-          {notice}
-        </div>
-      ) : null}
+      {notice ? <AlertBanner tone="warning">{notice}</AlertBanner> : null}
       <section>
         <Card className="border-border/70 bg-card/88 shadow-none">
           <CardHeader className="pb-3">
