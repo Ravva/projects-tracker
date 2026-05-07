@@ -30,7 +30,7 @@ export function StatusPill({ label, tone }: { label: string; tone: Tone }) {
   const styles = toneStyles[tone];
   return (
     <span
-      className="inline-flex h-5 items-center justify-center whitespace-nowrap rounded-full px-2.5 text-[11px] font-medium leading-none uppercase tracking-[0.12em]"
+      className="inline-flex h-5 items-center justify-center whitespace-nowrap rounded-full px-2.5 pt-px text-[11px] font-medium leading-none uppercase tracking-[0.12em]"
       style={{
         background: styles.background,
         border: styles.border,
