@@ -6,7 +6,7 @@
 
 ## Контроль изменений
 
-last_checked_commit: 302d46d1f45d9ecadfeebe17338d15cd585a1f3a
+last_checked_commit: 69102b8
 
 
 ## Known Issues
@@ -32,7 +32,9 @@ last_checked_commit: 302d46d1f45d9ecadfeebe17338d15cd585a1f3a
 
 ## Changelog
 
-- 2026-05-05 (текущая сессия): student-flow `/my-project` получил явную обратную связь при выборе репозитория. Добавлен клиентский компонент `src/app/my-project/repo-submit-button.tsx` с `useFormStatus` — кнопка «Начать проект» / «Начать заново» теперь блокируется и показывает спиннер «Привязка…» пока server action выполняется. Добавлен клиентский компонент `src/components/app/scroll-to-element.tsx` (`ScrollToElement`) — после редиректа с `?success=project-created` или `?success=project-restarted` страница плавно прокручивается к success-баннеру, который получил `id="success-banner"`. До этого баннер скрывался за блоком «Project readiness» и студент не видел подтверждения успешной привязки. Измененные tsx-файлы проверены через `bunx biome check --write`, TypeScript компилируется без ошибок.
+- 2025-07-18 (текущая сессия): выполнен полный визуальный редизайн приложения по спецификации AI Platform Interface DESIGN.md. Система токенов переведена на dark-only палитру (#11141D фон, #06B6D4/#14B8A6 акценты, Inter с кириллицей). Добавлен WebGL dot-matrix background на Three.js (ShaderMaterial, breathing pulse, pointer drift). Teacher shell и sidebar получили glass treatment с backdrop-blur и gradient-border shell. Card компонент переведён на glassmorphism поверхность. Все legacy-файлы сохранены с суффиксом `-legacy` для отката. `bun run build` прошёл успешно, Biome — без ошибок.
+
+- 2026-05-05 (предыдущая сессия): student-flow `/my-project` получил явную обратную связь при выборе репозитория. Добавлен клиентский компонент `src/app/my-project/repo-submit-button.tsx` с `useFormStatus` — кнопка «Начать проект» / «Начать заново» теперь блокируется и показывает спиннер «Привязка…» пока server action выполняется. Добавлен клиентский компонент `src/components/app/scroll-to-element.tsx` (`ScrollToElement`) — после редиректа с `?success=project-created` или `?success=project-restarted` страница плавно прокручивается к success-баннеру, который получил `id="success-banner"`. До этого баннер скрывался за блоком «Project readiness» и студент не видел подтверждения успешной привязки. Измененные tsx-файлы проверены через `bunx biome check --write`, TypeScript компилируется без ошибок.
 
 - 2026-05-05: восстановлено отслеживание изменений в GitHub на teacher-only странице `/projects`. Функции `listProjects()` и `listProjectsByStudentId()` снова выполняют живой drift-check последнего коммита в GitHub вместо использования только snapshot-данных, что позволяет преподавателю видеть необходимость синхронизации (`нужен sync`). Для сохранения производительности в `src/lib/server/github.ts` добавлено 60-секундное кеширование запросов через `next: { revalidate: 60 }`, а в `enrichProjectRepositoryStatus()` внедрен short-circuit check: если `metadata.pushedAt` из GitHub не новее даты последнего известного коммита в Appwrite, запрос списка коммитов пропускается. Измененные файлы проверены через Biome.
 

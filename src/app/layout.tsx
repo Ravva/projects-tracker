@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
-import Script from "next/script";
+import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin", "cyrillic"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "Projects Tracker",
@@ -19,34 +25,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const themeInitScript = `
-    (() => {
-      try {
-        const storedTheme = window.localStorage.getItem("projects-tracker-theme");
-        const root = document.documentElement;
-        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        const resolvedTheme =
-          storedTheme === "light" || storedTheme === "dark" ? storedTheme : systemTheme;
-
-        if (storedTheme === "light" || storedTheme === "dark") {
-          root.setAttribute("data-theme", storedTheme);
-        } else {
-          root.removeAttribute("data-theme");
-        }
-
-        root.style.colorScheme = resolvedTheme;
-      } catch {}
-    })();
-  `;
-
   return (
-    <html lang="ru" suppressHydrationWarning>
-      <head>
-        <Script id="theme-init" strategy="beforeInteractive">
-          {themeInitScript}
-        </Script>
-      </head>
-      <body className="bg-background text-foreground antialiased">
+    <html lang="ru" data-theme="dark" suppressHydrationWarning>
+      <body
+        className={`${inter.variable} bg-background text-foreground antialiased`}
+        style={{
+          fontFamily: "var(--font-inter), Inter, Noto Sans, sans-serif",
+        }}
+      >
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

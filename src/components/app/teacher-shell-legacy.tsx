@@ -2,7 +2,6 @@
 
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import { TeacherSidebar } from "@/components/app/teacher-sidebar";
-import { WebGLBackground } from "@/components/app/webgl-background";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   SidebarInset,
@@ -77,54 +76,21 @@ export function TeacherShell({
           } as CSSProperties
         }
       >
-        {/* WebGL dot-matrix background — fixed, behind everything */}
-        <WebGLBackground />
-
         <TeacherSidebar teacherName={teacherName} teacherEmail={teacherEmail} />
-
-        <SidebarInset className="relative z-10 bg-transparent">
-          <div className="min-h-screen">
-            {/* ── Sticky glass header ── */}
+        <SidebarInset className="bg-transparent">
+          <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--status-calm)/0.12),transparent_28%),radial-gradient(circle_at_top_right,hsl(var(--status-warning)/0.12),transparent_22%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--background-secondary)))]">
             <header
-              className={[
-                "gradient-border sticky top-0 z-20 transition-transform duration-200 md:translate-y-0",
-                isMobileHeaderHidden
-                  ? "-translate-y-[calc(100%+1px)]"
-                  : "translate-y-0",
-              ].join(" ")}
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(17,20,29,0.88) 0%, rgba(22,26,38,0.82) 100%)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: 0,
-              }}
+              className={`sticky top-0 z-20 border-b border-border/70 bg-background/80 backdrop-blur-xl transition-transform duration-200 md:translate-y-0 ${isMobileHeaderHidden ? "-translate-y-[calc(100%+1px)]" : "translate-y-0"}`}
             >
-              {/* Gradient border accent line at bottom */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
-                style={{
-                  background:
-                    "linear-gradient(90deg, transparent, rgba(6,182,212,0.5) 30%, rgba(20,184,166,0.4) 70%, transparent)",
-                }}
-              />
-
               <div className="flex flex-col gap-2 px-4 py-2.5 sm:px-5 sm:py-3 lg:px-8 lg:py-4">
                 <div className="flex items-center justify-between gap-3 sm:gap-4">
                   <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-                    <SidebarTrigger
-                      className="rounded-xl border border-white/8 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-white/12"
-                      style={{
-                        boxShadow: "0 0 0 1px rgba(6,182,212,0.08)",
-                      }}
-                    />
+                    <SidebarTrigger className="rounded-xl border border-border/70 bg-background shadow-sm" />
                     <div className="min-w-0">
-                      <div className="hidden text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground sm:block">
+                      <div className="hidden text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground sm:block">
                         {eyebrow}
                       </div>
-                      <h1 className="truncate text-base font-semibold tracking-tight text-foreground sm:text-xl lg:text-2xl">
+                      <h1 className="truncate text-base font-semibold tracking-tight sm:text-xl lg:text-2xl">
                         {title}
                       </h1>
                     </div>

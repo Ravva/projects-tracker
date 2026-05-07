@@ -59,33 +59,53 @@ export function TeacherSidebar({
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-sidebar-border/80 bg-sidebar/95"
+      className="border-r border-white/5"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(17,20,29,0.96) 0%, rgba(14,17,26,0.98) 100%)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+      }}
     >
       <SidebarHeader className="gap-4 px-3 py-4">
         <div className="flex items-start justify-between gap-3">
+          {/* Logo tile — gradient-border shell */}
           <Link
             href="/"
             onClick={handleMobileNavigation}
-            className="flex flex-1 shrink-0 items-center gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/40 px-3 py-3 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0"
+            className="gradient-border flex flex-1 shrink-0 items-center gap-3 rounded-2xl px-3 py-3 transition-all duration-200 hover:bg-white/5 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.07)",
+            }}
           >
-            <div className="flex size-11 items-center justify-center rounded-2xl shadow-sm">
+            <div className="flex size-11 items-center justify-center rounded-2xl">
               <BrandMark className="size-11 rounded-2xl" />
             </div>
             <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
               <div className="truncate text-sm font-semibold text-sidebar-foreground">
                 Projects Tracker
               </div>
-              <div className="mt-1 flex items-center gap-2 text-xs text-sidebar-foreground/70">
+              <div
+                className="mt-1 flex items-center gap-2 text-xs"
+                style={{ color: "hsl(var(--muted-foreground))" }}
+              >
                 Teacher Control Room
                 <Badge
                   variant="outline"
-                  className="border-transparent bg-sidebar-accent text-[10px] tracking-[0.18em] uppercase"
+                  className="border-transparent text-[10px] tracking-[0.18em] uppercase"
+                  style={{
+                    background: "rgba(6,182,212,0.12)",
+                    color: "hsl(189 94% 43%)",
+                    borderColor: "rgba(6,182,212,0.2)",
+                  }}
                 >
                   MVP
                 </Badge>
               </div>
             </div>
           </Link>
+
           {isMobile ? (
             <Button
               type="button"
@@ -102,57 +122,116 @@ export function TeacherSidebar({
 
       <SidebarContent className="px-2">
         <SidebarGroup>
-          <SidebarGroupLabel>Навигация</SidebarGroupLabel>
+          <SidebarGroupLabel
+            className="text-[10px] uppercase tracking-[0.2em]"
+            style={{ color: "hsl(var(--muted-foreground))" }}
+          >
+            Навигация
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNavigation.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={
-                      item.href === "/"
-                        ? pathname === "/"
-                        : pathname.startsWith(item.href)
-                    }
-                    tooltip={item.title}
-                    className="h-11 rounded-xl text-sm"
-                  >
-                    <Link href={item.href} onClick={handleMobileNavigation}>
-                      <HugeiconsIcon
-                        icon={item.icon}
-                        size={18}
-                        strokeWidth={1.8}
-                      />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {mainNavigation.map((item) => {
+                const isActive =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(item.href);
+
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.title}
+                      className="h-11 rounded-xl text-sm transition-all duration-200"
+                      style={
+                        isActive
+                          ? {
+                              background:
+                                "linear-gradient(135deg, rgba(6,182,212,0.18) 0%, rgba(20,184,166,0.12) 100%)",
+                              border: "1px solid rgba(6,182,212,0.25)",
+                              color: "hsl(189 94% 43%)",
+                              boxShadow: "0 0 16px rgba(6,182,212,0.2)",
+                            }
+                          : {
+                              border: "1px solid transparent",
+                            }
+                      }
+                    >
+                      <Link href={item.href} onClick={handleMobileNavigation}>
+                        <HugeiconsIcon
+                          icon={item.icon}
+                          size={18}
+                          strokeWidth={1.8}
+                        />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="px-3 pb-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
-        <div className="flex shrink-0 items-center gap-3 rounded-2xl border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-3 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
+        {/* User tile */}
+        <div
+          className="flex shrink-0 items-center gap-3 rounded-2xl px-3 py-3 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.07)",
+          }}
+        >
           <Avatar size="lg">
-            <AvatarFallback className="bg-[hsl(var(--status-warning)/0.18)] font-semibold text-[hsl(var(--status-warning))]">
+            <AvatarFallback
+              className="font-semibold text-sm"
+              style={{
+                background: "rgba(6,182,212,0.15)",
+                color: "hsl(189 94% 43%)",
+              }}
+            >
               {initials || "TC"}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <div className="truncate text-sm font-medium text-sidebar-foreground">
+            <div
+              className="truncate text-sm font-medium"
+              style={{ color: "hsl(var(--sidebar-foreground))" }}
+            >
               {teacherName}
             </div>
-            <div className="truncate text-xs text-sidebar-foreground/70">
+            <div
+              className="truncate text-xs"
+              style={{ color: "hsl(var(--muted-foreground))" }}
+            >
               {teacherEmail || "GitHub OAuth teacher"}
             </div>
           </div>
         </div>
+
+        {/* Logout */}
         <a
           href="/api/auth/signout"
           onClick={handleMobileNavigation}
-          className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/35 px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent/50 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:rounded-2xl group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0"
+          className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm transition-all duration-200 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:rounded-2xl group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            color: "hsl(var(--muted-foreground))",
+          }}
+          onMouseEnter={(e) => {
+            const el = e.currentTarget;
+            el.style.background = "rgba(6,182,212,0.08)";
+            el.style.borderColor = "rgba(6,182,212,0.2)";
+            el.style.color = "hsl(189 94% 43%)";
+          }}
+          onMouseLeave={(e) => {
+            const el = e.currentTarget;
+            el.style.background = "rgba(255,255,255,0.03)";
+            el.style.borderColor = "rgba(255,255,255,0.07)";
+            el.style.color = "hsl(var(--muted-foreground))";
+          }}
         >
           <HugeiconsIcon icon={Logout01Icon} size={18} strokeWidth={1.8} />
           <span className="group-data-[collapsible=icon]:hidden">Выйти</span>
