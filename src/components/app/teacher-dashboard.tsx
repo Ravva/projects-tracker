@@ -4,7 +4,9 @@ import {
   ArrowRight02Icon,
   Calendar03Icon,
   ChartUpIcon,
+  CheckmarkCircle02Icon,
   Github01Icon,
+  Notebook01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
@@ -13,8 +15,9 @@ import { SendWeeklyDigestButton } from "@/components/app/send-weekly-digest-butt
 import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -40,14 +43,14 @@ import type {
   TeacherSessionUser,
 } from "@/lib/types";
 
+/* ─── helpers ─────────────────────────────────────────── */
+
 function getNearestLesson(lessons: AttendanceLessonRecord[]) {
   if (lessons.length === 0) return null;
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   return (
-    lessons.find((lesson) => parseIsoDate(lesson.lessonDate) >= today) ??
+    lessons.find((l) => parseIsoDate(l.lessonDate) >= today) ??
     lessons[lessons.length - 1]
   );
 }
@@ -58,19 +61,20 @@ function getWeeklyAttendanceStats(
 ) {
   const requiredMin = Math.min(2, lessons.length);
   const totalStudents = students.length;
-
-  if (totalStudents === 0) {
+  if (totalStudents === 0)
     return { averageRate: 0, requiredMin, totalStudents };
-  }
-
   const sum = students.reduce(
     (acc, s) => acc + Math.min(100, s.attendanceRate),
     0,
   );
-  const averageRate = Math.min(100, Math.round(sum / totalStudents));
-
-  return { averageRate, requiredMin, totalStudents };
+  return {
+    averageRate: Math.min(100, Math.round(sum / totalStudents)),
+    requiredMin,
+    totalStudents,
+  };
 }
+
+/* ─── tone config ──────────────────────────────────────── */
 
 const toneConfig = {
   critical: {
@@ -101,71 +105,94 @@ const toneConfig = {
     icon: "rgba(6,182,212,0.15)",
     text: "hsl(var(--status-calm))",
   },
-};
+} as const;
+
+type Tone = keyof typeof toneConfig;
+
+/* ─── KpiCard ──────────────────────────────────────────── */
 
 function KpiCard({
   icon,
   title,
   value,
   label,
+  sublabel,
   tone,
   href,
+  progress,
 }: {
   icon: typeof Alert01Icon;
   title?: string;
   value: string;
   label: string;
-  tone: "critical" | "warning" | "success" | "calm";
+  sublabel?: string;
+  tone: Tone;
   href?: string;
+  progress?: number;
 }) {
-  const config = toneConfig[tone];
+  const c = toneConfig[tone];
 
   const content = (
     <div
+      className="group relative flex flex-col gap-3 rounded-2xl px-5 py-5 transition-all duration-300 hover:scale-[1.01]"
       style={{
-        background: config.bg,
-        border: `1px solid ${config.border}`,
-        boxShadow: `0 0 20px ${config.glow}`,
+        background: c.bg,
+        border: `1px solid ${c.border}`,
+        boxShadow: `0 0 20px ${c.glow}`,
         backdropFilter: "blur(12px)",
       }}
-      className="group relative flex items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-300 hover:scale-[1.01]"
     >
+      {/* top accent line */}
       <div
+        aria-hidden="true"
         className="absolute inset-x-0 top-0 h-px rounded-t-2xl"
         style={{
-          background: `linear-gradient(90deg, transparent, ${config.border} 50%, transparent)`,
+          background: `linear-gradient(90deg, transparent, ${c.border} 50%, transparent)`,
         }}
       />
-      <div
-        className="flex size-10 shrink-0 items-center justify-center rounded-xl"
-        style={{
-          background: config.icon,
-          border: `1px solid ${config.border}`,
-        }}
-      >
-        <HugeiconsIcon
-          icon={icon}
-          size={18}
-          strokeWidth={1.8}
-          style={{ color: config.text }}
-        />
-      </div>
-      <div className="min-w-0 flex-1">
+
+      {/* header row */}
+      <div className="flex items-start justify-between gap-3">
+        <div
+          className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+          style={{ background: c.icon, border: `1px solid ${c.border}` }}
+        >
+          <HugeiconsIcon
+            icon={icon}
+            size={18}
+            strokeWidth={1.8}
+            style={{ color: c.text }}
+          />
+        </div>
         {title && (
-          <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
             {title}
           </div>
         )}
+      </div>
+
+      {/* value */}
+      <div>
         <div
-          className="mt-0.5 text-xl font-bold leading-tight tracking-tight"
-          style={{ color: config.text }}
+          className="text-2xl font-bold leading-none tracking-tight"
+          style={{ color: c.text }}
         >
           {value}
         </div>
         {label && (
-          <div className="mt-0.5 text-xs text-muted-foreground">{label}</div>
+          <div className="mt-1 text-xs text-muted-foreground">{label}</div>
+        )}
+        {sublabel && (
+          <div className="mt-0.5 text-[11px] text-muted-foreground/70">
+            {sublabel}
+          </div>
         )}
       </div>
+
+      {/* optional progress bar */}
+      {typeof progress === "number" && (
+        <Progress value={progress} className="h-1" />
+      )}
     </div>
   );
 
@@ -176,9 +203,86 @@ function KpiCard({
       </Link>
     );
   }
-
   return content;
 }
+
+/* ─── glass card shell ─────────────────────────────────── */
+
+const glassStyle = {
+  background: "rgba(26,31,43,0.72)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  backdropFilter: "blur(12px)",
+} as const;
+
+function SectionHeader({
+  icon,
+  label,
+  pill,
+}: {
+  icon: typeof Calendar03Icon;
+  label: string;
+  pill?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-white/6 px-5 py-3">
+      <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+        <HugeiconsIcon icon={icon} size={13} strokeWidth={2} />
+        {label}
+      </div>
+      {pill}
+    </div>
+  );
+}
+
+/* ─── LessonCard ────────────────────────────────────────── */
+
+function LessonCard({
+  lesson,
+  lessonsCount,
+}: {
+  lesson: AttendanceLessonRecord | null;
+  lessonsCount: number;
+}) {
+  return (
+    <div className="overflow-hidden rounded-2xl" style={glassStyle}>
+      <SectionHeader
+        icon={Calendar03Icon}
+        label="Ближайшее занятие"
+        pill={
+          lessonsCount > 0 ? (
+            <StatusPill tone="calm" label={`${lessonsCount} на неделе`} />
+          ) : undefined
+        }
+      />
+      <div className="px-5 py-4">
+        {lesson ? (
+          <>
+            <div className="text-base font-semibold leading-snug text-foreground">
+              {lesson.dateLabel}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              Текущая учебная неделя
+            </div>
+          </>
+        ) : (
+          <div className="text-sm text-muted-foreground">
+            Занятия не запланированы
+          </div>
+        )}
+        <Link
+          href="/attendance"
+          className="mt-3 inline-flex items-center gap-1 text-xs font-medium transition-colors"
+          style={{ color: "hsl(var(--status-calm))" }}
+        >
+          Открыть табель
+          <HugeiconsIcon icon={ArrowRight02Icon} size={12} strokeWidth={2} />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/* ─── main component ────────────────────────────────────── */
 
 export async function TeacherDashboard({
   teacher,
@@ -190,25 +294,19 @@ export async function TeacherDashboard({
     listProjects(),
     getCurrentAttendanceLessons(),
   ]);
-  const nearestLesson = getNearestLesson(attendanceLessons);
 
+  const nearestLesson = getNearestLesson(attendanceLessons);
   const studentsNeedingAttention = students.filter(
-    (student) => student.weeklyState !== "success",
+    (s) => s.weeklyState !== "success",
   );
-  const riskyProjects = projects.filter((project) =>
-    isProjectInReviewZone(project),
-  );
-  const currentProjects = projects.filter((project) =>
-    isProjectCurrent(project.status),
-  );
-  const { averageRate, requiredMin } = getWeeklyAttendanceStats(
+  const riskyProjects = projects.filter(isProjectInReviewZone);
+  const currentProjects = projects.filter((p) => isProjectCurrent(p.status));
+  const { averageRate, requiredMin, totalStudents } = getWeeklyAttendanceStats(
     students,
     attendanceLessons,
   );
-  const projectsWithAiReports = projects.filter((project) => project.aiSummary);
-  const aiReportsCount = currentProjects.filter(
-    (project) => project.aiSummary,
-  ).length;
+  const projectsWithAiReports = projects.filter((p) => p.aiSummary);
+  const aiReportsCount = currentProjects.filter((p) => p.aiSummary).length;
 
   return (
     <TeacherShell
@@ -216,51 +314,49 @@ export async function TeacherDashboard({
       title="Обзор недели"
       teacherName={teacher.name}
       teacherEmail={teacher.email}
-      actions={
-        <>
-          <SendWeeklyDigestButton />
-          <Button asChild variant="outline" className="rounded-xl">
-            <Link href="/attendance">Attendance</Link>
-          </Button>
-        </>
-      }
+      actions={<SendWeeklyDigestButton />}
     >
+      {/* ── Row 1: KPI tiles ────────────────────────────── */}
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           icon={Alert01Icon}
           title="Внимание"
+          tone={studentsNeedingAttention.length > 0 ? "critical" : "success"}
           value={
             studentsNeedingAttention.length > 0
-              ? `${studentsNeedingAttention.length} ${
-                  studentsNeedingAttention.length === 1 ? "ученик" : "учеников"
-                }`
+              ? `${studentsNeedingAttention.length} ${studentsNeedingAttention.length === 1 ? "ученик" : "учеников"}`
               : "Все в норме"
           }
-          label={studentsNeedingAttention.length > 0 ? "требуют внимания" : ""}
-          tone={studentsNeedingAttention.length > 0 ? "critical" : "success"}
+          label={
+            studentsNeedingAttention.length > 0
+              ? "требуют внимания"
+              : "посещаемость в норме"
+          }
+          sublabel={
+            totalStudents > 0 ? `из ${totalStudents} учеников` : undefined
+          }
           href="/students"
         />
         <KpiCard
           icon={Github01Icon}
           title="Риски"
+          tone={riskyProjects.length > 0 ? "warning" : "success"}
           value={
             riskyProjects.length > 0
-              ? `${riskyProjects.length} ${
-                  riskyProjects.length === 1 ? "проект" : "проектов"
-                }`
-              : "Все стабильно"
+              ? `${riskyProjects.length} ${riskyProjects.length === 1 ? "проект" : "проектов"}`
+              : "Всё стабильно"
           }
-          label={riskyProjects.length > 0 ? "в зоне риска" : ""}
-          tone={riskyProjects.length > 0 ? "warning" : "success"}
+          label={riskyProjects.length > 0 ? "в зоне риска" : "нет отставаний"}
+          sublabel={
+            currentProjects.length > 0
+              ? `из ${currentProjects.length} активных`
+              : undefined
+          }
           href="/projects"
         />
         <KpiCard
           icon={ChartUpIcon}
           title="Посещаемость"
-          value={`${averageRate}%`}
-          label={`за неделю (${requiredMin} ${
-            requiredMin === 1 ? "урок" : requiredMin <= 4 ? "урока" : "уроков"
-          })`}
           tone={
             averageRate >= 75
               ? "success"
@@ -268,90 +364,119 @@ export async function TeacherDashboard({
                 ? "warning"
                 : "critical"
           }
+          value={`${averageRate}%`}
+          label={`средняя за неделю`}
+          sublabel={`${requiredMin} ${requiredMin === 1 ? "урок" : requiredMin <= 4 ? "урока" : "уроков"} в расчёте`}
+          progress={averageRate}
           href="/attendance"
         />
         <KpiCard
           icon={AiBrain03Icon}
-          title="AI-анализ"
-          value={`${aiReportsCount} из ${currentProjects.length}`}
-          label="проектов с отчетами"
+          title="AI-покрытие"
           tone="calm"
+          value={`${aiReportsCount} / ${currentProjects.length}`}
+          label="проектов с AI-отчётом"
+          sublabel={
+            currentProjects.length > 0 &&
+            aiReportsCount < currentProjects.length
+              ? `${currentProjects.length - aiReportsCount} без анализа`
+              : "все проанализированы"
+          }
           href="/projects"
         />
       </section>
 
-      <section className="mt-4 grid gap-4 xl:grid-cols-[1.6fr_1fr]">
-        <Card
-          className="overflow-hidden"
-          style={{
-            background: "rgba(26,31,43,0.7)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            backdropFilter: "blur(12px)",
-          }}
-        >
+      {/* ── Row 2: Main content ──────────────────────────── */}
+      <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_320px]">
+        {/* Left: риски по проектам */}
+        <Card className="overflow-hidden" style={glassStyle}>
           <CardContent className="p-0">
-            <div className="flex items-center justify-between border-b border-border/60 px-5 py-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <HugeiconsIcon
-                  icon={Calendar03Icon}
-                  size={16}
-                  strokeWidth={1.8}
-                  className="text-[hsl(var(--status-calm))]"
-                />
-                {nearestLesson?.dateLabel ?? "Нет занятий"}
-              </div>
-              {riskyProjects.length > 0 && (
-                <StatusPill
-                  label={`${riskyProjects.length} риска`}
-                  tone="warning"
-                />
-              )}
-            </div>
+            <SectionHeader
+              icon={Github01Icon}
+              label="Проекты в зоне риска"
+              pill={
+                riskyProjects.length > 0 ? (
+                  <StatusPill
+                    tone="warning"
+                    label={`${riskyProjects.length} проект${riskyProjects.length > 1 ? "а" : ""}`}
+                  />
+                ) : (
+                  <StatusPill tone="success" label="всё ок" />
+                )
+              }
+            />
 
             {riskyProjects.length === 0 ? (
-              <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-                Нет проектов в зоне контроля
+              <div className="flex flex-col items-center justify-center gap-3 px-5 py-12 text-center">
+                <div
+                  className="flex size-12 items-center justify-center rounded-2xl"
+                  style={{
+                    background: "rgba(34,197,94,0.1)",
+                    border: "1px solid rgba(34,197,94,0.2)",
+                  }}
+                >
+                  <HugeiconsIcon
+                    icon={CheckmarkCircle02Icon}
+                    size={22}
+                    strokeWidth={1.6}
+                    style={{ color: "hsl(var(--status-success))" }}
+                  />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-foreground">
+                    Нет проектов в зоне контроля
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Все активные проекты идут в штатном режиме
+                  </div>
+                </div>
+                <Link
+                  href="/projects"
+                  className="text-xs font-medium transition-colors"
+                  style={{ color: "hsl(var(--status-calm))" }}
+                >
+                  Все проекты →
+                </Link>
               </div>
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-border/40">
-                    <TableHead className="h-9 px-5 text-xs">Ученик</TableHead>
-                    <TableHead className="h-9 text-xs">Проект</TableHead>
-                    <TableHead className="h-9 text-xs">Риск</TableHead>
-                    <TableHead className="h-9 text-right text-xs">
-                      Прогресс
-                    </TableHead>
+                  <TableRow>
+                    <TableHead className="px-5">Ученик</TableHead>
+                    <TableHead>Проект</TableHead>
+                    <TableHead>Риск</TableHead>
+                    <TableHead className="text-right">Прогресс</TableHead>
                     <TableHead className="w-8" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {riskyProjects.map((project) => (
-                    <TableRow
-                      key={project.id}
-                      className="cursor-pointer border-border/40 transition-colors hover:bg-muted/40"
-                    >
-                      <TableCell className="px-5 py-2.5 text-sm font-medium">
+                    <TableRow key={project.id} className="cursor-pointer">
+                      <TableCell className="px-5 font-medium">
                         {project.studentName}
                       </TableCell>
-                      <TableCell className="py-2.5 text-sm">
+                      <TableCell className="max-w-[180px] truncate">
                         {project.name}
                       </TableCell>
-                      <TableCell className="py-2.5">
+                      <TableCell>
                         <StatusPill
                           tone={getProjectRiskTone(project)}
                           label={getProjectRiskLabel(project.risk)}
                         />
                       </TableCell>
-                      <TableCell className="py-2.5 text-right text-sm font-medium">
+                      <TableCell className="text-right font-medium">
                         {getProjectProgressLabel(project)}
                       </TableCell>
-                      <TableCell className="py-2.5">
+                      <TableCell>
                         <Link
                           href={`/projects/${project.id}`}
                           className="flex items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                         >
-                          <HugeiconsIcon icon={ArrowRight02Icon} size={14} />
+                          <HugeiconsIcon
+                            icon={ArrowRight02Icon}
+                            size={14}
+                            strokeWidth={2}
+                          />
                         </Link>
                       </TableCell>
                     </TableRow>
@@ -362,97 +487,160 @@ export async function TeacherDashboard({
           </CardContent>
         </Card>
 
-        <div className="grid gap-4">
-          {studentsNeedingAttention.length > 0 && (
-            <Card
-              className="overflow-hidden"
-              style={{
-                background: "rgba(26,31,43,0.7)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                backdropFilter: "blur(12px)",
-              }}
-            >
-              <CardContent className="p-0">
-                <div className="border-b border-border/60 px-5 py-3 text-sm font-medium">
-                  Требуют внимания
-                </div>
-                <div className="divide-y divide-border/40">
-                  {studentsNeedingAttention.slice(0, 5).map((student) => (
-                    <Link
-                      key={student.id}
-                      href={`/students/${student.id}`}
-                      className="flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-muted/40"
-                    >
-                      <Avatar className="size-7">
-                        <AvatarFallback className="bg-secondary text-xs font-medium text-secondary-foreground">
-                          {student.firstName[0]}
-                          {student.lastName[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium">
-                          {student.firstName} {student.lastName}
-                        </div>
+        {/* Right column — всегда рендерится */}
+        <div className="flex flex-col gap-4">
+          {/* Ближайший урок */}
+          <LessonCard
+            lesson={nearestLesson}
+            lessonsCount={attendanceLessons.length}
+          />
+
+          {/* Требуют внимания */}
+          <div className="overflow-hidden rounded-2xl" style={glassStyle}>
+            <SectionHeader
+              icon={Alert01Icon}
+              label="Требуют внимания"
+              pill={
+                studentsNeedingAttention.length > 0 ? (
+                  <StatusPill
+                    tone="critical"
+                    label={String(studentsNeedingAttention.length)}
+                  />
+                ) : (
+                  <StatusPill tone="success" label="норма" />
+                )
+              }
+            />
+
+            {studentsNeedingAttention.length === 0 ? (
+              <div className="px-5 py-4 text-xs text-muted-foreground">
+                Все ученики в норме на этой неделе.
+              </div>
+            ) : (
+              <div className="divide-y divide-white/5">
+                {studentsNeedingAttention.slice(0, 5).map((student) => (
+                  <Link
+                    key={student.id}
+                    href={`/students/${student.id}`}
+                    className="flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-white/4"
+                  >
+                    <Avatar className="size-7 shrink-0">
+                      <AvatarFallback
+                        className="text-xs font-semibold"
+                        style={{
+                          background: "rgba(239,68,68,0.12)",
+                          color: "hsl(var(--status-critical))",
+                        }}
+                      >
+                        {student.firstName[0]}
+                        {student.lastName[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-xs font-medium text-foreground">
+                        {student.firstName} {student.lastName}
                       </div>
-                      <StatusPill
-                        tone={student.weeklyState}
-                        label={`${student.attendanceRate}%`}
-                      />
-                    </Link>
-                  ))}
-                  {studentsNeedingAttention.length > 5 && (
-                    <div className="border-t border-border/40 px-5 py-2 text-center text-xs text-muted-foreground">
-                      +{studentsNeedingAttention.length - 5} еще
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                    <StatusPill
+                      tone={student.weeklyState}
+                      label={`${student.attendanceRate}%`}
+                    />
+                  </Link>
+                ))}
+                {studentsNeedingAttention.length > 5 && (
+                  <div className="px-5 py-2 text-center text-xs text-muted-foreground">
+                    +{studentsNeedingAttention.length - 5} ещё
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* AI-инсайты — только если есть данные */}
+          {projectsWithAiReports.length > 0 && (
+            <div className="overflow-hidden rounded-2xl" style={glassStyle}>
+              <SectionHeader
+                icon={AiBrain03Icon}
+                label="AI-инсайты"
+                pill={
+                  <StatusPill tone="calm" label={`${aiReportsCount} отчётов`} />
+                }
+              />
+              <div className="divide-y divide-white/5">
+                {projectsWithAiReports.slice(0, 3).map((project) => (
+                  <Link
+                    key={project.id}
+                    href={`/projects/${project.id}`}
+                    className="block px-5 py-3 transition-colors hover:bg-white/4"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-xs font-medium text-foreground">
+                        {project.name}
+                      </span>
+                      <StatusPill
+                        tone={
+                          project.status === "completed"
+                            ? "success"
+                            : project.status === "active"
+                              ? "calm"
+                              : "warning"
+                        }
+                        label={getProjectStatusLabel(project.status)}
+                      />
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
+                      {project.aiSummary}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+
+              {projectsWithAiReports.length > 3 && (
+                <>
+                  <Separator />
+                  <div className="px-5 py-2.5">
+                    <Link
+                      href="/projects"
+                      className="text-xs font-medium transition-colors"
+                      style={{ color: "hsl(var(--status-calm))" }}
+                    >
+                      Все проекты →
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
           )}
 
-          {aiReportsCount > 0 && (
-            <Card
-              className="overflow-hidden"
+          {/* AI-подсказка если ещё нет отчётов */}
+          {projectsWithAiReports.length === 0 && currentProjects.length > 0 && (
+            <div
+              className="overflow-hidden rounded-2xl px-5 py-4"
               style={{
-                background: "rgba(26,31,43,0.7)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                backdropFilter: "blur(12px)",
+                background: "rgba(6,182,212,0.06)",
+                border: "1px solid rgba(6,182,212,0.15)",
               }}
             >
-              <CardContent className="p-0">
-                <div className="border-b border-border/60 px-5 py-3 text-sm font-medium">
-                  Последние AI-отчеты
-                </div>
-                <div className="divide-y divide-border/40">
-                  {projectsWithAiReports.slice(0, 3).map((project) => (
-                    <Link
-                      key={project.id}
-                      href={`/projects/${project.id}`}
-                      className="block px-5 py-2.5 transition-colors hover:bg-muted/40"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="truncate text-sm font-medium">
-                          {project.name}
-                        </span>
-                        <StatusPill
-                          tone={
-                            project.status === "completed"
-                              ? "success"
-                              : project.status === "active"
-                                ? "calm"
-                                : "warning"
-                          }
-                          label={getProjectStatusLabel(project.status)}
-                        />
-                      </div>
-                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                        {project.aiSummary}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+              <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                <HugeiconsIcon
+                  icon={Notebook01Icon}
+                  size={13}
+                  strokeWidth={2}
+                />
+                AI-анализ
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                По активным проектам ещё нет AI-отчётов. Откройте любой проект и
+                запустите анализ.
+              </p>
+              <Link
+                href="/projects"
+                className="mt-2 inline-flex text-xs font-medium transition-colors"
+                style={{ color: "hsl(var(--status-calm))" }}
+              >
+                Перейти к проектам →
+              </Link>
+            </div>
           )}
         </div>
       </section>
