@@ -45,26 +45,99 @@ import {
   listProjectMembers,
 } from "@/lib/server/repositories/projects";
 import { listStudents } from "@/lib/server/repositories/students";
-import { cn } from "@/lib/utils";
 
 function extractTextOrFallback(value: string | undefined, fallback: string) {
   const normalized = value?.trim();
   return normalized || fallback;
 }
 
-function getSignalToneClasses(
-  tone: "critical" | "warning" | "success" | "calm",
-) {
-  return cn(
-    "rounded-2xl border p-4",
-    tone === "critical" &&
-      "border-[hsl(var(--status-critical)/0.35)] bg-[hsl(var(--status-critical)/0.08)]",
-    tone === "warning" &&
-      "border-[hsl(var(--status-warning)/0.35)] bg-[hsl(var(--status-warning)/0.1)]",
-    tone === "success" &&
-      "border-[hsl(var(--status-success)/0.35)] bg-[hsl(var(--status-success)/0.08)]",
-    tone === "calm" &&
-      "border-[hsl(var(--status-calm)/0.35)] bg-[hsl(var(--status-calm)/0.08)]",
+type SignalTone = "critical" | "warning" | "success" | "calm";
+
+const signalToneConfig: Record<
+  SignalTone,
+  { bg: string; border: string; glow: string; line: string; text: string }
+> = {
+  critical: {
+    bg: "rgba(239,68,68,0.08)",
+    border: "rgba(239,68,68,0.22)",
+    glow: "rgba(239,68,68,0.12)",
+    line: "rgba(239,68,68,0.5)",
+    text: "hsl(var(--status-critical))",
+  },
+  warning: {
+    bg: "rgba(245,158,11,0.08)",
+    border: "rgba(245,158,11,0.22)",
+    glow: "rgba(245,158,11,0.12)",
+    line: "rgba(245,158,11,0.5)",
+    text: "hsl(var(--status-warning))",
+  },
+  success: {
+    bg: "rgba(34,197,94,0.08)",
+    border: "rgba(34,197,94,0.22)",
+    glow: "rgba(34,197,94,0.12)",
+    line: "rgba(34,197,94,0.5)",
+    text: "hsl(var(--status-success))",
+  },
+  calm: {
+    bg: "rgba(6,182,212,0.08)",
+    border: "rgba(6,182,212,0.22)",
+    glow: "rgba(6,182,212,0.12)",
+    line: "rgba(6,182,212,0.5)",
+    text: "hsl(var(--status-calm))",
+  },
+};
+
+function SignalCard({
+  tone,
+  title,
+  value,
+  children,
+}: {
+  tone: SignalTone;
+  title: string;
+  value?: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  const c = signalToneConfig[tone];
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl p-4 transition-all duration-200"
+      style={{
+        background: c.bg,
+        border: `1px solid ${c.border}`,
+        boxShadow: `0 0 16px ${c.glow}`,
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+      }}
+    >
+      {/* Top accent line */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-px"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${c.line} 50%, transparent)`,
+        }}
+      />
+      <div
+        className="text-[11px] font-medium uppercase tracking-[0.1em]"
+        style={{ color: "hsl(var(--muted-foreground))" }}
+      >
+        {title}
+      </div>
+      {value !== undefined && (
+        <div
+          className="mt-2.5 text-2xl font-bold leading-none tracking-tight"
+          style={{ color: c.text }}
+        >
+          {value}
+        </div>
+      )}
+      {children && (
+        <div className="mt-2.5 space-y-1 text-xs text-muted-foreground">
+          {children}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -287,86 +360,62 @@ export default async function ProjectDetailsPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <div className={getSignalToneClasses(progressTone)}>
-                <div className="text-sm font-medium text-foreground">
-                  Выполнение
-                </div>
-                <div className="mt-3 text-3xl font-semibold text-foreground">
-                  {project.progress}%
-                </div>
-                <div className="mt-2 text-sm text-muted-foreground">
+              <SignalCard
+                tone={progressTone}
+                title="Выполнение"
+                value={`${project.progress}%`}
+              >
+                <div>
                   {project.trackedTasksCompleted}/{project.trackedTasksTotal}{" "}
                   deliverables завершено
                 </div>
-              </div>
-              <div className={getSignalToneClasses(riskTone)}>
-                <div className="text-sm font-medium text-foreground">Риск</div>
-                <div className="mt-3">
-                  <StatusPill
-                    tone={getProjectRiskTone(project)}
-                    label={getProjectRiskLabel(project.risk)}
-                  />
+              </SignalCard>
+              <SignalCard tone={riskTone} title="Риск">
+                <StatusPill
+                  tone={getProjectRiskTone(project)}
+                  label={getProjectRiskLabel(project.risk)}
+                />
+                <div>Статус: {getProjectStatusLabel(project.status)}</div>
+              </SignalCard>
+              <SignalCard tone={activityTone} title="Активность">
+                <div>Коммитов в выборке: {project.commitCount}</div>
+                <div>Частота: {project.commitsPerWeek}/нед</div>
+                <div>
+                  Последний коммит:{" "}
+                  {project.lastCommitDaysAgo === null
+                    ? "нет данных"
+                    : lastCommitLabel}
                 </div>
-                <div className="mt-3 text-sm text-muted-foreground">
-                  Статус проекта: {getProjectStatusLabel(project.status)}
-                </div>
-              </div>
-              <div className={getSignalToneClasses(activityTone)}>
-                <div className="text-sm font-medium text-foreground">
-                  Активность
-                </div>
-                <div className="mt-3 space-y-1 text-sm text-muted-foreground">
-                  <div>Коммитов в выборке: {project.commitCount}</div>
-                  <div>Частота: {project.commitsPerWeek}/нед</div>
-                  <div>
-                    Последний коммит:{" "}
-                    {project.lastCommitDaysAgo === null
-                      ? "нет данных"
-                      : lastCommitLabel}
-                  </div>
-                </div>
-              </div>
-              <div
-                className={getSignalToneClasses(
-                  getProjectSyncStatusTone(project.syncStatus),
-                )}
+              </SignalCard>
+              <SignalCard
+                tone={getProjectSyncStatusTone(project.syncStatus)}
+                title="Repo sync"
               >
-                <div className="text-sm font-medium text-foreground">
-                  Repo sync
-                </div>
-                <div className="mt-3">
-                  <StatusPill
-                    tone={getProjectSyncStatusTone(project.syncStatus)}
-                    label={getProjectSyncStatusLabel(project.syncStatus)}
-                  />
-                </div>
-                <div className="mt-3 text-sm text-muted-foreground">
+                <StatusPill
+                  tone={getProjectSyncStatusTone(project.syncStatus)}
+                  label={getProjectSyncStatusLabel(project.syncStatus)}
+                />
+                <div>
                   {project.syncStatusReason ||
                     "Статус синхронизации пока не определен."}
                 </div>
-              </div>
-              <div
-                className={getSignalToneClasses(
-                  getProjectAiStatusTone(project.aiStatus),
-                )}
+              </SignalCard>
+              <SignalCard
+                tone={getProjectAiStatusTone(project.aiStatus)}
+                title="AI status"
               >
-                <div className="text-sm font-medium text-foreground">
-                  AI status
-                </div>
-                <div className="mt-3">
-                  <StatusPill
-                    tone={getProjectAiStatusTone(project.aiStatus)}
-                    label={getProjectAiStatusLabel(project.aiStatus)}
-                  />
-                </div>
-                <div className="mt-3 text-sm text-muted-foreground">
+                <StatusPill
+                  tone={getProjectAiStatusTone(project.aiStatus)}
+                  label={getProjectAiStatusLabel(project.aiStatus)}
+                />
+                <div>
                   {projectNeedsSync(project)
                     ? "В репозитории есть новые коммиты, поэтому текущий AI-отчет уже устарел."
                     : project.hasAiAnalysisSnapshot
                       ? "Последний AI-снимок соответствует текущему snapshot репозитория."
                       : "AI-анализ еще не запускался для этого проекта."}
                 </div>
-              </div>
+              </SignalCard>
             </CardContent>
           </Card>
 
@@ -707,21 +756,23 @@ export default async function ProjectDetailsPage({
               <CardTitle className="text-base">Расчет progress</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className={getSignalToneClasses(progressCalculationTone)}>
-                <div className="font-medium text-foreground">
-                  {snapshot?.taskMetrics.progressCalculationStatus === "valid"
+              <SignalCard
+                tone={progressCalculationTone}
+                title={
+                  snapshot?.taskMetrics.progressCalculationStatus === "valid"
                     ? "Project Deliverables валиден"
-                    : "Есть причина, почему progress не считается корректно"}
-                </div>
-                <div className="mt-2 leading-6 text-muted-foreground">
+                    : "Расчёт progress"
+                }
+              >
+                <div className="leading-relaxed">
                   {progressCalculationDetails}
                 </div>
                 {snapshot ? (
-                  <div className="mt-2 text-xs text-muted-foreground">
+                  <div>
                     Total Weight: {snapshot.taskMetrics.deliverablesWeightTotal}
                   </div>
                 ) : null}
-              </div>
+              </SignalCard>
             </CardContent>
           </Card>
 
