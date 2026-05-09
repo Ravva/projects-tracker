@@ -34,13 +34,13 @@ export interface ProjectsTableRowData {
 
 function formatLastCommitLabel(value: string) {
   if (!value || value === "Нет данных") {
-    return "нет данных";
+    return "Нет данных";
   }
 
   const parsed = new Date(value);
 
   if (Number.isNaN(parsed.getTime())) {
-    return "нет данных";
+    return "Нет данных";
   }
 
   return new Intl.DateTimeFormat("ru-RU", {

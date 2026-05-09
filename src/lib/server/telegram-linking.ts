@@ -248,7 +248,7 @@ export async function issueStudentGithubLink(
 export async function getStudentTelegramInviteLink(studentId: string) {
   const student = await getStudent(studentId);
 
-  if (!student || !student.telegramLinkToken) {
+  if (!student?.telegramLinkToken) {
     return null;
   }
 

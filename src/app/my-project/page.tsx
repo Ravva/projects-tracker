@@ -28,7 +28,7 @@ function formatUpdatedAt(value: string) {
   const parsed = new Date(value);
 
   if (Number.isNaN(parsed.getTime())) {
-    return "дата недоступна";
+    return "Дата недоступна";
   }
 
   return new Intl.DateTimeFormat("ru-RU", {

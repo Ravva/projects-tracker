@@ -310,7 +310,7 @@ export async function TeacherDashboard({
 
   return (
     <TeacherShell
-      eyebrow="Dashboard"
+      eyebrow="Обзор"
       title="Обзор недели"
       teacherName={teacher.name}
       teacherEmail={teacher.email}

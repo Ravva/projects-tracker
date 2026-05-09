@@ -60,9 +60,9 @@ export function AttendanceReportView({
     <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 print:bg-white print:px-0 print:py-0 print:text-black">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 pb-6 print:hidden">
         <div>
-          <p className="text-sm text-muted-foreground">Attendance report</p>
+          <p className="text-sm text-muted-foreground">Отчёт о посещаемости</p>
           <h1 className="text-2xl font-semibold tracking-tight">
-            PDF-вид для родителей
+            Отчёт для родителей
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -72,7 +72,7 @@ export function AttendanceReportView({
               variant="outline"
               className="rounded-xl bg-background/90"
             >
-              <Link href={backHref}>Назад в attendance</Link>
+              <Link href={backHref}>К списку</Link>
             </Button>
           ) : null}
           <PrintReportButton label="Сохранить PDF" />

@@ -146,9 +146,9 @@ export function ProjectReportView({
     <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 print:bg-white print:px-0 print:py-0 print:text-black">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 pb-6 print:hidden">
         <div>
-          <p className="text-sm text-muted-foreground">Project report</p>
+          <p className="text-sm text-muted-foreground">Отчёт по проектам</p>
           <h1 className="text-2xl font-semibold tracking-tight">
-            PDF-вид по проектам
+            Еженедельный отчёт
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -158,7 +158,7 @@ export function ProjectReportView({
               variant="outline"
               className="rounded-xl bg-background/90"
             >
-              <Link href="/projects">Назад в projects</Link>
+              <Link href="/projects">К списку проектов</Link>
             </Button>
           ) : null}
           <PrintReportButton label="Сохранить PDF" />
@@ -240,17 +240,17 @@ export function ProjectReportView({
                             className:
                               "underline decoration-border underline-offset-4 print:text-black",
                           })
-                        : "данных нет"}
+                        : "Нет данных"}
                     </td>
                     <td className="border-b border-border/60 px-4 py-4 print:text-black">
                       {row.hasProject
                         ? renderProgress(row.progress)
-                        : "данных нет"}
+                        : "Нет данных"}
                     </td>
                     <td className="border-b border-border/60 px-4 py-4 print:text-black">
                       {row.hasProject
                         ? renderDelta(row.progressDelta)
-                        : "данных нет"}
+                        : "Нет данных"}
                     </td>
                     <td className="border-b border-border/60 px-4 py-4 print:text-black">
                       {row.updateLabel}

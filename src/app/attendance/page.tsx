@@ -26,8 +26,8 @@ export default async function AttendancePage({
 
   return (
     <TeacherShell
-      eyebrow="Weekly attendance"
-      title="Attendance"
+      eyebrow="Еженедельная посещаемость"
+      title="Посещаемость"
       teacherName={teacher.name}
       teacherEmail={teacher.email}
     >

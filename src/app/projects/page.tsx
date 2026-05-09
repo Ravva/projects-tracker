@@ -115,8 +115,8 @@ export default async function ProjectsPage({
 
   return (
     <TeacherShell
-      eyebrow="Project control"
-      title="Projects"
+      eyebrow="Управление проектами"
+      title="Проекты"
       teacherName={teacher.name}
       teacherEmail={teacher.email}
       actions={

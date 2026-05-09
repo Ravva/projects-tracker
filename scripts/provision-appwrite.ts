@@ -2,7 +2,7 @@ import {
   AppwriteException,
   Client,
   Databases,
-  IndexType,
+  DatabasesIndexType,
   OrderBy,
 } from "node-appwrite";
 
@@ -628,7 +628,7 @@ async function ensureIndexes() {
         databaseId,
         index.collectionId,
         index.key,
-        IndexType.Key,
+        DatabasesIndexType.Key,
         index.attributes,
         index.orders,
       );

@@ -85,7 +85,7 @@ export function getAuthConfigurationStatus() {
 
   const missingKeys: string[] = requiredKeys.filter((key) => {
     const value = process.env[key];
-    return !value || !value.trim();
+    return !value?.trim();
   });
 
   if (isProductionEnvironment()) {

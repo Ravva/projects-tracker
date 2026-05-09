@@ -32,9 +32,9 @@ export function ProjectWeeklyStatusReportCard({
     <Card className="border-border/70 bg-card/88 shadow-none">
       <CardHeader>
         <div>
-          <CardTitle>PDF-вид отчета по проектам</CardTitle>
+          <CardTitle>Еженедельный отчёт</CardTitle>
           <CardDescription>
-            Отдельная страница для показа родителям, печати и сохранения PDF.
+            Страница для показа родителям, печати и сохранения в PDF.
           </CardDescription>
         </div>
         <CardAction>
@@ -44,7 +44,7 @@ export function ProjectWeeklyStatusReportCard({
               variant="outline"
               className="rounded-xl bg-background/90"
             >
-              <Link href="/projects/report">Открыть PDF-вид</Link>
+              <Link href="/projects/report">Открыть отчёт</Link>
             </Button>
             <Button
               type="button"
@@ -52,16 +52,16 @@ export function ProjectWeeklyStatusReportCard({
               className="rounded-xl bg-background/90"
               onClick={handleCopy}
             >
-              {copied ? "Ссылка скопирована" : "Скопировать share-ссылку"}
+              {copied ? "Ссылка скопирована" : "Скопировать ссылку"}
             </Button>
           </div>
         </CardAction>
       </CardHeader>
       <CardContent>
         <p className="mb-3 text-xs text-muted-foreground">
-          Отчет строится по текущим project signals, истории AI-отчетов и
-          зарегистрированным проектам учеников. Для свежего weekly snapshot при
-          необходимости сначала запустите `Sync + AI`.
+          Отчёт формируется на основе текущих сигналов проектов, истории
+          AI-отчётов и зарегистрированных проектов учеников. Для получения
+          свежих данных сначала запустите «Sync + AI».
         </p>
       </CardContent>
     </Card>

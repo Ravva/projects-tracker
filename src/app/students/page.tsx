@@ -34,8 +34,8 @@ export default async function StudentsPage() {
 
   return (
     <TeacherShell
-      eyebrow="Teacher-only module"
-      title="Students"
+      eyebrow="Только для преподавателя"
+      title="Ученики"
       teacherName={teacher.name}
       teacherEmail={teacher.email}
       actions={
@@ -59,8 +59,8 @@ export default async function StudentsPage() {
                   <TableHead className="w-14">№</TableHead>
                   <TableHead>Ученик</TableHead>
                   <TableHead>GitHub</TableHead>
-                  <TableHead>Telegram name</TableHead>
-                  <TableHead>Telegram id</TableHead>
+                  <TableHead>Telegram</TableHead>
+                  <TableHead>Chat ID</TableHead>
                   <TableHead>Проекты</TableHead>
                   <TableHead>Посещаемость</TableHead>
                   <TableHead className="text-right">Действие</TableHead>
@@ -119,7 +119,7 @@ export default async function StudentsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm text-muted-foreground">
-                          {student.telegramChatId || "chat id не заполнен"}
+                          {student.telegramChatId || "Не заполнен"}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -277,7 +277,7 @@ export default async function StudentsPage() {
                   size={18}
                   strokeWidth={1.8}
                 />
-                Telegram readiness
+                Готовность к уведомлениям
               </div>
               <p className="mt-2 leading-6 text-muted-foreground">
                 {studentsWithoutChatId > 0

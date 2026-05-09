@@ -97,7 +97,7 @@ export async function sendStudentNotificationAction(formData: FormData) {
   }
 
   const student = await getStudent(studentId);
-  if (!student || !student.telegramChatId) {
+  if (!student?.telegramChatId) {
     throw new Error("Chat ID студента не найден");
   }
 

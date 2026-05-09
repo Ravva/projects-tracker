@@ -34,7 +34,7 @@ export function AttendanceWeeklyReportCard({
               className="rounded-xl bg-background/90"
             >
               <Link href={`/attendance/report?weekStart=${weekStart}`}>
-                Открыть PDF-вид
+                Открыть отчёт
               </Link>
             </Button>
             <Button
@@ -43,7 +43,7 @@ export function AttendanceWeeklyReportCard({
               className="rounded-xl bg-background/90"
               onClick={handleCopyShareLink}
             >
-              {copied ? "Ссылка скопирована" : "Скопировать share-ссылку"}
+              {copied ? "Ссылка скопирована" : "Скопировать ссылку"}
             </Button>
           </div>
         </CardAction>
