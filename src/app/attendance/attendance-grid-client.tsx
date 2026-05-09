@@ -478,15 +478,12 @@ export function AttendanceGridClient({
       <Table className="mt-4 w-auto min-w-[34rem]">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[18rem] text-sm">Ученик</TableHead>
+            <TableHead className="w-[18rem]">Ученик</TableHead>
             {WEEKDAY_COLUMNS.map((column) => {
               const lesson = lessonsByWeekday.get(column.code);
 
               return (
-                <TableHead
-                  key={column.code}
-                  className="w-24 px-1 text-center text-sm"
-                >
+                <TableHead key={column.code} className="w-24">
                   {lesson ? (
                     <button
                       type="button"
@@ -503,9 +500,7 @@ export function AttendanceGridClient({
                 </TableHead>
               );
             })}
-            <TableHead className="w-24 px-1 text-center text-sm">
-              Статус недели
-            </TableHead>
+            <TableHead className="w-24">Статус недели</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

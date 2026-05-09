@@ -107,11 +107,11 @@ function Section({
       </h3>
       <div className="mt-3 border-t border-border/70 pt-5">
         {items.length === 0 ? (
-          <p className="text-xl leading-8 text-foreground/80 print:text-black">
+          <p className="text-base leading-7 text-foreground/80 print:text-black">
             {emptyText}
           </p>
         ) : (
-          <ul className="space-y-3 text-xl leading-8">
+          <ul className="space-y-2 text-base leading-7">
             {items.map((item) => (
               <li key={`${item.studentName}-${item.projectName}`}>
                 <span className="font-medium print:text-black">
@@ -203,25 +203,25 @@ export function ProjectReportView({
             По ученикам
           </h3>
           <div className="mt-3 overflow-hidden rounded-[24px] border border-border/80 bg-background/30 print:rounded-none print:border print:bg-white">
-            <table className="w-full border-collapse text-left text-xl">
+            <table className="w-max border-collapse text-left text-base">
               <thead className="bg-foreground/[0.06] text-foreground print:bg-black/5 print:text-black">
                 <tr>
-                  <th className="border-b border-border/70 px-4 py-4 font-semibold">
+                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
                     Фамилия Имя
                   </th>
-                  <th className="border-b border-border/70 px-4 py-4 font-semibold">
+                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
                     Проект
                   </th>
-                  <th className="border-b border-border/70 px-4 py-4 font-semibold">
+                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
                     Прогресс
                   </th>
-                  <th className="border-b border-border/70 px-4 py-4 font-semibold">
+                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
                     Динамика
                   </th>
-                  <th className="border-b border-border/70 px-4 py-4 font-semibold">
+                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
                     Последнее обновление
                   </th>
-                  <th className="border-b border-border/70 px-4 py-4 font-semibold">
+                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
                     Статус недели
                   </th>
                 </tr>
@@ -229,10 +229,10 @@ export function ProjectReportView({
               <tbody>
                 {report.rows.map((row) => (
                   <tr key={row.studentId}>
-                    <td className="border-b border-border/60 px-4 py-4 font-medium print:text-black">
+                    <td className="border-b border-border/60 px-3 py-3 font-medium print:text-black">
                       {row.studentName}
                     </td>
-                    <td className="border-b border-border/60 px-4 py-4 print:text-black">
+                    <td className="border-b border-border/60 px-3 py-3 print:text-black">
                       {row.projectName
                         ? renderProjectLink({
                             name: row.projectName,
@@ -242,20 +242,20 @@ export function ProjectReportView({
                           })
                         : "Нет данных"}
                     </td>
-                    <td className="border-b border-border/60 px-4 py-4 print:text-black">
+                    <td className="border-b border-border/60 px-3 py-3 print:text-black">
                       {row.hasProject
                         ? renderProgress(row.progress)
                         : "Нет данных"}
                     </td>
-                    <td className="border-b border-border/60 px-4 py-4 print:text-black">
+                    <td className="border-b border-border/60 px-3 py-3 print:text-black">
                       {row.hasProject
                         ? renderDelta(row.progressDelta)
                         : "Нет данных"}
                     </td>
-                    <td className="border-b border-border/60 px-4 py-4 print:text-black">
+                    <td className="border-b border-border/60 px-3 py-3 print:text-black">
                       {row.updateLabel}
                     </td>
-                    <td className="border-b border-border/60 px-4 py-4">
+                    <td className="border-b border-border/60 px-3 py-3">
                       <span className="inline-flex items-center gap-3">
                         <span
                           className={`inline-flex size-4 shrink-0 self-center rounded-full aspect-square ${getStateDotClassName(row.weeklyStatus)}`}
@@ -294,11 +294,11 @@ export function ProjectReportView({
           </h3>
           <div className="mt-3 border-t border-border/70 pt-5">
             {report.missingProjectData.length === 0 ? (
-              <p className="text-xl leading-8 text-foreground/80 print:text-black">
+              <p className="text-base leading-7 text-foreground/80 print:text-black">
                 Все ученики имеют зарегистрированный проект.
               </p>
             ) : (
-              <ul className="space-y-3 text-xl leading-8">
+              <ul className="space-y-2 text-base leading-7">
                 {report.missingProjectData.map((studentName) => (
                   <li key={studentName}>{studentName}</li>
                 ))}

@@ -121,7 +121,7 @@ export function AttendanceReportView({
           <h3 className="text-[2rem] font-semibold tracking-tight print:text-black">
             Занятия недели
           </h3>
-          <div className="mt-3 border-t border-border/70 pt-5 text-xl leading-10 text-foreground/90 print:text-black">
+          <div className="mt-3 border-t border-border/70 pt-5 text-base leading-8 text-foreground/90 print:text-black">
             {report.lessons.map((lesson) => (
               <div key={`${lesson.weekdayLabel}-${lesson.dateLabel}`}>
                 {WEEKDAY_SHORT_LABELS[lesson.weekdayLabel] ??
@@ -138,7 +138,7 @@ export function AttendanceReportView({
             По ученикам
           </h3>
           <div className="mt-3 overflow-hidden rounded-[24px] border border-border/80 bg-background/30 print:rounded-none print:border print:bg-white">
-            <table className="w-full border-collapse text-left text-xl">
+            <table className="w-full border-collapse text-left text-base">
               <thead className="bg-foreground/[0.06] text-foreground print:bg-black/5 print:text-black">
                 <tr>
                   <th className="border-b border-border/70 px-4 py-4 font-semibold">
@@ -202,7 +202,7 @@ export function AttendanceReportView({
               Зона внимания
             </h3>
             <div className="mt-3 border-t border-border/70 pt-5">
-              <ul className="space-y-3 text-xl leading-8">
+              <ul className="space-y-2 text-base leading-7">
                 {report.attentionItems.map((item) => (
                   <li
                     key={item.studentName}
