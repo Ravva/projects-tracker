@@ -299,13 +299,13 @@ export async function TeacherDashboard({
   const studentsNeedingAttention = students.filter(
     (s) => s.weeklyState !== "success",
   );
-  const riskyProjects = projects.filter(isProjectInReviewZone);
   const currentProjects = projects.filter((p) => isProjectCurrent(p.status));
+  const riskyProjects = currentProjects.filter(isProjectInReviewZone);
   const { averageRate, requiredMin, totalStudents } = getWeeklyAttendanceStats(
     students,
     attendanceLessons,
   );
-  const projectsWithAiReports = projects.filter((p) => p.aiSummary);
+  const projectsWithAiReports = currentProjects.filter((p) => p.aiSummary);
   const aiReportsCount = currentProjects.filter((p) => p.aiSummary).length;
 
   return (
@@ -387,113 +387,106 @@ export async function TeacherDashboard({
       </section>
 
       {/* ── Row 2: Main content ──────────────────────────── */}
-      <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_320px]">
-        {/* Left: риски по проектам */}
-        <Card className="overflow-hidden" style={glassStyle}>
-          <CardContent className="p-0">
-            <SectionHeader
-              icon={Github01Icon}
-              label="Проекты в зоне риска"
-              pill={
-                riskyProjects.length > 0 ? (
-                  <StatusPill
-                    tone="warning"
-                    label={`${riskyProjects.length} проект${riskyProjects.length > 1 ? "а" : ""}`}
-                  />
-                ) : (
-                  <StatusPill tone="success" label="всё ок" />
-                )
-              }
-            />
-
-            {riskyProjects.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-3 px-5 py-12 text-center">
-                <div
-                  className="flex size-12 items-center justify-center rounded-2xl"
-                  style={{
-                    background: "rgba(34,197,94,0.1)",
-                    border: "1px solid rgba(34,197,94,0.2)",
-                  }}
-                >
-                  <HugeiconsIcon
-                    icon={CheckmarkCircle02Icon}
-                    size={22}
-                    strokeWidth={1.6}
-                    style={{ color: "hsl(var(--status-success))" }}
-                  />
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-foreground">
-                    Нет проектов в зоне контроля
-                  </div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    Все активные проекты идут в штатном режиме
-                  </div>
-                </div>
-                <Link
-                  href="/projects"
-                  className="text-xs font-medium transition-colors"
-                  style={{ color: "hsl(var(--status-calm))" }}
-                >
-                  Все проекты →
-                </Link>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="px-5">Ученик</TableHead>
-                    <TableHead>Проект</TableHead>
-                    <TableHead>Риск</TableHead>
-                    <TableHead className="text-right">Прогресс</TableHead>
-                    <TableHead className="w-8" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {riskyProjects.map((project) => (
-                    <TableRow key={project.id} className="cursor-pointer">
-                      <TableCell className="px-5 font-medium">
-                        {project.studentName}
-                      </TableCell>
-                      <TableCell className="max-w-[180px] truncate">
-                        {project.name}
-                      </TableCell>
-                      <TableCell>
-                        <StatusPill
-                          tone={getProjectRiskTone(project)}
-                          label={getProjectRiskLabel(project.risk)}
-                        />
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {getProjectProgressLabel(project)}
-                      </TableCell>
-                      <TableCell>
-                        <Link
-                          href={`/projects/${project.id}`}
-                          className="flex items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                          <HugeiconsIcon
-                            icon={ArrowRight02Icon}
-                            size={14}
-                            strokeWidth={2}
-                          />
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Right column — всегда рендерится */}
+      <section className="mt-4 grid gap-4 xl:grid-cols-2">
         <div className="flex flex-col gap-4">
-          {/* Ближайший урок */}
-          <LessonCard
-            lesson={nearestLesson}
-            lessonsCount={attendanceLessons.length}
-          />
+          {/* Left: риски по проектам */}
+          <Card className="overflow-hidden" style={glassStyle}>
+            <CardContent className="p-0">
+              <SectionHeader
+                icon={Github01Icon}
+                label="Проекты в зоне риска"
+                pill={
+                  riskyProjects.length > 0 ? (
+                    <StatusPill
+                      tone="warning"
+                      label={`${riskyProjects.length} проект${riskyProjects.length > 1 ? "а" : ""}`}
+                    />
+                  ) : (
+                    <StatusPill tone="success" label="всё ок" />
+                  )
+                }
+              />
+
+              {riskyProjects.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-3 px-5 py-12 text-center">
+                  <div
+                    className="flex size-12 items-center justify-center rounded-2xl"
+                    style={{
+                      background: "rgba(34,197,94,0.1)",
+                      border: "1px solid rgba(34,197,94,0.2)",
+                    }}
+                  >
+                    <HugeiconsIcon
+                      icon={CheckmarkCircle02Icon}
+                      size={22}
+                      strokeWidth={1.6}
+                      style={{ color: "hsl(var(--status-success))" }}
+                    />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-foreground">
+                      Нет проектов в зоне контроля
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Все активные проекты идут в штатном режиме
+                    </div>
+                  </div>
+                  <Link
+                    href="/projects"
+                    className="text-xs font-medium transition-colors"
+                    style={{ color: "hsl(var(--status-calm))" }}
+                  >
+                    Все проекты →
+                  </Link>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-5">Ученик</TableHead>
+                      <TableHead>Проект</TableHead>
+                      <TableHead>Риск</TableHead>
+                      <TableHead className="text-right">Прогресс</TableHead>
+                      <TableHead className="w-8" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {riskyProjects.map((project) => (
+                      <TableRow key={project.id} className="cursor-pointer">
+                        <TableCell className="px-5 font-medium">
+                          {project.studentName}
+                        </TableCell>
+                        <TableCell className="max-w-[180px] truncate">
+                          {project.name}
+                        </TableCell>
+                        <TableCell>
+                          <StatusPill
+                            tone={getProjectRiskTone(project)}
+                            label={getProjectRiskLabel(project.risk)}
+                          />
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {getProjectProgressLabel(project)}
+                        </TableCell>
+                        <TableCell>
+                          <Link
+                            href={`/projects/${project.id}`}
+                            className="flex items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            <HugeiconsIcon
+                              icon={ArrowRight02Icon}
+                              size={14}
+                              strokeWidth={2}
+                            />
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Требуют внимания */}
           <div className="overflow-hidden rounded-2xl" style={glassStyle}>
@@ -555,6 +548,14 @@ export async function TeacherDashboard({
               </div>
             )}
           </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          {/* Ближайший урок */}
+          <LessonCard
+            lesson={nearestLesson}
+            lessonsCount={attendanceLessons.length}
+          />
 
           {/* AI-инсайты — только если есть данные */}
           {projectsWithAiReports.length > 0 && (
@@ -578,13 +579,7 @@ export async function TeacherDashboard({
                         {project.name}
                       </span>
                       <StatusPill
-                        tone={
-                          project.status === "completed"
-                            ? "success"
-                            : project.status === "active"
-                              ? "calm"
-                              : "warning"
-                        }
+                        tone={project.status === "active" ? "calm" : "warning"}
                         label={getProjectStatusLabel(project.status)}
                       />
                     </div>
