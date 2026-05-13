@@ -29,6 +29,7 @@ export interface ProjectReportRow {
   studentName: string;
   projectName: string | null;
   projectUrl: string | null;
+  completedProjectsCount: number;
   progress: number | null;
   progressDelta: number | null;
   updateLabel: string;
@@ -41,6 +42,7 @@ export interface ProjectReportData {
   weekRangeLabel: string;
   totalStudents: number;
   registeredProjects: number;
+  completedProjects: number;
   rows: ProjectReportRow[];
   goodDynamics: ProjectReportItem[];
   noDynamics: ProjectReportItem[];
@@ -138,6 +140,9 @@ export async function buildProjectReportData(
   const projects = allProjects.filter((project) =>
     isProjectCurrent(project.status),
   );
+  const completedProjects = allProjects.filter(
+    (project) => !isProjectCurrent(project.status),
+  );
   const reportsByProjectId = await listProjectAiReportsByProjectIds(
     projects.map((project) => project.id),
   );
@@ -195,6 +200,16 @@ export async function buildProjectReportData(
   const studentIdsWithProjects = new Set(
     projects.flatMap((project) => project.memberStudentIds),
   );
+  const completedProjectsCountByStudentId = completedProjects.reduce(
+    (acc, project) => {
+      for (const studentId of project.memberStudentIds) {
+        acc.set(studentId, (acc.get(studentId) ?? 0) + 1);
+      }
+
+      return acc;
+    },
+    new Map<string, number>(),
+  );
   const missingProjectData = students
     .filter((student) => !studentIdsWithProjects.has(student.id))
     .map((student) => formatStudentName(student.lastName, student.firstName))
@@ -212,6 +227,8 @@ export async function buildProjectReportData(
         studentName: formatStudentName(student.lastName, student.firstName),
         projectName: project?.projectName ?? null,
         projectUrl: project?.projectUrl ?? null,
+        completedProjectsCount:
+          completedProjectsCountByStudentId.get(student.id) ?? 0,
         progress: project?.progress ?? null,
         progressDelta: project?.progressDelta ?? null,
         updateLabel: project?.updateLabel ?? "данных нет",
@@ -230,6 +247,7 @@ export async function buildProjectReportData(
     weekRangeLabel,
     totalStudents: students.length,
     registeredProjects: projects.length,
+    completedProjects: completedProjects.length,
     rows,
     goodDynamics: items
       .filter((item) => item.isGoodDynamics)

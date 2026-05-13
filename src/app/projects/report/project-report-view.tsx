@@ -184,6 +184,9 @@ export function ProjectReportView({
               {report.registeredProjects}
             </li>
             <li>
+              <strong>Завершённых проектов</strong>: {report.completedProjects}
+            </li>
+            <li>
               <strong>Хорошая динамика</strong>: {report.goodDynamics.length}
             </li>
             <li>
@@ -211,6 +214,9 @@ export function ProjectReportView({
                   </th>
                   <th className="border-b border-border/70 px-3 py-3 font-semibold">
                     Проект
+                  </th>
+                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
+                    Завершено
                   </th>
                   <th className="border-b border-border/70 px-3 py-3 font-semibold">
                     Прогресс
@@ -241,6 +247,9 @@ export function ProjectReportView({
                               "underline decoration-border underline-offset-4 print:text-black",
                           })
                         : "Нет данных"}
+                    </td>
+                    <td className="border-b border-border/60 px-3 py-3 print:text-black">
+                      {row.completedProjectsCount}
                     </td>
                     <td className="border-b border-border/60 px-3 py-3 print:text-black">
                       {row.hasProject
