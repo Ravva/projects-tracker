@@ -445,8 +445,11 @@ function buildProjectReportPayload(input: {
     memoryBank: input.memoryBank,
   };
 
-  return JSON.stringify({
-    inputSnapshotJson: serializeProjectAiInputSnapshot(inputSnapshot),
+  const serialized = serializeProjectAiInputSnapshot(inputSnapshot);
+
+  const PAYLOAD_HARD_LIMIT = 49_000;
+  let payload = JSON.stringify({
+    inputSnapshotJson: serialized.snapshotJson,
     implementedItems: input.implementedItems,
     partialItems: input.partialItems,
     missingItems: input.missingItems,
@@ -468,7 +471,45 @@ function buildProjectReportPayload(input: {
     commitsPerWeek: input.github.commitsPerWeek,
     lastCommitDaysAgo: input.github.lastCommitDaysAgo,
     isAbandoned: input.github.isAbandoned,
+    ...(Object.keys(serialized.truncatedFields).length > 0 && {
+      truncatedFields: serialized.truncatedFields,
+    }),
   });
+
+  if (payload.length > PAYLOAD_HARD_LIMIT) {
+    const overhead = payload.length - PAYLOAD_HARD_LIMIT;
+    const snapshotLen = serialized.snapshotJson.length;
+    const reducedSnapshotLen = Math.max(snapshotLen - overhead - 200, 1_000);
+    const truncatedSnapshot = `${serialized.snapshotJson.slice(0, reducedSnapshotLen)}...`;
+
+    payload = JSON.stringify({
+      inputSnapshotJson: truncatedSnapshot,
+      implementedItems: input.implementedItems,
+      partialItems: input.partialItems,
+      missingItems: input.missingItems,
+      risks: input.risks,
+      nextSteps: input.nextSteps,
+      sourceFiles: input.repositorySignals.sourceFiles,
+      hasRepository: input.repositorySignals.hasRepository,
+      hasMemoryBank: input.repositorySignals.hasMemoryBank,
+      hasSpec: input.repositorySignals.hasSpec,
+      hasPlan: input.repositorySignals.hasPlan,
+      trackedTasksTotal: input.taskMetrics.total,
+      trackedTasksCompleted: input.taskMetrics.completed,
+      trackedTasksInProgress: input.taskMetrics.inProgress,
+      trackedTasksPending: input.taskMetrics.pending,
+      progressCalculationStatus: input.taskMetrics.progressCalculationStatus,
+      progressCalculationDetails: input.taskMetrics.progressCalculationDetails,
+      deliverablesWeightTotal: input.taskMetrics.deliverablesWeightTotal,
+      commitCount: input.github.commitCount,
+      commitsPerWeek: input.github.commitsPerWeek,
+      lastCommitDaysAgo: input.github.lastCommitDaysAgo,
+      isAbandoned: input.github.isAbandoned,
+      snapshotTruncated: true,
+    });
+  }
+
+  return payload;
 }
 
 function isGithubRateLimitError(error: unknown) {

@@ -2,6 +2,14 @@ import "server-only";
 
 import { gunzipSync, gzipSync } from "node:zlib";
 
+const MEMORY_BANK_MAX_LENGTHS = {
+  projectBrief: 20_000,
+  productContext: 12_000,
+  activeContext: 12_000,
+  progress: 12_000,
+  docsReadme: 8_000,
+} as const satisfies Record<keyof ProjectAiMemoryBankSnapshot, number>;
+
 type ProjectAiMemoryBankSnapshot = {
   projectBrief: string;
   productContext: string;
@@ -12,6 +20,10 @@ type ProjectAiMemoryBankSnapshot = {
 
 type ProjectAiCompressedMemoryBankSnapshot = Partial<
   Record<keyof ProjectAiMemoryBankSnapshot, string>
+>;
+
+type TruncatedFields = Partial<
+  Record<keyof ProjectAiMemoryBankSnapshot, boolean>
 >;
 
 export type ProjectProgressCalculationStatus =
@@ -65,6 +77,16 @@ type LegacyProjectSnapshotPreview = Partial<
   Record<keyof ProjectAiMemoryBankSnapshot, string>
 >;
 
+function truncateText(value: string, maxLength: number) {
+  const trimmed = value.trim();
+
+  if (trimmed.length <= maxLength) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, maxLength)}\n\n[truncated: original ${trimmed.length} chars]`;
+}
+
 function compressText(value: string) {
   const normalized = value.trim();
 
@@ -87,15 +109,38 @@ function decompressText(value: string | undefined) {
   }
 }
 
-function buildCompressedMemoryBank(
-  memoryBank: ProjectAiMemoryBankSnapshot,
-): ProjectAiCompressedMemoryBankSnapshot {
+function buildCompressedMemoryBank(memoryBank: ProjectAiMemoryBankSnapshot): {
+  compressed: ProjectAiCompressedMemoryBankSnapshot;
+  truncatedFields: TruncatedFields;
+} {
+  const truncatedFields: TruncatedFields = {};
+
+  const compressField = (
+    key: keyof ProjectAiMemoryBankSnapshot,
+    value: string,
+  ) => {
+    const maxLength = MEMORY_BANK_MAX_LENGTHS[key];
+    const truncated = truncateText(value, maxLength);
+
+    if (truncated.length !== value.trim().length) {
+      truncatedFields[key] = true;
+    }
+
+    return compressText(truncated);
+  };
+
   return {
-    projectBrief: compressText(memoryBank.projectBrief),
-    productContext: compressText(memoryBank.productContext),
-    activeContext: compressText(memoryBank.activeContext),
-    progress: compressText(memoryBank.progress),
-    docsReadme: compressText(memoryBank.docsReadme),
+    compressed: {
+      projectBrief: compressField("projectBrief", memoryBank.projectBrief),
+      productContext: compressField(
+        "productContext",
+        memoryBank.productContext,
+      ),
+      activeContext: compressField("activeContext", memoryBank.activeContext),
+      progress: compressField("progress", memoryBank.progress),
+      docsReadme: compressField("docsReadme", memoryBank.docsReadme),
+    },
+    truncatedFields,
   };
 }
 
@@ -111,14 +156,26 @@ function buildLegacyMemoryBank(
   };
 }
 
+export type SerializedProjectAiSnapshot = {
+  snapshotJson: string;
+  truncatedFields: TruncatedFields;
+};
+
 export function serializeProjectAiInputSnapshot(
   snapshot: ProjectAiInputSnapshot,
-) {
-  return JSON.stringify({
-    ...snapshot,
-    memoryBankCompressed: buildCompressedMemoryBank(snapshot.memoryBank),
-    memoryBank: undefined,
-  });
+): SerializedProjectAiSnapshot {
+  const { compressed, truncatedFields } = buildCompressedMemoryBank(
+    snapshot.memoryBank,
+  );
+
+  return {
+    snapshotJson: JSON.stringify({
+      ...snapshot,
+      memoryBankCompressed: compressed,
+      memoryBank: undefined,
+    }),
+    truncatedFields,
+  };
 }
 
 export function parseProjectAiInputSnapshot(
