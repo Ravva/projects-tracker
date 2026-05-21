@@ -29,13 +29,12 @@ import {
   getProjectRiskLabel,
   getProjectRiskTone,
 } from "@/lib/project-risk";
-import { getProjectStatusLabel, isProjectCurrent } from "@/lib/project-status";
+import { isProjectCurrent } from "@/lib/project-status";
 import {
   getProjectAiStatusLabel,
   getProjectAiStatusTone,
   getProjectSyncStatusLabel,
   getProjectSyncStatusTone,
-  projectNeedsSync,
 } from "@/lib/project-sync";
 import { requireTeacherSession } from "@/lib/server/auth";
 import { parseProjectAiInputSnapshot } from "@/lib/server/project-ai-report-snapshot";
@@ -353,13 +352,13 @@ export default async function ProjectDetailsPage({
       <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="grid gap-6">
           <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-3 text-base">
                 <HugeiconsIcon icon={Task01Icon} size={18} strokeWidth={1.8} />
                 Прогресс и сигналы
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               <SignalCard
                 tone={progressTone}
                 title="Выполнение"
@@ -367,7 +366,7 @@ export default async function ProjectDetailsPage({
               >
                 <div>
                   {project.trackedTasksCompleted}/{project.trackedTasksTotal}{" "}
-                  deliverables завершено
+                  завершено
                 </div>
               </SignalCard>
               <SignalCard tone={riskTone} title="Риск">
@@ -375,16 +374,14 @@ export default async function ProjectDetailsPage({
                   tone={getProjectRiskTone(project)}
                   label={getProjectRiskLabel(project.risk)}
                 />
-                <div>Статус: {getProjectStatusLabel(project.status)}</div>
               </SignalCard>
               <SignalCard tone={activityTone} title="Активность">
-                <div>Коммитов в выборке: {project.commitCount}</div>
-                <div>Частота: {project.commitsPerWeek}/нед</div>
+                <div>{project.commitCount} коммитов</div>
+                <div>{project.commitsPerWeek}/нед</div>
                 <div>
-                  Последний коммит:{" "}
                   {project.lastCommitDaysAgo === null
                     ? "нет данных"
-                    : lastCommitLabel}
+                    : `последний ${lastCommitLabel}`}
                 </div>
               </SignalCard>
               <SignalCard
@@ -395,10 +392,6 @@ export default async function ProjectDetailsPage({
                   tone={getProjectSyncStatusTone(project.syncStatus)}
                   label={getProjectSyncStatusLabel(project.syncStatus)}
                 />
-                <div>
-                  {project.syncStatusReason ||
-                    "Статус синхронизации пока не определен."}
-                </div>
               </SignalCard>
               <SignalCard
                 tone={getProjectAiStatusTone(project.aiStatus)}
@@ -408,19 +401,12 @@ export default async function ProjectDetailsPage({
                   tone={getProjectAiStatusTone(project.aiStatus)}
                   label={getProjectAiStatusLabel(project.aiStatus)}
                 />
-                <div>
-                  {projectNeedsSync(project)
-                    ? "В репозитории есть новые коммиты, поэтому текущий AI-отчет уже устарел."
-                    : project.hasAiAnalysisSnapshot
-                      ? "Последний AI-снимок соответствует текущему snapshot репозитория."
-                      : "AI-анализ еще не запускался для этого проекта."}
-                </div>
               </SignalCard>
             </CardContent>
           </Card>
 
           <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between text-base">
                 Что это за проект
                 <StatusPill
@@ -429,20 +415,20 @@ export default async function ProjectDetailsPage({
                 />
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                <div className="mb-2 text-sm font-medium text-foreground">
+            <CardContent className="grid gap-3">
+              <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+                <div className="mb-1 text-sm font-medium text-foreground">
                   docs/README.md
                 </div>
-                <div className="app-scrollbar max-h-96 overflow-y-auto pr-2">
+                <div className="app-scrollbar max-h-32 overflow-y-auto pr-2">
                   <MarkdownContent content={docsReadmePreview} />
                 </div>
               </div>
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                <div className="mb-2 text-sm font-medium text-foreground">
+              <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+                <div className="mb-1 text-sm font-medium text-foreground">
                   Product context
                 </div>
-                <div className="app-scrollbar max-h-96 overflow-y-auto pr-2">
+                <div className="app-scrollbar max-h-32 overflow-y-auto pr-2">
                   <MarkdownContent content={productContextPreview} />
                 </div>
               </div>
@@ -450,27 +436,43 @@ export default async function ProjectDetailsPage({
           </Card>
 
           <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-3 text-base">
                 <HugeiconsIcon icon={Note01Icon} size={18} strokeWidth={1.8} />
                 Текущий контекст
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                <div className="mb-2 text-sm font-medium text-foreground">
+            <CardContent className="grid gap-3">
+              <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+                <div className="mb-1 text-sm font-medium text-foreground">
+                  Progress
+                </div>
+                <div className="app-scrollbar max-h-32 overflow-y-auto pr-2">
+                  <MarkdownContent content={progressContextPreview} />
+                </div>
+              </div>
+              <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+                <div className="mb-1 text-sm font-medium text-foreground">
                   Active context
                 </div>
-                <div className="app-scrollbar max-h-96 overflow-y-auto pr-2">
+                <div className="app-scrollbar max-h-32 overflow-y-auto pr-2">
                   <MarkdownContent content={activeContextPreview} />
                 </div>
               </div>
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                <div className="mb-2 text-sm font-medium text-foreground">
-                  Progress notes
+              <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+                <div className="mb-1 text-sm font-medium text-foreground">
+                  Следующие шаги
                 </div>
-                <div className="app-scrollbar max-h-96 overflow-y-auto pr-2">
-                  <MarkdownContent content={progressContextPreview} />
+                <div className="app-scrollbar max-h-32 space-y-2 overflow-y-auto pr-2">
+                  {project.nextSteps.length > 0 ? (
+                    project.nextSteps.map((step) => (
+                      <MarkdownContent key={step} content={step} />
+                    ))
+                  ) : (
+                    <span>
+                      После AI-анализа здесь появятся следующие шаги по проекту.
+                    </span>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -479,32 +481,31 @@ export default async function ProjectDetailsPage({
 
         <div className="grid content-start gap-6 self-start">
           <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <CardTitle className="text-base">Участники проекта</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4 text-muted-foreground">
-                GitHub-репозиторий закреплен за владельцем:{" "}
+            <CardContent className="space-y-3 text-sm">
+              <div className="rounded-xl border border-border/70 bg-background/70 p-3 text-muted-foreground">
+                Репозиторий закреплен за{" "}
                 <span className="font-medium text-foreground">
                   {project.ownerStudentName}
                 </span>
-                . Остальные ученики подключаются к этому же проекту как
-                участники.
+                . Остальные подключаются как участники.
               </div>
               <div className="space-y-3">
                 {members.map((member) => (
                   <div
                     key={member.id}
-                    className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-background/70 p-4 md:flex-row md:items-center md:justify-between"
+                    className="flex flex-col gap-2 rounded-xl border border-border/70 bg-background/70 p-3 md:flex-row md:items-center md:justify-between"
                   >
                     <div>
-                      <div className="font-medium text-foreground">
+                      <div className="text-sm font-medium text-foreground">
                         {member.studentName}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {member.role === "owner"
                           ? "владелец репозитория"
-                          : "участник группы"}
+                          : "участник"}
                       </div>
                     </div>
                     {member.role === "owner" ? (
@@ -613,21 +614,16 @@ export default async function ProjectDetailsPage({
                 ))}
               </div>
               {project.isGroupProject && availableStudents.length > 0 ? (
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <div className="mb-3 font-medium text-foreground">
-                    Добавить ученика в групповой проект
+                <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+                  <div className="mb-2 text-sm font-medium text-foreground">
+                    Добавить участника
                   </div>
-                  <div className="mb-4 text-xs leading-6 text-muted-foreground">
-                    Выберите ученика из списка. Мы специально не используем
-                    системный dropdown, чтобы блок выглядел нормально в текущей
-                    теме и не разваливался визуально.
-                  </div>
-                  <div className="app-scrollbar max-h-72 space-y-2 overflow-y-auto pr-1">
+                  <div className="app-scrollbar max-h-48 space-y-1.5 overflow-y-auto pr-1">
                     {availableStudents.map((student) => (
                       <form
                         key={student.id}
                         action={addProjectMemberAction}
-                        className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card/70 px-4 py-3 transition-colors hover:bg-accent/40"
+                        className="flex items-center justify-between gap-2 rounded-xl border border-border/70 bg-card/70 px-3 py-2 transition-colors hover:bg-accent/40"
                       >
                         <input
                           type="hidden"
@@ -640,13 +636,13 @@ export default async function ProjectDetailsPage({
                           value={student.id}
                         />
                         <div className="min-w-0">
-                          <div className="truncate font-medium text-foreground">
+                          <div className="truncate text-sm font-medium text-foreground">
                             {student.lastName} {student.firstName}
                           </div>
                           <div className="truncate text-xs text-muted-foreground">
                             {student.githubUsername
                               ? `GitHub: ${student.githubUsername}`
-                              : "GitHub еще не привязан"}
+                              : "GitHub не привязан"}
                           </div>
                         </div>
                         <Button
@@ -665,25 +661,31 @@ export default async function ProjectDetailsPage({
           </Card>
 
           <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-base">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
                 <HugeiconsIcon
                   icon={AiBrain03Icon}
-                  size={18}
+                  size={16}
                   strokeWidth={1.8}
                 />
                 AI summary
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <div className="app-scrollbar max-h-96 overflow-y-auto pr-2">
+            <CardContent className="space-y-3 text-sm">
+              <div className="app-scrollbar max-h-32 overflow-y-auto pr-2">
                 <MarkdownContent content={aiSummaryText} />
               </div>
-              <div className="grid gap-3 rounded-2xl border border-border/70 bg-background/70 p-4 text-sm text-muted-foreground">
-                <div className="font-medium text-foreground">
-                  Репозиторий и memory signals
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 rounded-xl border border-border/70 bg-background/70 p-3 text-sm text-muted-foreground">
+                <div className="col-span-2 text-sm font-medium text-foreground">
+                  Signals
                 </div>
-                <div>Ученик: {project.studentName}</div>
+                <div className="col-span-2">
+                  Ученик:{" "}
+                  <span className="text-foreground">{project.studentName}</span>
+                  {" · "}
+                  Репозиторий:{" "}
+                  {project.hasRepository ? "подключен" : "не найден"}
+                </div>
                 <div>
                   GitHub:{" "}
                   <Link
@@ -693,12 +695,8 @@ export default async function ProjectDetailsPage({
                   >
                     {project.githubOwner && project.githubRepo
                       ? `${project.githubOwner}/${project.githubRepo}`
-                      : project.githubUrl}
+                      : "ссылка"}
                   </Link>
-                </div>
-                <div>
-                  Репозиторий:{" "}
-                  {project.hasRepository ? "подключен" : "не найден"}
                 </div>
                 <div>
                   memory_bank:{" "}
@@ -706,8 +704,8 @@ export default async function ProjectDetailsPage({
                     project,
                     project.hasMemoryBank,
                     {
-                      positive: "обнаружен",
-                      negative: "отсутствует",
+                      positive: "есть",
+                      negative: "нет",
                     },
                   )}
                 </div>
@@ -730,32 +728,10 @@ export default async function ProjectDetailsPage({
           </Card>
 
           <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Следующие шаги</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Расчет progress</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              {project.nextSteps.length > 0 ? (
-                project.nextSteps.map((step) => (
-                  <div
-                    key={step}
-                    className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6 text-muted-foreground"
-                  >
-                    <MarkdownContent content={step} />
-                  </div>
-                ))
-              ) : (
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6 text-muted-foreground">
-                  После AI-анализа здесь появятся следующие шаги по проекту.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Расчет progress</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+            <CardContent>
               <SignalCard
                 tone={progressCalculationTone}
                 title={
@@ -777,38 +753,40 @@ export default async function ProjectDetailsPage({
           </Card>
 
           <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-base">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
                 <HugeiconsIcon
                   icon={Github01Icon}
-                  size={18}
+                  size={16}
                   strokeWidth={1.8}
                 />
                 История AI-отчетов
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+            <CardContent className="space-y-2 text-sm">
               {reports.length > 0 ? (
-                reports.map((report) => (
-                  <div
-                    key={report.id}
-                    className="rounded-2xl border border-border/70 bg-background/70 p-4"
-                  >
-                    <div className="font-medium">
-                      {report.completionPercent}% • {report.createdAt}
+                <div className="app-scrollbar max-h-48 space-y-2 overflow-y-auto pr-1">
+                  {reports.map((report) => (
+                    <div
+                      key={report.id}
+                      className="rounded-xl border border-border/70 bg-background/70 p-3"
+                    >
+                      <div className="font-medium">
+                        {report.completionPercent}% • {report.createdAt}
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        memory_bank: {report.hasMemoryBank ? "да" : "нет"} • ТЗ:{" "}
+                        {report.hasSpec ? "да" : "нет"} • План:{" "}
+                        {report.hasPlan ? "да" : "нет"}
+                      </div>
+                      <div className="mt-1">
+                        <MarkdownContent content={report.summary} />
+                      </div>
                     </div>
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      memory_bank: {report.hasMemoryBank ? "да" : "нет"} • ТЗ:{" "}
-                      {report.hasSpec ? "да" : "нет"} • План:{" "}
-                      {report.hasPlan ? "да" : "нет"}
-                    </div>
-                    <div className="mt-2">
-                      <MarkdownContent content={report.summary} />
-                    </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               ) : (
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4 leading-6 text-muted-foreground">
+                <div className="rounded-xl border border-border/70 bg-background/70 p-3 text-muted-foreground">
                   История AI-отчетов пока пуста.
                 </div>
               )}
@@ -816,7 +794,7 @@ export default async function ProjectDetailsPage({
                 <input type="hidden" name="projectId" value={project.id} />
                 <Button
                   variant="outline"
-                  className="rounded-xl bg-background/90"
+                  className="rounded-lg bg-background/90"
                 >
                   Удалить проект
                 </Button>
