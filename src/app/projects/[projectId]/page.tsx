@@ -376,12 +376,12 @@ export default async function ProjectDetailsPage({
                 />
               </SignalCard>
               <SignalCard tone={activityTone} title="Активность">
-                <div>{project.commitCount} коммитов</div>
-                <div>{project.commitsPerWeek}/нед</div>
+                <div>Коммитов: {project.commitCount}</div>
+                <div>Частота: {project.commitsPerWeek}/нед</div>
                 <div>
                   {project.lastCommitDaysAgo === null
-                    ? "нет данных"
-                    : `последний ${lastCommitLabel}`}
+                    ? "Последний: нет данных"
+                    : `Последний: ${lastCommitLabel}`}
                 </div>
               </SignalCard>
               <SignalCard
