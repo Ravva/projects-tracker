@@ -4,7 +4,7 @@ type ProjectRiskTone = "critical" | "warning" | "success" | "calm";
 
 const PROJECT_RISK_LABELS: Record<ProjectRisk, string> = {
   data_missing: "данные отсутствуют",
-  healthy: "стабильно",
+  healthy: "без рисков",
   invalid_github_repo: "ошибка GitHub repo",
   missing_memory_bank: "нет memory_bank",
   missing_spec: "нет ТЗ",

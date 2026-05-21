@@ -358,7 +358,7 @@ export default async function ProjectDetailsPage({
                 Прогресс и сигналы
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <CardContent className="auto-rows-fr grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               <SignalCard
                 tone={progressTone}
                 title="Выполнение"
