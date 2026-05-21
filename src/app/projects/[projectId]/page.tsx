@@ -420,7 +420,7 @@ export default async function ProjectDetailsPage({
                 <div className="mb-1 text-sm font-medium text-foreground">
                   docs/README.md
                 </div>
-                <div className="app-scrollbar max-h-32 overflow-y-auto pr-2">
+                <div className="app-scrollbar max-h-64 overflow-y-auto pr-2">
                   <MarkdownContent content={docsReadmePreview} />
                 </div>
               </div>
@@ -428,7 +428,7 @@ export default async function ProjectDetailsPage({
                 <div className="mb-1 text-sm font-medium text-foreground">
                   Product context
                 </div>
-                <div className="app-scrollbar max-h-32 overflow-y-auto pr-2">
+                <div className="app-scrollbar max-h-64 overflow-y-auto pr-2">
                   <MarkdownContent content={productContextPreview} />
                 </div>
               </div>
@@ -447,7 +447,7 @@ export default async function ProjectDetailsPage({
                 <div className="mb-1 text-sm font-medium text-foreground">
                   Progress
                 </div>
-                <div className="app-scrollbar max-h-32 overflow-y-auto pr-2">
+                <div className="app-scrollbar max-h-64 overflow-y-auto pr-2">
                   <MarkdownContent content={progressContextPreview} />
                 </div>
               </div>
@@ -455,7 +455,7 @@ export default async function ProjectDetailsPage({
                 <div className="mb-1 text-sm font-medium text-foreground">
                   Active context
                 </div>
-                <div className="app-scrollbar max-h-32 overflow-y-auto pr-2">
+                <div className="app-scrollbar max-h-64 overflow-y-auto pr-2">
                   <MarkdownContent content={activeContextPreview} />
                 </div>
               </div>
@@ -463,7 +463,7 @@ export default async function ProjectDetailsPage({
                 <div className="mb-1 text-sm font-medium text-foreground">
                   Следующие шаги
                 </div>
-                <div className="app-scrollbar max-h-32 space-y-2 overflow-y-auto pr-2">
+                <div className="app-scrollbar max-h-64 space-y-2 overflow-y-auto pr-2">
                   {project.nextSteps.length > 0 ? (
                     project.nextSteps.map((step) => (
                       <MarkdownContent key={step} content={step} />
@@ -618,7 +618,7 @@ export default async function ProjectDetailsPage({
                   <div className="mb-2 text-sm font-medium text-foreground">
                     Добавить участника
                   </div>
-                  <div className="app-scrollbar max-h-48 space-y-1.5 overflow-y-auto pr-1">
+                  <div className="app-scrollbar max-h-96 space-y-1.5 overflow-y-auto pr-1">
                     {availableStudents.map((student) => (
                       <form
                         key={student.id}
@@ -672,7 +672,7 @@ export default async function ProjectDetailsPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="app-scrollbar max-h-32 overflow-y-auto pr-2">
+              <div className="app-scrollbar max-h-64 overflow-y-auto pr-2">
                 <MarkdownContent content={aiSummaryText} />
               </div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-1 rounded-xl border border-border/70 bg-background/70 p-3 text-sm text-muted-foreground">
@@ -765,7 +765,7 @@ export default async function ProjectDetailsPage({
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               {reports.length > 0 ? (
-                <div className="app-scrollbar max-h-48 space-y-2 overflow-y-auto pr-1">
+                <div className="app-scrollbar max-h-96 space-y-2 overflow-y-auto pr-1">
                   {reports.map((report) => (
                     <div
                       key={report.id}
