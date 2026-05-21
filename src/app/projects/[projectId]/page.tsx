@@ -100,7 +100,7 @@ function SignalCard({
   const c = signalToneConfig[tone];
   return (
     <div
-      className="relative overflow-hidden rounded-2xl p-4 transition-all duration-200"
+      className="relative flex flex-col overflow-hidden rounded-2xl p-4 transition-all duration-200"
       style={{
         background: c.bg,
         border: `1px solid ${c.border}`,
@@ -132,7 +132,7 @@ function SignalCard({
         </div>
       )}
       {children && (
-        <div className="mt-2.5 space-y-1 text-xs text-muted-foreground">
+        <div className="mt-auto space-y-1 pt-2.5 text-xs text-muted-foreground">
           {children}
         </div>
       )}
