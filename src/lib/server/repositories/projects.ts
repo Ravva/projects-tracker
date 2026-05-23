@@ -17,6 +17,8 @@ import {
   GithubRequestError,
   getGithubRepositoryMetadata,
   listGithubRepositoryCommits,
+  getGithubRepositoryFileText,
+  getGithubRepositoryTree,
 } from "@/lib/server/github";
 import {
   mapProjectAiReportDocument,
@@ -29,6 +31,12 @@ import {
 } from "@/lib/server/project-ai-report-snapshot";
 import { deleteProjectCascade } from "@/lib/server/project-cleanup";
 import { analyzeProjectRepository } from "@/lib/server/project-repository-analysis";
+import { parseInMemoryOpenCodeSessions } from "@/lib/server/ai-coach/parser-opencode";
+import {
+  registerAllBuiltinRules,
+  registerAllBuiltinMetrics,
+} from "@/lib/server/ai-coach/rule-loader";
+import { runDetectors } from "@/lib/server/ai-coach/detector-registry";
 import { listStudentNameMap } from "@/lib/server/repositories/students";
 import type {
   ProjectAiReportRecord,
@@ -434,6 +442,8 @@ function buildProjectReportPayload(input: {
   missingItems: string[];
   risks: string[];
   nextSteps: string[];
+  opencodeCoachScore?: number;
+  opencodeCoachReport?: string;
 }) {
   const inputSnapshot: ProjectAiInputSnapshot = {
     name: input.projectName,
@@ -471,6 +481,8 @@ function buildProjectReportPayload(input: {
     commitsPerWeek: input.github.commitsPerWeek,
     lastCommitDaysAgo: input.github.lastCommitDaysAgo,
     isAbandoned: input.github.isAbandoned,
+    opencodeCoachScore: input.opencodeCoachScore,
+    opencodeCoachReport: input.opencodeCoachReport,
     ...(Object.keys(serialized.truncatedFields).length > 0 && {
       truncatedFields: serialized.truncatedFields,
     }),
@@ -505,6 +517,8 @@ function buildProjectReportPayload(input: {
       commitsPerWeek: input.github.commitsPerWeek,
       lastCommitDaysAgo: input.github.lastCommitDaysAgo,
       isAbandoned: input.github.isAbandoned,
+      opencodeCoachScore: input.opencodeCoachScore,
+      opencodeCoachReport: input.opencodeCoachReport,
       snapshotTruncated: true,
     });
   }
@@ -1589,6 +1603,116 @@ export async function runProjectAiAnalysis(
       docsReadme: repositoryAnalysis.files.docsReadme?.content ?? "",
     },
   };
+
+  // 🤖 AI Engineering Coach - OpenCode Session Analysis
+  let opencodeCoachScore: number | undefined = undefined;
+  let opencodeCoachReport: string | undefined = undefined;
+
+  try {
+    const owner = repositoryAnalysis.repository.owner;
+    const repo = repositoryAnalysis.repository.repo;
+    const branch = repositoryAnalysis.repository.defaultBranch;
+
+    // 1. Fetch file tree recursively
+    const tree = await getGithubRepositoryTree(owner, repo, branch);
+
+    // 2. Filter for log files under .ai-coach/logs/ or .opencode-logs/ ending in .json
+    const logFiles = tree.filter(
+      (entry) =>
+        entry.type === "blob" &&
+        (entry.path.includes(".ai-coach/logs/") ||
+          entry.path.includes(".opencode-logs/")) &&
+        entry.path.endsWith(".json"),
+    );
+
+    if (logFiles.length > 0) {
+      // 3. Fetch file content in parallel
+      const fetchedLogs = await Promise.all(
+        logFiles.slice(0, 150).map(async (entry) => {
+          const content = await getGithubRepositoryFileText(
+            owner,
+            repo,
+            entry.path,
+            branch,
+          );
+          return { path: entry.path, content: content || "" };
+        }),
+      );
+
+      // 4. Parse sessions from logs
+      const sessions = parseInMemoryOpenCodeSessions(fetchedLogs);
+      if (sessions.length > 0) {
+        const reqs = sessions.flatMap((s) => s.requests);
+
+        // 5. Initialize rule-driven detection
+        registerAllBuiltinRules();
+        registerAllBuiltinMetrics();
+
+        // 6. Run linter rules (ideally skipping local IDE detectors to stay reliable on server)
+        const triggered = runDetectors(reqs, sessions, true);
+
+        // 7. Calculate graded score: starting at 100, subtracting severity weights
+        let score = 100;
+        const sevPenalty: Record<string, number> = {
+          high: 12,
+          medium: 7,
+          low: 3,
+        };
+        for (const ap of triggered) {
+          if (ap.occurrences > 0) {
+            score -= sevPenalty[ap.severity] ?? 5;
+          }
+        }
+        opencodeCoachScore = Math.max(0, score);
+
+        // 8. Compile a detailed Russian Markdown report of the triggered anti-patterns
+        let report = `### 🤖 Анализ ИИ-разработки (AI Engineering Coach)\n\n`;
+        report += `**Итоговая оценка гигиены работы с ИИ:** **${opencodeCoachScore}/100**\n`;
+        report += `*Проанализировано сессий OpenCode:* ${sessions.length}\n\n`;
+
+        const activeSubscribers = triggered.filter((ap) => ap.occurrences > 0);
+        if (activeSubscribers.length === 0) {
+          report += `✅ **Антипаттернов не обнаружено!** Ученик демонстрирует отличную культуру проектирования и грамотное взаимодействие с ИИ-ассистентом.`;
+        } else {
+          report += `⚠️ **Обнаруженные отклонения (антипаттерны):**\n\n`;
+          for (const ap of activeSubscribers) {
+            const severityMap = {
+              high: "🔴 Высокая",
+              medium: "🟡 Средняя",
+              low: "🟢 Низкая",
+            };
+            const severityLabel =
+              severityMap[ap.severity as keyof typeof severityMap] ||
+              ap.severity;
+            report += `#### ${ap.name} (${severityLabel})\n`;
+
+            // Replace any "Студент" or "студент" with "Ученик" or "ученик"
+            let ruleDesc = ap.description || "";
+            ruleDesc = ruleDesc.replace(/Студент/g, "Ученик");
+            ruleDesc = ruleDesc.replace(/студент/g, "ученик");
+            report += `${ruleDesc}\n`;
+            report += `*Количество инцидентов:* ${ap.occurrences}\n\n`;
+
+            if (ap.details && ap.details.length > 0) {
+              report += `*Примеры:* \n`;
+              for (const detail of ap.details.slice(0, 3)) {
+                let msg = detail.message || "";
+                msg = msg
+                  .replace(/Студент/g, "Ученик")
+                  .replace(/студент/g, "ученик");
+                report += `- \`${detail.sessionId.slice(0, 8)}\`: ${msg}\n`;
+              }
+              report += `\n`;
+            }
+          }
+        }
+        opencodeCoachReport = report;
+      }
+    }
+  } catch (error) {
+    console.error("OpenCode AI Coach analysis failed gracefully:", error);
+  }
+
   const aiResult = await requestAiGatewayJsonObject<{
     summary?: string;
     risks?: string[];
@@ -1641,6 +1765,8 @@ export async function runProjectAiAnalysis(
         missingItems: parsed.missing_items ?? [],
         risks,
         nextSteps,
+        opencodeCoachScore,
+        opencodeCoachReport,
       }),
     },
   );

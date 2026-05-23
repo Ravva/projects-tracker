@@ -98,12 +98,12 @@ export async function sendStudentNotificationAction(formData: FormData) {
 
   const student = await getStudent(studentId);
   if (!student?.telegramChatId) {
-    throw new Error("Chat ID студента не найден");
+    throw new Error("Chat ID ученика не найден");
   }
 
   if (!TELEGRAM_CHAT_ID_PATTERN.test(student.telegramChatId)) {
     throw new Error(
-      "У студента сохранён некорректный chat id. Нужна строка из цифр, иногда с ведущим '-'.",
+      "У ученика сохранён некорректный chat id. Нужна строка из цифр, иногда с ведущим '-'.",
     );
   }
 

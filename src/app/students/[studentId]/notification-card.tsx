@@ -103,7 +103,7 @@ export function NotificationCard({
           ) : (
             <div className="rounded-2xl border border-dashed border-border/70 bg-muted/30 p-4 text-center">
               <p className="text-sm text-muted-foreground">
-                Уведомления недоступны, так как у студента не указан{" "}
+                Уведомления недоступны, так как у ученика не указан{" "}
                 <b>Telegram chat id</b>.
               </p>
               <p className="mt-2 text-xs text-muted-foreground/70">

@@ -38,7 +38,7 @@ export function ImportStudentsButton() {
           tone: "success",
           title: "Импорт завершён",
           description:
-            "Файл обработан. Новые карточки студентов уже доступны в teacher-only списке.",
+            "Файл обработан. Новые карточки учеников уже доступны в teacher-only списке.",
         });
       } catch (error) {
         setFeedback({
@@ -47,7 +47,7 @@ export function ImportStudentsButton() {
           description:
             error instanceof Error
               ? error.message
-              : "Произошла ошибка при импорте студентов. Проверьте формат файла.",
+              : "Произошла ошибка при импорте учеников. Проверьте формат файла.",
         });
       }
     });

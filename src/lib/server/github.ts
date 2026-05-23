@@ -302,3 +302,24 @@ export async function listGithubRepositoryCommits(
 
   return commits;
 }
+
+export interface GithubTreeEntry {
+  path: string;
+  type: "blob" | "tree";
+  sha: string;
+  size?: number;
+}
+
+export async function getGithubRepositoryTree(
+  owner: string,
+  repo: string,
+  ref: string,
+  accessToken = process.env.GITHUB_TOKEN,
+): Promise<GithubTreeEntry[]> {
+  const url = `https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent(ref)}?recursive=1`;
+  const response = await fetchGithubJson<{ tree: GithubTreeEntry[] }>(url, {
+    accessToken,
+    revalidate: 60,
+  });
+  return response?.tree ?? [];
+}
