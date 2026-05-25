@@ -29,6 +29,7 @@ import {
 } from "@/lib/server/project-ai-report-snapshot";
 import { deleteProjectCascade } from "@/lib/server/project-cleanup";
 import { analyzeProjectRepository } from "@/lib/server/project-repository-analysis";
+import { getOpenCodeCoachAnalysis } from "@/lib/server/opencode-coach-integration";
 import { listStudentNameMap } from "@/lib/server/repositories/students";
 import type {
   ProjectAiReportRecord,
@@ -434,6 +435,8 @@ function buildProjectReportPayload(input: {
   missingItems: string[];
   risks: string[];
   nextSteps: string[];
+  opencodeCoachScore?: number;
+  opencodeCoachReport?: string;
 }) {
   const inputSnapshot: ProjectAiInputSnapshot = {
     name: input.projectName,
@@ -471,6 +474,8 @@ function buildProjectReportPayload(input: {
     commitsPerWeek: input.github.commitsPerWeek,
     lastCommitDaysAgo: input.github.lastCommitDaysAgo,
     isAbandoned: input.github.isAbandoned,
+    opencodeCoachScore: input.opencodeCoachScore,
+    opencodeCoachReport: input.opencodeCoachReport,
     ...(Object.keys(serialized.truncatedFields).length > 0 && {
       truncatedFields: serialized.truncatedFields,
     }),
@@ -505,6 +510,8 @@ function buildProjectReportPayload(input: {
       commitsPerWeek: input.github.commitsPerWeek,
       lastCommitDaysAgo: input.github.lastCommitDaysAgo,
       isAbandoned: input.github.isAbandoned,
+      opencodeCoachScore: input.opencodeCoachScore,
+      opencodeCoachReport: input.opencodeCoachReport,
       snapshotTruncated: true,
     });
   }
@@ -1589,6 +1596,10 @@ export async function runProjectAiAnalysis(
       docsReadme: repositoryAnalysis.files.docsReadme?.content ?? "",
     },
   };
+
+  // 🤖 AI Engineering Coach - OpenCode Session Analysis
+  const openCodeCoachResult = await getOpenCodeCoachAnalysis(projectId);
+
   const aiResult = await requestAiGatewayJsonObject<{
     summary?: string;
     risks?: string[];
@@ -1641,6 +1652,8 @@ export async function runProjectAiAnalysis(
         missingItems: parsed.missing_items ?? [],
         risks,
         nextSteps,
+        opencodeCoachScore: openCodeCoachResult.opencodeCoachScore,
+        opencodeCoachReport: openCodeCoachResult.opencodeCoachReport,
       }),
     },
   );
