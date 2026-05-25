@@ -108,10 +108,10 @@ export async function analyzeUploadedOpenCodeLogs(
         if (group && group.length > 0) {
           report += `##### ${severityLabels[sev]}\n\n`;
           for (const ap of group) {
-            report += `**${ap.title}** (${ap.occurrences} раз)\n`;
+            report += `**${ap.name}** (${ap.occurrences} раз)\n`;
             report += `${ap.description}\n`;
-            if (ap.recommendation) {
-              report += `*Рекомендация:* ${ap.recommendation}\n`;
+            if (ap.suggestion) {
+              report += `*Рекомендация:* ${ap.suggestion}\n`;
             }
             report += `\n`;
           }

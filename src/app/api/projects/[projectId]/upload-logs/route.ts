@@ -17,9 +17,9 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
 
 /**
  * POST /api/projects/[projectId]/upload-logs
- *
+ * 
  * Безопасная загрузка логов OpenCode для анализа AI Engineering Coach
- *
+ * 
  * Требования:
  * - Аутентификация студента
  * - Студент должен быть участником проекта
@@ -27,12 +27,12 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { projectId: string } },
+  { params }: { params: Promise<{ projectId: string }> },
 ) {
   try {
     // 1. Аутентификация
     const session = await requireStudentSession();
-    const projectId = params.projectId;
+    const { projectId } = await params;
 
     // 2. Проверка доступа к проекту
     const project = await getProject(projectId);
@@ -42,9 +42,7 @@ export async function POST(
     }
 
     // Проверка что студент является участником проекта
-    const isMember = project.members.some(
-      (member) => member.studentId === session.studentId,
-    );
+    const isMember = project.memberStudentIds.includes(session.studentId);
 
     if (!isMember) {
       return NextResponse.json(
