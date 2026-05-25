@@ -17,9 +17,9 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
 
 /**
  * POST /api/projects/[projectId]/upload-logs
- * 
+ *
  * Безопасная загрузка логов OpenCode для анализа AI Engineering Coach
- * 
+ *
  * Требования:
  * - Аутентификация студента
  * - Студент должен быть участником проекта
@@ -164,7 +164,69 @@ export async function POST(
       `✅ Логи загружены для проекта ${projectId}: ${logsData.length} файлов, ${(totalSize / 1024 / 1024).toFixed(2)}MB`,
     );
 
-    // 7. Возвращаем успешный ответ
+    // 7. Автоматически запустить AI-анализ проекта
+    try {
+      // Импортируем функцию анализа
+      const { runProjectAiAnalysis } = await import(
+        "@/lib/server/repositories/projects"
+      );
+
+      // Запускаем анализ в фоне (не ждем завершения)
+      runProjectAiAnalysis(projectId).catch((error) => {
+        console.error(
+          `Ошибка автоматического AI-анализа для проекта ${projectId}:`,
+          error,
+        );
+      });
+
+      console.log(
+        `🤖 Автоматический AI-анализ запущен для проекта ${projectId}`,
+      );
+    } catch (error) {
+      console.error(
+        `Не удалось запустить автоматический AI-анализ для проекта ${projectId}:`,
+        error,
+      );
+    }
+
+    // 8. Отправить уведомление учителю (если настроен Telegram)
+    try {
+      const { getProject } = await import("@/lib/server/repositories/projects");
+      const { listStudents } = await import(
+        "@/lib/server/repositories/students"
+      );
+      const { sendTelegramMessage } = await import("@/lib/server/telegram");
+
+      const [projectData, students] = await Promise.all([
+        getProject(projectId),
+        listStudents(),
+      ]);
+
+      if (projectData) {
+        const student = students.find((s) => s.id === session.studentId);
+        const studentName = student?.name || "Ученик";
+
+        // Отправляем уведомление учителю (если настроен TELEGRAM_CHAT_ID)
+        const teacherChatId = process.env.TELEGRAM_CHAT_ID;
+        if (teacherChatId) {
+          const message =
+            `📊 Новые логи OpenCode загружены\n\n` +
+            `Проект: ${projectData.name}\n` +
+            `Ученик: ${studentName}\n` +
+            `Файлов: ${logsData.length}\n` +
+            `Размер: ${(totalSize / 1024 / 1024).toFixed(2)}MB\n\n` +
+            `🤖 AI-анализ запущен автоматически`;
+
+          await sendTelegramMessage(teacherChatId, message).catch((err) => {
+            console.error("Не удалось отправить Telegram уведомление:", err);
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Ошибка отправки уведомления:", error);
+    }
+
+    // 9. Возвращаем успешный ответ
     return NextResponse.json({
       success: true,
       message: "Логи успешно загружены и готовы к анализу",

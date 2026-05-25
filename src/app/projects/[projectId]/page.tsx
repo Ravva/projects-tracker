@@ -44,6 +44,7 @@ import {
   listProjectMembers,
 } from "@/lib/server/repositories/projects";
 import { listStudents } from "@/lib/server/repositories/students";
+import { getUploadedLogsMetadata } from "@/lib/server/logs-storage";
 
 function extractTextOrFallback(value: string | undefined, fallback: string) {
   const normalized = value?.trim();
@@ -198,9 +199,10 @@ export default async function ProjectDetailsPage({
   const providerSuffix = aiProvider?.trim()
     ? ` (${aiProvider.trim().toUpperCase()})`
     : "";
-  const [project, reports] = await Promise.all([
+  const [project, reports, logsMetadata] = await Promise.all([
     getProject(projectId),
     listProjectAiReports(projectId),
+    getUploadedLogsMetadata(projectId),
   ]);
 
   if (!project) {
@@ -395,13 +397,41 @@ export default async function ProjectDetailsPage({
               </SignalCard>
               <SignalCard
                 tone={getProjectAiStatusTone(project.aiStatus)}
-                title="AI status"
+                title="AI analysis"
               >
                 <StatusPill
                   tone={getProjectAiStatusTone(project.aiStatus)}
                   label={getProjectAiStatusLabel(project.aiStatus)}
                 />
               </SignalCard>
+              {logsMetadata && (
+                <SignalCard tone="success" title="OpenCode Logs">
+                  <div className="text-xs">
+                    <div>✓ Загружено: {logsMetadata.filesCount} файлов</div>
+                    <div>
+                      Размер:{" "}
+                      {(logsMetadata.totalSize / 1024 / 1024).toFixed(2)}MB
+                    </div>
+                    <div className="text-muted-foreground">
+                      {new Date(logsMetadata.uploadedAt).toLocaleString(
+                        "ru-RU",
+                      )}
+                    </div>
+                    <div className="mt-2">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="h-7 rounded-lg text-xs"
+                      >
+                        <Link href={`/projects/${project.id}/logs`}>
+                          Подробнее
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </SignalCard>
+              )}
             </CardContent>
           </Card>
 
