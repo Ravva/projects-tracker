@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireStudentSession } from "@/lib/server/auth";
-import { getProject } from "@/lib/server/repositories/projects";
+import { type NextRequest, NextResponse } from "next/server";
 import { sanitizeLogs } from "@/lib/log-sanitizer";
+import { requireStudentSession } from "@/lib/server/auth";
 import { storeUploadedLogs } from "@/lib/server/logs-storage";
+import { getProject } from "@/lib/server/repositories/projects";
 
 interface UploadLogsRequest {
   logs: Array<{
@@ -204,7 +204,9 @@ export async function POST(
 
       if (projectData) {
         const student = students.find((s) => s.id === session.studentId);
-        const studentName = student?.name || "Ученик";
+        const studentName = student
+          ? `${student.firstName} ${student.lastName}`
+          : "Ученик";
 
         // Отправляем уведомление учителю (если настроен TELEGRAM_CHAT_ID)
         const teacherChatId = process.env.TELEGRAM_CHAT_ID;
