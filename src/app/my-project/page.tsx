@@ -4,6 +4,7 @@ import { chooseStudentProjectAction } from "@/app/my-project/actions";
 import { CopyProjectSetupPrompt } from "@/app/my-project/copy-project-setup-prompt";
 import { CopyTextButton } from "@/app/my-project/copy-text-button";
 import { RepoSubmitButton } from "@/app/my-project/repo-submit-button";
+import { UploadLogsCard } from "@/app/my-project/upload-logs-card";
 import { ScrollToElement } from "@/components/app/scroll-to-element";
 import { StatusPill } from "@/components/app/status-pill";
 import { Button } from "@/components/ui/button";
@@ -531,6 +532,10 @@ export default async function MyProjectPage({
             />
           </CardContent>
         </Card>
+
+        {currentProjects.length > 0 && !isTeacherPreview && (
+          <UploadLogsCard projectId={currentProjects[0].id} />
+        )}
 
         <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
           <Card className="border-border/70 bg-card/88 shadow-none">
