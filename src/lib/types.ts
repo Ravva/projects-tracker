@@ -206,5 +206,7 @@ export type ProjectAiReportRecord = ProjectRepositoryMetrics & {
   risks: string[];
   nextSteps: string[];
   sourceFiles: string[];
+  opencodeCoachScore?: number;
+  opencodeCoachReport?: string;
   createdAt: string;
 };

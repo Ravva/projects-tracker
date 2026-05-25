@@ -349,6 +349,8 @@ export function mapProjectAiReportDocument(
     commitsPerWeek?: number;
     lastCommitDaysAgo?: number | null;
     isAbandoned?: boolean;
+    opencodeCoachScore?: number;
+    opencodeCoachReport?: string;
   };
 
   return {
@@ -382,6 +384,14 @@ export function mapProjectAiReportDocument(
     risks: parseStringList(payload.risks),
     nextSteps: parseStringList(payload.nextSteps),
     sourceFiles: parseStringList(payload.sourceFiles),
+    opencodeCoachScore:
+      payload.opencodeCoachScore === undefined
+        ? undefined
+        : Number(payload.opencodeCoachScore),
+    opencodeCoachReport:
+      payload.opencodeCoachReport === undefined
+        ? undefined
+        : String(payload.opencodeCoachReport),
     createdAt: document.$createdAt,
   };
 }

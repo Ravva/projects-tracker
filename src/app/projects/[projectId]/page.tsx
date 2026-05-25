@@ -660,6 +660,39 @@ export default async function ProjectDetailsPage({
             </CardContent>
           </Card>
 
+          {latestReport && latestReport.opencodeCoachScore !== undefined && (
+            <Card className="border-border/70 bg-card/88 shadow-none animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <HugeiconsIcon
+                    icon={AiBrain03Icon}
+                    size={16}
+                    strokeWidth={1.8}
+                    className="text-cyan-400"
+                  />
+                  AI Engineering Coach (OpenCode)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="flex items-center justify-between rounded-xl bg-background/50 p-3 border border-border/40">
+                  <span className="text-muted-foreground">
+                    Индекс гигиены ИИ:
+                  </span>
+                  <span className="text-base font-bold text-foreground">
+                    {latestReport.opencodeCoachScore}/100
+                  </span>
+                </div>
+                {latestReport.opencodeCoachReport && (
+                  <div className="app-scrollbar max-h-96 overflow-y-auto pr-2 rounded-xl border border-border/70 bg-background/70 p-3">
+                    <MarkdownContent
+                      content={latestReport.opencodeCoachReport}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="border-border/70 bg-card/88 shadow-none">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
