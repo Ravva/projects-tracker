@@ -6,7 +6,7 @@
 
 ## Контроль изменений
 
-last_checked_commit: cc48c6f
+last_checked_commit: 384d4c8
 
 ## Changelog
 
