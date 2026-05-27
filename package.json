@@ -8,6 +8,7 @@
     "ai:dev": "bunx wrangler dev -c workers/ai-worker/wrangler.toml",
     "ai:whoami": "bunx wrangler whoami",
     "appwrite:keepalive": "bun run scripts/appwrite-console-heartbeat.ts",
+    "appwrite:migrate": "bun run scripts/migrate-appwrite.ts",
     "build": "next build",
     "deploy": "bunx vercel deploy --prod",
     "start": "next start",

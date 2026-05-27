@@ -8,6 +8,10 @@
 
 last_checked_commit: cc48c6f
 
+## Changelog
+
+- 2026-05-27: Успешно выполнена миграция БД с облачного Appwrite на локальный сервер. Создан скрипт `scripts/migrate-appwrite.ts` с поддержкой постраничного экспорта и очистки системных полей документов. Добавлена команда `bun run appwrite:migrate` и переменные окружения `CLOUD_APPWRITE_API_KEY`/`LOCAL_APPWRITE_API_KEY`. Создана полная документация в `docs/appwrite-migration.md`. Схема БД создана на локальном сервере через `bun run db:provision`. Мигрировано 1169 документов из 7 коллекций (students: 25, lessons: 54, attendance: 801, projects: 31, project_memberships: 11, project_selection_locks: 0, project_ai_reports: 247). Приложение переключено на локальный Appwrite (endpoint: https://aw.note-canopus.ts.net/v1, project ID: 6a16b1a80039cd5cbb93). Скрипт проверен через Biome.
+
 
 ## Known Issues
 
