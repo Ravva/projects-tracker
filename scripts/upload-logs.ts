@@ -16,8 +16,8 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import {
-  sanitizeLogs,
   generateSanitizationReport,
+  sanitizeLogs,
 } from "../src/lib/log-sanitizer";
 
 interface CliOptions {
@@ -154,7 +154,7 @@ async function findLogFiles(dir: string, baseDir: string): Promise<LogFile[]> {
         });
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Директория не существует или нет доступа
   }
 

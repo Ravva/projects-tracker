@@ -11,12 +11,12 @@
  * instant even with thousands of workspace dirs.
  */
 
-import * as fs from "fs";
-import * as path from "path";
-import { Session, Workspace } from "./types";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { warnCore } from "./log";
 import { parseSessionFile } from "./parser-vscode";
 import { parseCLIEventsFile } from "./parser-vscode-cli";
+import type { Session, Workspace } from "./types";
 
 export interface ParseResult {
   workspaces: Map<string, Workspace>;
@@ -363,7 +363,7 @@ export function saveCacheData(result: ParseResult, dirMetas: DirMetas): void {
       fs.writeFile(CACHE_META, metaJson, "utf-8", () => {});
     };
 
-    void import("worker_threads")
+    void import("node:worker_threads")
       .then(({ Worker }) => {
         try {
           const w = new Worker(path.join(__dirname, "cache-write-worker.js"), {

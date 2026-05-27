@@ -204,7 +204,7 @@ function compileHeuristic(
       .replaceAll(/^-|-$/g, "")
       .substring(0, 40) || "custom-rule";
 
-  const name = prompt.length > 60 ? prompt.substring(0, 57) + "..." : prompt;
+  const name = prompt.length > 60 ? `${prompt.substring(0, 57)}...` : prompt;
   const group = options?.group || guessGroup(prompt);
   const severity = options?.severity || "medium";
   const scope = options?.scope || guessScope(prompt);

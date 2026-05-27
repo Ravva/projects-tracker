@@ -5,15 +5,15 @@
 
 /* Config health scanning and scoring helpers. */
 
-import * as fs from "fs";
-import * as path from "path";
-import { ConfigFileInfo, HookCoverageInfo, Workspace } from "./types";
-import { fileUriToPath } from "./helpers";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import {
-  OVERSIZED_INSTRUCTION_LINES,
-  COPILOT_INSTRUCTION_MAX_CHARS,
   CLAUDE_MD_RECOMMENDED_LINES,
+  COPILOT_INSTRUCTION_MAX_CHARS,
+  OVERSIZED_INSTRUCTION_LINES,
 } from "./constants";
+import { fileUriToPath } from "./helpers";
+import type { ConfigFileInfo, HookCoverageInfo, Workspace } from "./types";
 
 interface FilePattern {
   relativePath: string;
@@ -705,7 +705,7 @@ export function buildFileTree(
     );
     for (const entry of entries) {
       if (lines.length >= maxEntries) {
-        lines.push(prefix + "...");
+        lines.push(`${prefix}...`);
         return;
       }
       const full = path.join(dir, entry);
@@ -715,8 +715,8 @@ export function buildFileTree(
       } catch {
         continue;
       }
-      lines.push(prefix + (isDir ? entry + "/" : entry));
-      if (isDir) walk(full, prefix + "  ", depth + 1);
+      lines.push(prefix + (isDir ? `${entry}/` : entry));
+      if (isDir) walk(full, `${prefix}  `, depth + 1);
     }
   }
 

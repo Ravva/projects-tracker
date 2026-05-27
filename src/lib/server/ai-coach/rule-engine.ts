@@ -13,19 +13,19 @@
  * feature in the Rule Editor page.
  */
 
-import {
+import { warnCore } from "./log";
+import { fillTemplate, parseRule, serializeRule } from "./rule-parser";
+import type {
+  AntiPattern,
   DetectionRule,
   DetectorEmission,
-  RulePreviewStats,
-  RuleEvalResult,
-  RuleTemplateVars,
-  AntiPattern,
   PracticeGroup,
+  RuleEvalResult,
+  RulePreviewStats,
+  RuleTemplateVars,
   Session,
   SessionRequest,
 } from "./types";
-import { parseRule, fillTemplate, serializeRule } from "./rule-parser";
-import { warnCore } from "./log";
 
 /* ---- Multi-layer rule storage ---- */
 
@@ -362,4 +362,4 @@ export function getRulesGrouped(): Record<PracticeGroup, DetectionRule[]> {
 }
 
 // Re-export for convenience
-export { serializeRule, parseRule, fillTemplate };
+export { fillTemplate, parseRule, serializeRule };

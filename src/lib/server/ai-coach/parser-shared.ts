@@ -5,14 +5,14 @@
 
 /* Shared parsing utilities used by all harness-specific parsers */
 
-import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
-import { CodeBlock, Session, SessionRequest, Workspace } from "./types";
-import { SessionSource } from "./cache";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+import type { SessionSource } from "./cache";
 import { classifyWorkType } from "./helpers";
 import { warnCore } from "./log";
 import { SessionSchema } from "./schemas";
+import type { CodeBlock, Session, SessionRequest, Workspace } from "./types";
 
 /* ---- Path safety ---- */
 
@@ -21,7 +21,7 @@ import { SessionSchema } from "./schemas";
  * contain path traversal sequences. Throws if the path is unsafe.
  */
 export function assertTrustedPath(filePath: string): void {
-  const normalized = path.resolve(filePath);
+  const normalized = path.resolve(/* turbopackIgnore: true */ filePath);
 
   // Reject path traversal
   const segments = filePath.replaceAll("\\", "/").split("/");
@@ -41,39 +41,76 @@ export function assertTrustedPath(filePath: string): void {
 function getTrustedRoots(): string[] {
   const roots: string[] = [];
   const home = process.env.HOME || process.env.USERPROFILE || "";
-  if (home) roots.push(path.resolve(home));
+  if (home) roots.push(path.resolve(/* turbopackIgnore: true */ home));
 
   // VS Code extension storage paths
   if (process.platform === "darwin") {
     if (home)
-      roots.push(path.resolve(home, "Library", "Application Support", "Code"));
+      roots.push(
+        path.resolve(
+          /* turbopackIgnore: true */ home,
+          "Library",
+          "Application Support",
+          "Code",
+        ),
+      );
     if (home)
       roots.push(
-        path.resolve(home, "Library", "Application Support", "Code - Insiders"),
+        path.resolve(
+          /* turbopackIgnore: true */ home,
+          "Library",
+          "Application Support",
+          "Code - Insiders",
+        ),
       );
   } else if (process.platform === "win32") {
     const appdata = process.env.APPDATA || "";
     if (appdata) {
-      roots.push(path.resolve(appdata, "Code"));
-      roots.push(path.resolve(appdata, "Code - Insiders"));
+      roots.push(path.resolve(/* turbopackIgnore: true */ appdata, "Code"));
+      roots.push(
+        path.resolve(/* turbopackIgnore: true */ appdata, "Code - Insiders"),
+      );
     }
   } else {
-    if (home) roots.push(path.resolve(home, ".config", "Code"));
-    if (home) roots.push(path.resolve(home, ".config", "Code - Insiders"));
+    if (home)
+      roots.push(
+        path.resolve(/* turbopackIgnore: true */ home, ".config", "Code"),
+      );
+    if (home)
+      roots.push(
+        path.resolve(
+          /* turbopackIgnore: true */ home,
+          ".config",
+          "Code - Insiders",
+        ),
+      );
   }
 
   // Standard session log locations
   if (home) {
-    roots.push(path.resolve(home, ".copilot"));
-    roots.push(path.resolve(home, ".claude"));
-    roots.push(path.resolve(home, ".codex"));
-    roots.push(path.resolve(home, ".local", "share", "opencode"));
-    roots.push(path.resolve(home, ".config", "github-copilot"));
+    roots.push(path.resolve(/* turbopackIgnore: true */ home, ".copilot"));
+    roots.push(path.resolve(/* turbopackIgnore: true */ home, ".claude"));
+    roots.push(path.resolve(/* turbopackIgnore: true */ home, ".codex"));
+    roots.push(
+      path.resolve(
+        /* turbopackIgnore: true */ home,
+        ".local",
+        "share",
+        "opencode",
+      ),
+    );
+    roots.push(
+      path.resolve(
+        /* turbopackIgnore: true */ home,
+        ".config",
+        "github-copilot",
+      ),
+    );
   }
 
   // OS temp directory (used by tests and VS Code temp storage)
   const tmpDir = os.tmpdir();
-  if (tmpDir) roots.push(path.resolve(tmpDir));
+  if (tmpDir) roots.push(path.resolve(/* turbopackIgnore: true */ tmpDir));
 
   return roots.filter((r) => r.length > 0);
 }
@@ -88,7 +125,7 @@ export const MAX_FILE_SIZE = 50 * 1024 * 1024;
  */
 export function readFileSafe(filePath: string): string | null {
   try {
-    const stat = fs.statSync(filePath);
+    const stat = fs.statSync(/* turbopackIgnore: true */ filePath);
     if (stat.size > MAX_FILE_SIZE) {
       warnCore(
         "parser",
@@ -100,7 +137,7 @@ export function readFileSafe(filePath: string): string | null {
     warnCore("parser", `Cannot stat file: ${filePath}`, e);
     return null;
   }
-  return fs.readFileSync(filePath, "utf-8");
+  return fs.readFileSync(/* turbopackIgnore: true */ filePath, "utf-8");
 }
 
 /** Shared prefetch cache: file path -> contents. Populated async, consumed sync by parsers. */
@@ -228,11 +265,12 @@ const EXT_TO_TECH: Record<string, string> = {
 };
 
 export function techFromPath(filePath: string): string {
-  const name = filePath.replaceAll("\\", "/").split("/").pop()!.toLowerCase();
+  const name =
+    filePath.replaceAll("\\", "/").split("/").pop()?.toLowerCase() ?? "";
   if (name === "dockerfile" || name.startsWith("dockerfile.")) return "Docker";
   if (name === "makefile" || name === "gnumakefile") return "Make";
   if (name === "cmakelists.txt") return "CMake";
-  const ext = name.includes(".") ? name.split(".").pop()! : "";
+  const ext = name.includes(".") ? (name.split(".").pop() ?? "") : "";
   return EXT_TO_TECH[ext] || "";
 }
 
@@ -248,14 +286,15 @@ export function shortPath(fullPath: string, workspaceName: string): string {
 
 export function extractCodeBlocks(text: string): CodeBlock[] {
   const blocks: CodeBlock[] = [];
-  let m: RegExpExecArray | null;
   const re = new RegExp(CODE_BLOCK_RE.source, "g");
-  while ((m = re.exec(text)) !== null) {
+  let m = re.exec(text);
+  while (m !== null) {
     let lang = (m[1] || "unknown").toLowerCase().trim();
     lang = LANG_ALIASES[lang] || lang;
     const code = m[2].trim();
     const loc = code ? code.split("\n").length : 0;
     blocks.push({ language: lang, loc });
+    m = re.exec(text);
   }
   return blocks;
 }

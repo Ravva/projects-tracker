@@ -11,18 +11,23 @@
  * We aggregate all events between consecutive user.message events into one SessionRequest.
  */
 
-import { Session, SessionRequest, CompactionEvent, ModelUsage } from "./types";
+import {
+  canonicalizeReasoningEffort,
+  extractReasoningEffortFromModelId,
+  normalizeModel,
+} from "./helpers";
 import {
   createRequest,
   createSession,
   detectDevcontainerFromRequests,
 } from "./parser-shared";
 import { readFile } from "./parser-vscode-files";
-import {
-  canonicalizeReasoningEffort,
-  extractReasoningEffortFromModelId,
-  normalizeModel,
-} from "./helpers";
+import type {
+  CompactionEvent,
+  ModelUsage,
+  Session,
+  SessionRequest,
+} from "./types";
 
 interface CLIEvent {
   type: string;

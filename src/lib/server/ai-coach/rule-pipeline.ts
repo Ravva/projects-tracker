@@ -16,6 +16,14 @@
  *   - **Pattern/fileType resolution** into the DSL evaluation context
  */
 
+import {
+  compileFilter,
+  compileTrigger,
+  evaluateExpression,
+  evaluateTemplate,
+} from "./dsl/index";
+import { warnCore } from "./log";
+import { getAllRules } from "./rule-engine";
 import type {
   DetectionRule,
   DetectorEmission,
@@ -23,14 +31,6 @@ import type {
   Session,
   SessionRequest,
 } from "./types";
-import {
-  compileFilter,
-  compileTrigger,
-  evaluateTemplate,
-  evaluateExpression,
-} from "./dsl/index";
-import { getAllRules } from "./rule-engine";
-import { warnCore } from "./log";
 
 /* ================================================================== */
 /*  Pipeline Definition                                               */
@@ -65,7 +65,7 @@ function mergeLineContinuations(rawLines: string[]): string[] {
   for (let i = 0; i < rawLines.length; i++) {
     let line = rawLines[i];
     while (line.endsWith("\\") && i + 1 < rawLines.length) {
-      line = line.slice(0, -1).trimEnd() + " " + rawLines[++i];
+      line = `${line.slice(0, -1).trimEnd()} ${rawLines[++i]}`;
     }
     lines.push(line);
   }

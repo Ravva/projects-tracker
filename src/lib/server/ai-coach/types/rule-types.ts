@@ -5,7 +5,7 @@
 
 /* Types for the data-driven rule engine that powers anti-pattern detection. */
 
-import { PracticeGroup } from "./analytics-types";
+import type { PracticeGroup } from "./analytics-types";
 
 /**
  * Where a rule was loaded from, in order of precedence (lowest to highest):

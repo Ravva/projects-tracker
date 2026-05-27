@@ -15,19 +15,19 @@
  * Parts have: id, sessionID, messageID, type (text|tool|step-start|step-finish), text, tool, callID, state, tokens, cost
  */
 
-import * as fs from "fs";
-import * as path from "path";
-import { Session, SessionRequest } from "./types";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import {
+  canonicalizeReasoningEffort,
+  extractReasoningEffortFromModelId,
+} from "./helpers";
 import {
   assertTrustedPath,
   createRequest,
   createSession,
   detectDevcontainerFromRequests,
 } from "./parser-shared";
-import {
-  canonicalizeReasoningEffort,
-  extractReasoningEffortFromModelId,
-} from "./helpers";
+import type { Session, SessionRequest } from "./types";
 
 interface OcSession {
   id: string;
@@ -95,19 +95,38 @@ export function findOpenCodeDirs(): string[] {
   const dirs: string[] = [];
 
   // macOS / Linux
-  const linuxPath = path.join(home, ".local", "share", "opencode", "storage");
-  if (fs.existsSync(linuxPath)) dirs.push(linuxPath);
+  const linuxPath = path.join(
+    /* turbopackIgnore: true */ home,
+    ".local",
+    "share",
+    "opencode",
+    "storage",
+  );
+  if (fs.existsSync(/* turbopackIgnore: true */ linuxPath))
+    dirs.push(linuxPath);
 
   // Windows (Roaming AppData, standard for Electron)
-  const appData = process.env.APPDATA || path.join(home, "AppData", "Roaming");
-  const winPath = path.join(appData, "opencode", "storage");
-  if (fs.existsSync(winPath)) dirs.push(winPath);
+  const appData =
+    process.env.APPDATA ||
+    path.join(/* turbopackIgnore: true */ home, "AppData", "Roaming");
+  const winPath = path.join(
+    /* turbopackIgnore: true */ appData,
+    "opencode",
+    "storage",
+  );
+  if (fs.existsSync(/* turbopackIgnore: true */ winPath)) dirs.push(winPath);
 
   // Windows Local AppData
   const localAppData =
-    process.env.LOCALAPPDATA || path.join(home, "AppData", "Local");
-  const winLocalPath = path.join(localAppData, "opencode", "storage");
-  if (fs.existsSync(winLocalPath)) dirs.push(winLocalPath);
+    process.env.LOCALAPPDATA ||
+    path.join(/* turbopackIgnore: true */ home, "AppData", "Local");
+  const winLocalPath = path.join(
+    /* turbopackIgnore: true */ localAppData,
+    "opencode",
+    "storage",
+  );
+  if (fs.existsSync(/* turbopackIgnore: true */ winLocalPath))
+    dirs.push(winLocalPath);
 
   return dirs;
 }
@@ -115,7 +134,9 @@ export function findOpenCodeDirs(): string[] {
 function readJsonSafe<T>(filePath: string): T | null {
   try {
     assertTrustedPath(filePath);
-    return JSON.parse(fs.readFileSync(filePath, "utf-8")) as T;
+    return JSON.parse(
+      fs.readFileSync(/* turbopackIgnore: true */ filePath, "utf-8"),
+    ) as T;
   } catch {
     return null;
   }
@@ -124,10 +145,14 @@ function readJsonSafe<T>(filePath: string): T | null {
 function readAllJsonInDir<T>(dir: string): T[] {
   const results: T[] = [];
   try {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const entries = fs.readdirSync(/* turbopackIgnore: true */ dir, {
+      withFileTypes: true,
+    });
     for (const e of entries) {
       if (!e.isFile() || !e.name.endsWith(".json")) continue;
-      const data = readJsonSafe<T>(path.join(dir, e.name));
+      const data = readJsonSafe<T>(
+        path.join(/* turbopackIgnore: true */ dir, e.name),
+      );
       if (data) results.push(data);
     }
   } catch {
@@ -264,7 +289,11 @@ function indexPartsByMessage(
 ): Map<string, OcPart[]> {
   const partsByMsg = new Map<string, OcPart[]>();
   for (const msg of rawMessages) {
-    const partDir = path.join(storageDir, "part", msg.id);
+    const partDir = path.join(
+      /* turbopackIgnore: true */ storageDir,
+      "part",
+      msg.id,
+    );
     const parts = readAllJsonInDir<OcPart>(partDir);
     if (parts.length > 0) partsByMsg.set(msg.id, parts);
   }
@@ -328,7 +357,11 @@ function parseOpenCodeSession(
 ): Session | null {
   if (!rawSession.id) return null;
 
-  const msgDir = path.join(storageDir, "message", rawSession.id);
+  const msgDir = path.join(
+    /* turbopackIgnore: true */ storageDir,
+    "message",
+    rawSession.id,
+  );
   const rawMessages = readAllJsonInDir<OcMessage>(msgDir);
   rawMessages.sort((a, b) => (a.time?.created || 0) - (b.time?.created || 0));
   if (rawMessages.length === 0) return null;
@@ -377,7 +410,11 @@ function parseOpenCodeSession(
 
 export function parseOpenCodeSessions(storageDir: string): Session[] {
   const sessions: Session[] = [];
-  const sessionDir = path.join(storageDir, "session", "global");
+  const sessionDir = path.join(
+    /* turbopackIgnore: true */ storageDir,
+    "session",
+    "global",
+  );
   const rawSessions = readAllJsonInDir<OcSession>(sessionDir);
 
   for (const rawSession of rawSessions) {

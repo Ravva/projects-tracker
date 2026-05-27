@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { z } from "zod";
-import type { Session } from "./types";
 import { warnCore } from "./log";
+import type { Session } from "./types";
 
 /* ---- Sub-schemas ---- */
 

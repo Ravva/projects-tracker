@@ -21,6 +21,24 @@
  *   const preview = RuleEngine.testMarkdown(markdown, reqs, sessions);
  */
 
+import { runDetectors, runEmitters } from "./detector-registry";
+import {
+  createRuleFromMarkdown,
+  evaluateRule,
+  getAllRules,
+  getRule,
+  getRulePreviewStats,
+  updateRuleThresholds,
+} from "./rule-engine";
+import {
+  getPersonalRulesDir,
+  getProjectRulesDir,
+  getRuleLayerInfo,
+  loadPersonalRules,
+  loadProjectRules,
+  registerAllBuiltinMetrics,
+  registerAllBuiltinRules,
+} from "./rule-loader";
 import type {
   AntiPattern,
   DetectionRule,
@@ -29,24 +47,6 @@ import type {
   Session,
   SessionRequest,
 } from "./types";
-import {
-  getAllRules,
-  getRule,
-  getRulePreviewStats,
-  evaluateRule,
-  createRuleFromMarkdown,
-  updateRuleThresholds,
-} from "./rule-engine";
-import {
-  registerAllBuiltinRules,
-  registerAllBuiltinMetrics,
-  loadPersonalRules,
-  loadProjectRules,
-  getRuleLayerInfo,
-  getPersonalRulesDir,
-  getProjectRulesDir,
-} from "./rule-loader";
-import { runDetectors, runEmitters } from "./detector-registry";
 
 export const RuleEngine = {
   /** Load built-in rules + metrics + personal rules. Safe to call multiple times. */

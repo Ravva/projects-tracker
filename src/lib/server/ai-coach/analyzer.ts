@@ -5,53 +5,53 @@
 
 /* Analyzer facade and warm-up helpers. */
 
-import * as path from "path";
-import {
-  Session,
-  SessionRequest,
-  DateFilter,
-  DailyActivity,
-  HourlyDistribution,
-  HeatmapData,
-  CodeProductionData,
-  ConsumptionData,
+import * as path from "node:path";
+import { AnalyzerBase } from "./analyzer-base";
+import { ConfigAnalyzer } from "./analyzer-config";
+import { ConsumptionAnalyzer } from "./analyzer-consumption";
+import { ContextAnalyzer } from "./analyzer-context";
+import { DashboardAnalyzer } from "./analyzer-dashboard";
+import { FlowAnalyzer } from "./analyzer-flow";
+import { ImageAnalyzer, type ImageGalleryData } from "./analyzer-images";
+import { InsightsAnalyzer } from "./analyzer-insights";
+import { PatternsAnalyzer } from "./analyzer-patterns";
+import { ProductionAnalyzer } from "./analyzer-production";
+import { TimelineAnalyzer } from "./analyzer-timeline";
+import { WorkflowAnalyzer } from "./analyzer-workflows";
+import { errorCore, infoCore, warnCore } from "./log";
+import type {
+  AiCreditBurndownData,
+  AiCreditData,
+  AntiPatternData,
   BurndownConfig,
   BurndownData,
-  AiCreditData,
-  AiCreditBurndownData,
-  TokenCoverageData,
-  DayTimeline,
-  SessionList,
-  WorkspaceBreakdown,
-  RecommendationResult,
-  AntiPatternData,
-  WorkLifeBalanceResult,
-  StatsResult,
-  HarnessComparisonData,
-  WorkflowOptimizationData,
-  ConfigHealthData,
-  FlowStateData,
-  Workspace,
   CalendarActivityData,
-  ProjectOverviewData,
+  CodeProductionData,
+  ConfigHealthData,
+  ConsumptionData,
   ContextManagementData,
+  DailyActivity,
+  DateFilter,
+  DayTimeline,
+  FlowStateData,
+  HarnessComparisonData,
+  HeatmapData,
+  HourlyDistribution,
   InsightsData,
   ParserCoverageData,
   ParserPreviewData,
+  ProjectOverviewData,
+  RecommendationResult,
+  Session,
+  SessionList,
+  SessionRequest,
+  StatsResult,
+  TokenCoverageData,
+  WorkflowOptimizationData,
+  WorkLifeBalanceResult,
+  Workspace,
+  WorkspaceBreakdown,
 } from "./types";
-import { DashboardAnalyzer } from "./analyzer-dashboard";
-import { ProductionAnalyzer } from "./analyzer-production";
-import { ConsumptionAnalyzer } from "./analyzer-consumption";
-import { TimelineAnalyzer } from "./analyzer-timeline";
-import { PatternsAnalyzer } from "./analyzer-patterns";
-import { WorkflowAnalyzer } from "./analyzer-workflows";
-import { ConfigAnalyzer } from "./analyzer-config";
-import { FlowAnalyzer } from "./analyzer-flow";
-import { ContextAnalyzer } from "./analyzer-context";
-import { InsightsAnalyzer } from "./analyzer-insights";
-import { ImageAnalyzer, ImageGalleryData } from "./analyzer-images";
-import { AnalyzerBase } from "./analyzer-base";
-import { errorCore, infoCore, warnCore } from "./log";
 
 export class Analyzer {
   private readonly dashboard: DashboardAnalyzer;
@@ -175,7 +175,7 @@ export class Analyzer {
   }> {
     let WorkerClass: typeof import("worker_threads").Worker;
     try {
-      ({ Worker: WorkerClass } = await import("worker_threads"));
+      ({ Worker: WorkerClass } = await import("node:worker_threads"));
     } catch {
       throw new Error("worker_threads not available");
     }

@@ -5,40 +5,40 @@
 
 /* Parser orchestration and cache-backed entry points. */
 
-import * as path from "path";
-import * as fs from "fs";
-import { runtimeDebug } from "./runtime-debug";
-import { Workspace } from "./types";
-import { ParseContext, prefetchCache } from "./parser-shared";
-import {
-  getMemoryCache,
-  setMemoryCache,
-  computeDirMetasAsync,
-  loadCacheData,
-  saveCacheData,
-  findStaleDirs,
-  clearCache,
-  stripSessionsForMemory,
-} from "./cache";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import type { DirMetas, ParseResult, SessionSource } from "./cache";
 import {
+  clearCache,
+  computeDirMetasAsync,
+  findStaleDirs,
+  getMemoryCache,
+  loadCacheData,
+  saveCacheData,
+  setMemoryCache,
+  stripSessionsForMemory,
+} from "./cache";
+import { warnCore } from "./log";
+import {
+  collectExternalHarnessesAsync,
+  collectExternalHarnessesSync,
+  EXTERNAL_HARNESS_SET,
+} from "./parser-harnesses";
+import { type ParseContext, prefetchCache } from "./parser-shared";
+import {
   findVsCodeDirs,
-  scanVsCodeDirs,
+  harnessFromPath,
   processWorkspaceEntry,
   processWorkspaceEntryAsync,
-  harnessFromPath,
+  scanVsCodeDirs,
 } from "./parser-vscode";
 import {
   findXcodeDirs,
   parseXcodeDatabases,
   parseXcodeDatabasesAsync,
 } from "./parser-xcode";
-import {
-  collectExternalHarnessesAsync,
-  collectExternalHarnessesSync,
-  EXTERNAL_HARNESS_SET,
-} from "./parser-harnesses";
-import { warnCore } from "./log";
+import { runtimeDebug } from "./runtime-debug";
+import type { Workspace } from "./types";
 
 export type { ParseResult };
 export { clearCache };
@@ -93,7 +93,7 @@ function computeTotalToolCalls(sessions: import("./types").Session[]): number {
 function computeTotalImages(sessions: import("./types").Session[]): number {
   let total = 0;
   for (const s of sessions)
-    for (const r of s.requests) total += r.variableKinds["image"] || 0;
+    for (const r of s.requests) total += r.variableKinds.image || 0;
   return total;
 }
 function computeTotalFilesEdited(
@@ -491,7 +491,7 @@ async function processWorkspaces(
       for (const req of ctx.sessions[si].requests) {
         for (const block of req.aiCode) runningLoc += block.loc;
         runningToolCalls += req.toolsUsed.length;
-        runningImages += req.variableKinds["image"] || 0;
+        runningImages += req.variableKinds.image || 0;
         for (const f of req.editedFiles) {
           if (!seenFiles.has(f)) {
             seenFiles.add(f);
@@ -890,7 +890,7 @@ export async function parseAllLogsViaWorker(
 ): Promise<ParseResult> {
   let forkFn: typeof import("child_process").fork;
   try {
-    ({ fork: forkFn } = await import("child_process"));
+    ({ fork: forkFn } = await import("node:child_process"));
   } catch {
     runtimeDebug("parser", "child-process-unavailable");
     throw new Error("child process parsing is unavailable on this runtime");

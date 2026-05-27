@@ -3,15 +3,15 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SessionRequest, PracticeGroup } from "../types";
 import { isoWeek } from "../helpers";
+import type { PracticeGroup, SessionRequest } from "../types";
 
 function promptQualityPenalty(request: SessionRequest): number {
   let penalty = 0;
   if (request.messageLength < 30 && request.messageLength > 0) penalty += 1;
   if (
     request.referencedFiles.length === 0 &&
-    !(request.variableKinds["file"] > 0) &&
+    !(request.variableKinds.file > 0) &&
     request.editedFiles.length === 0
   )
     penalty += 0.5;
@@ -80,7 +80,7 @@ export function computeWeeklyTrend(reqs: SessionRequest[]): {
     if (r.messageLength < 30 && r.messageLength > 0) count++;
     if (
       r.referencedFiles.length === 0 &&
-      !(r.variableKinds["file"] > 0) &&
+      !(r.variableKinds.file > 0) &&
       r.editedFiles.length === 0
     )
       count++;
@@ -112,7 +112,7 @@ export function computeWeeklyScores(reqs: SessionRequest[]): {
     if (!r.timestamp) continue;
     const week = isoWeek(new Date(r.timestamp));
     if (!weekReqs.has(week)) weekReqs.set(week, []);
-    weekReqs.get(week)!.push(r);
+    weekReqs.get(week)?.push(r);
   }
 
   const sortedWeeks = Array.from(weekReqs.keys()).sort();

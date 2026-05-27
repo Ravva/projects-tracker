@@ -5,7 +5,7 @@
 
 /* Warm-up worker entry point. */
 
-import { parentPort } from "worker_threads";
+import { parentPort } from "node:worker_threads";
 import { Analyzer } from "./analyzer";
 import type { Session, Workspace } from "./types";
 

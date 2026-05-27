@@ -5,4 +5,4 @@
 
 /* Barrel re-export — rule-driven detection lives in detector-registry.ts */
 
-export { computeWeeklyTrend, computeWeeklyScores } from "./detectors/scoring";
+export { computeWeeklyScores, computeWeeklyTrend } from "./detectors/scoring";

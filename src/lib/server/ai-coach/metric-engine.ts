@@ -26,15 +26,15 @@
  *   "{{messageText | truncate:80}}" ({{messageLength}} chars)
  */
 
-import type { DetectorEmission } from "./types/rule-types";
 import {
   compileFilter,
   compileTrigger,
-  parseAggregation,
   computeAggregation,
   evaluateTemplate,
+  parseAggregation,
 } from "./dsl/index";
 import { fillTemplate } from "./rule-parser";
+import type { DetectorEmission } from "./types/rule-types";
 
 /* ================================================================== */
 /*  Metric Definition (parsed from .metric.md)                        */
@@ -630,7 +630,7 @@ function parseTestCases(body: string): TestCase[] {
   // Support YAML-like list format:
   // - input: { field: value }
   //   expect: flagged
-  const blocks = ("\n" + section).split(/\n\s*-\s+input:/);
+  const blocks = `\n${section}`.split(/\n\s*-\s+input:/);
   for (let i = 1; i < blocks.length; i++) {
     const block = blocks[i];
     try {

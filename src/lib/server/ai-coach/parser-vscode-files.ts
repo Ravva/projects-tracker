@@ -5,10 +5,10 @@
 
 /* File reconstruction and workspace metadata helpers for VS Code session parsing. */
 
-import * as fs from "fs";
-import { assertTrustedPath, prefetchCache } from "./parser-shared";
+import * as fs from "node:fs";
 import { fileUriToPath } from "./helpers";
 import { debugCore, warnCore } from "./log";
+import { assertTrustedPath, prefetchCache } from "./parser-shared";
 
 export function readFile(fpath: string): string {
   assertTrustedPath(fpath);
@@ -67,23 +67,29 @@ export function stripImageData(raw: string): string {
   const parts: string[] = [];
   let lastEnd = 0;
   const kindRe = /"kind"\s*:\s*"image"/g;
-  let m: RegExpExecArray | null;
-
-  while ((m = kindRe.exec(raw)) !== null) {
+  let m = kindRe.exec(raw);
+  while (m !== null) {
     const searchStart = m.index + m[0].length;
     const searchSlice = raw.slice(searchStart, searchStart + 200);
     const valMatch = searchSlice.match(/"value"\s*:/);
-    if (!valMatch || valMatch.index === undefined) continue;
+    if (!valMatch || valMatch.index === undefined) {
+      m = kindRe.exec(raw);
+      continue;
+    }
 
     const colonEnd = searchStart + valMatch.index + valMatch[0].length;
     let valStart = colonEnd;
     while (valStart < raw.length && " \t\n\r".includes(raw[valStart]))
       valStart++;
-    if (raw[valStart] !== "{") continue;
+    if (raw[valStart] !== "{") {
+      m = kindRe.exec(raw);
+      continue;
+    }
 
     parts.push(raw.slice(lastEnd, valStart));
     parts.push('"[stripped]"');
     lastEnd = consumeBalancedObject(raw, valStart);
+    m = kindRe.exec(raw);
   }
 
   if (parts.length === 0) return raw;
@@ -150,7 +156,7 @@ function setAtPath(obj: JsonValue, keys: PathKey[], value: JsonValue): void {
     if (typeof key === "number" && Array.isArray(current)) {
       while (current.length <= key) current.push(null);
       if (current[key] === null) current[key] = {};
-      current = current[key]!;
+      current = current[key] ?? {};
     } else if (
       typeof current === "object" &&
       current !== null &&
@@ -237,10 +243,7 @@ export function reconstructFromJsonl(
       } else if (entry.kind === 2) {
         appendAtPath(state, entry.k || [], entry.v as JsonValue);
       }
-    } catch {
-      // Skip malformed lines, don't abort the entire file
-      continue;
-    }
+    } catch {}
   }
   if (Object.keys(state).length === 0) return null;
   // Restore the initial mode if it was overwritten by patches

@@ -10,14 +10,14 @@
  * Re-exports schema and primitives for discovery UIs.
  */
 
+import { evaluate } from "./interpreter";
 import { lex } from "./lexer";
 import { parse } from "./parser";
-import { evaluate } from "./interpreter";
-import type { FilterFn, TriggerFn, MetricAggregation } from "./types";
+import type { FilterFn, MetricAggregation, TriggerFn } from "./types";
 
-export { FIELD_SCHEMA, METRIC_PRIMITIVES, FUNCTION_CATALOG } from "./schema";
-export type { FieldInfo, MetricPrimitive, FunctionInfo } from "./schema";
-export type { ASTNode, FilterFn, TriggerFn, MetricAggregation } from "./types";
+export type { FieldInfo, FunctionInfo, MetricPrimitive } from "./schema";
+export { FIELD_SCHEMA, FUNCTION_CATALOG, METRIC_PRIMITIVES } from "./schema";
+export type { ASTNode, FilterFn, MetricAggregation, TriggerFn } from "./types";
 
 /**
  * Evaluate a DSL expression string against a context object.
@@ -100,7 +100,7 @@ export function parseAggregation(expr: string): MetricAggregation {
       type: funcMatch[1].toLowerCase() as MetricAggregation["type"],
       field: funcMatch[2],
     };
-    if (funcMatch[3]) result.percentile = Number.parseInt(funcMatch[3]);
+    if (funcMatch[3]) result.percentile = Number.parseInt(funcMatch[3], 10);
     return result;
   }
 
@@ -194,12 +194,12 @@ export function evaluateTemplate(
       if (filterName === "truncate" && typeof result === "string") {
         const maxLen = Number.parseInt(filterArg, 10) || 80;
         if (result.length > maxLen) {
-          result = result.substring(0, maxLen) + "...";
+          result = `${result.substring(0, maxLen)}...`;
         }
       } else if (filterName === "clip" && typeof result === "string") {
         // Always clip to N chars and append "..." (even if string is shorter)
         const maxLen = Number.parseInt(filterArg, 10) || 80;
-        result = result.substring(0, maxLen) + "...";
+        result = `${result.substring(0, maxLen)}...`;
       }
 
       return String(result);

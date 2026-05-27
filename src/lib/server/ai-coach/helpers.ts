@@ -5,8 +5,8 @@
 
 /* Shared date and model helpers used across analyzer modules */
 
-import { WorkType } from "./types";
 import { MODEL_MULTIPLIERS, MODEL_TOKEN_RATES } from "./constants";
+import type { WorkType } from "./types";
 
 /* ---- File-URI helper ---- */
 
@@ -68,8 +68,8 @@ export function isoWeek(d: Date): string {
 export function fillDayRange(days: string[]): string[] {
   if (days.length <= 1) return days;
   const sorted = [...days].sort();
-  const start = new Date(sorted[0] + "T00:00:00");
-  const end = new Date(sorted[sorted.length - 1] + "T00:00:00");
+  const start = new Date(`${sorted[0]}T00:00:00`);
+  const end = new Date(`${sorted[sorted.length - 1]}T00:00:00`);
   const result: string[] = [];
   for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     result.push(toDateStr(d.getTime()));

@@ -22,7 +22,7 @@ const SENSITIVE_PATTERNS = [
   {
     name: "Generic API Key",
     pattern:
-      /\b[Aa][Pp][Ii][-_]?[Kk][Ee][Yy]\s*[:=]\s*['"]?([A-Za-z0-9_\-]{20,})/gi,
+      /\b[Aa][Pp][Ii][-_]?[Kk][Ee][Yy]\s*[:=]\s*['"]?([A-Za-z0-9_-]{20,})/gi,
     replacement: "api_key=[REDACTED_API_KEY]",
   },
   {
@@ -122,12 +122,12 @@ const SENSITIVE_PATTERNS = [
   },
   {
     name: "Unix Home Path",
-    pattern: /\/home\/[^\s\/]+/gi,
+    pattern: /\/home\/[^\s/]+/gi,
     replacement: "/home/[REDACTED_USER]",
   },
   {
     name: "Mac Home Path",
-    pattern: /\/Users\/[^\s\/]+/gi,
+    pattern: /\/Users\/[^\s/]+/gi,
     replacement: "/Users/[REDACTED_USER]",
   },
 

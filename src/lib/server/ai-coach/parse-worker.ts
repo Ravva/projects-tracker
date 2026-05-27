@@ -8,9 +8,9 @@
  * in an isolated process with its own heap limit.
  */
 
-import { parentPort } from "worker_threads";
+import { parentPort } from "node:worker_threads";
 import { stripSessionsForMemory } from "./cache";
-import { parseAllLogsAsyncDetailed, type LoadProgress } from "./parser";
+import { type LoadProgress, parseAllLogsAsyncDetailed } from "./parser";
 import { installRuntimeDebugHooks, runtimeDebug } from "./runtime-debug";
 
 interface ParseWorkerRequest {

@@ -5,8 +5,8 @@
 
 /* Persistent runtime logging for debugging extension-host restarts and worker stalls. */
 
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 const DEBUG_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || "",
@@ -85,7 +85,7 @@ export function runtimeDebug(
     } catch {
       /* file doesn't exist yet — that's fine */
     }
-    fs.appendFileSync(DEBUG_LOG_FILE, formatted + "\n", "utf-8");
+    fs.appendFileSync(DEBUG_LOG_FILE, `${formatted}\n`, "utf-8");
     if (outputHook) outputHook(formatted);
   } catch {
     // Best-effort only.

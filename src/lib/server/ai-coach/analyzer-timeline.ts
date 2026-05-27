@@ -5,32 +5,32 @@
 
 /* Timeline + session detail analytics */
 
+import { AnalyzerBase } from "./analyzer-base";
 import {
-  Session,
-  SessionRequest,
+  classifyWorkType,
+  endOfDay,
+  isoWeek,
+  startOfDay,
+  toDateStr,
+} from "./helpers";
+import type {
   DateFilter,
   DayTimeline,
-  TimelineSession,
-  TimelineRequest,
+  Session,
   SessionList,
   SessionListItem,
+  SessionRequest,
+  TimelineRequest,
+  TimelineSession,
   WorkLifeBalanceResult,
 } from "./types";
-import {
-  toDateStr,
-  startOfDay,
-  endOfDay,
-  classifyWorkType,
-  isoWeek,
-} from "./helpers";
-import { AnalyzerBase } from "./analyzer-base";
 
 export class TimelineAnalyzer extends AnalyzerBase {
   getDayTimeline(dateStr?: string, mode?: string, f?: DateFilter): DayTimeline {
     const allSessions = this.filteredSessions(f);
     const sortedDates = this.getSortedActiveDates(allSessions);
     const targetDate = this.resolveTimelineDate(dateStr, sortedDates);
-    const dayStartTs = startOfDay(new Date(targetDate + "T00:00:00").getTime());
+    const dayStartTs = startOfDay(new Date(`${targetDate}T00:00:00`).getTime());
     const dayEndTs = endOfDay(dayStartTs);
     const tlSessions = allSessions
       .map((session) =>
@@ -164,10 +164,13 @@ export class TimelineAnalyzer extends AnalyzerBase {
     const firstMsg = dayReqs[0].messageText || "";
     const sessionName =
       firstMsg.length > 60
-        ? firstMsg.substring(0, 60) + "..."
+        ? `${firstMsg.substring(0, 60)}...`
         : firstMsg || "Untitled";
-    const requests: TimelineRequest[] = dayReqs.map((r) => ({
-      timestamp: r.timestamp!,
+    const timedDayReqs = dayReqs.filter(
+      (r): r is SessionRequest & { timestamp: number } => r.timestamp != null,
+    );
+    const requests: TimelineRequest[] = timedDayReqs.map((r) => ({
+      timestamp: r.timestamp,
       messageText: r.messageText,
       responseText: r.responseText,
       messageLength: r.messageLength,
@@ -181,7 +184,7 @@ export class TimelineAnalyzer extends AnalyzerBase {
       loc: this.requestLoc(r),
       workType: r.workType || classifyWorkType(r.messageText),
     }));
-    const timestamps = dayReqs.map((r) => r.timestamp!);
+    const timestamps = timedDayReqs.map((r) => r.timestamp);
 
     return {
       sessionId: session.sessionId,
@@ -320,8 +323,8 @@ function computeStreaks(sortedDays: string[]) {
       currentStreak = 1;
       continue;
     }
-    const prev = new Date(sortedDays[i - 1] + "T00:00:00");
-    const curr = new Date(sortedDays[i] + "T00:00:00");
+    const prev = new Date(`${sortedDays[i - 1]}T00:00:00`);
+    const curr = new Date(`${sortedDays[i]}T00:00:00`);
     const gap = Math.round((curr.getTime() - prev.getTime()) / 86400000);
     if (gap === 1) {
       currentStreak++;
@@ -342,8 +345,8 @@ function computeDaySpans(reqs: SessionRequest[]) {
     const dk = toDateStr(r.timestamp);
     if (!dayGroups.has(dk)) dayGroups.set(dk, []);
     dayGroups
-      .get(dk)!
-      .push(
+      .get(dk)
+      ?.push(
         new Date(r.timestamp).getHours() +
           new Date(r.timestamp).getMinutes() / 60,
       );

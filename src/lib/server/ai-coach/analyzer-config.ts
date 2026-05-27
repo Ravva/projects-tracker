@@ -6,34 +6,34 @@
 /* Context health analyzer -- scans workspaces for context files,
    scores progressive disclosure, instruction quality, and hook coverage */
 
-import * as fs from "fs";
-import * as path from "path";
-import {
-  Session,
-  DateFilter,
-  Workspace,
-  AntiPattern,
-  OccurrenceDetail,
-  ConfigHealthData,
-  WorkspaceConfigHealth,
-  ContextProvisionScore,
-  AgenticReadinessScore,
-  AgenticReadinessSignal,
-} from "./types";
-import { toDateStr } from "./helpers";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { AnalyzerBase } from "./analyzer-base";
 import {
+  analyzeHookCoverage,
+  buildFileTree,
+  computeInstructionQualityScore,
+  computeProgressiveDisclosureScore,
+  generateWorkspaceSuggestions,
+  readSnippet,
   resolveWorkspaceRoot,
+  safeFileExists,
   scanConfigFiles,
   scanPersonalSkillFiles,
-  analyzeHookCoverage,
-  computeProgressiveDisclosureScore,
-  computeInstructionQualityScore,
-  generateWorkspaceSuggestions,
-  safeFileExists,
-  buildFileTree,
-  readSnippet,
 } from "./config-health-helpers";
+import { toDateStr } from "./helpers";
+import type {
+  AgenticReadinessScore,
+  AgenticReadinessSignal,
+  AntiPattern,
+  ConfigHealthData,
+  ContextProvisionScore,
+  DateFilter,
+  OccurrenceDetail,
+  Session,
+  Workspace,
+  WorkspaceConfigHealth,
+} from "./types";
 
 export class ConfigAnalyzer extends AnalyzerBase {
   private workspaces: Map<string, Workspace>;
@@ -314,7 +314,7 @@ export class ConfigAnalyzer extends AnalyzerBase {
           prev.lastActivity = workspace.lastActivity;
         }
         if (workspace.harness !== prev.harness) {
-          prev.harness = prev.harness + ", " + workspace.harness;
+          prev.harness = `${prev.harness}, ${workspace.harness}`;
         }
         continue;
       }
@@ -504,8 +504,8 @@ export class ConfigAnalyzer extends AnalyzerBase {
         byHarness.set(h, []);
         sessionsByHarness.set(h, []);
       }
-      sessionsByHarness.get(h)!.push(s);
-      byHarness.get(h)!.push(...s.requests.filter((r) => reqs.includes(r)));
+      sessionsByHarness.get(h)?.push(s);
+      byHarness.get(h)?.push(...s.requests.filter((r) => reqs.includes(r)));
     }
 
     for (const [harness, hReqs] of byHarness) {
@@ -514,7 +514,7 @@ export class ConfigAnalyzer extends AnalyzerBase {
       const hSessions = sessionsByHarness.get(harness) ?? [];
 
       const withFileRefs = hReqs.filter(
-        (r) => r.referencedFiles.length > 0 || r.variableKinds["file"] > 0,
+        (r) => r.referencedFiles.length > 0 || r.variableKinds.file > 0,
       ).length;
       const withCustomInstructions = hReqs.filter(
         (r) => r.customInstructions.length > 0,
@@ -528,7 +528,7 @@ export class ConfigAnalyzer extends AnalyzerBase {
           r.referencedFiles.length +
           r.customInstructions.length +
           r.skillsUsed.length +
-          (r.variableKinds["file"] > 0 ? 1 : 0)
+          (r.variableKinds.file > 0 ? 1 : 0)
         );
       }, 0);
       const avgContextItems = totalContextItems / hReqs.length;

@@ -15,21 +15,21 @@
  * which override built-in rules (by matching on rule ID).
  */
 
-import * as fs from "fs";
-import { BUILTIN_RULES, BUILTIN_METRICS } from "./rules-data";
-import * as path from "path";
-import * as os from "os";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+import { warnCore } from "./log";
+import type { MetricDefinition } from "./metric-engine";
+import { clearMetrics, parseMetric, registerMetric } from "./metric-engine";
 import {
+  clearLayerRules,
+  loadBuiltinRules,
   registerBuiltinRuleSource,
   registerPersonalRuleSource,
   registerProjectRuleSource,
-  clearLayerRules,
-  loadBuiltinRules,
 } from "./rule-engine";
-import { parseMetric, registerMetric, clearMetrics } from "./metric-engine";
-import type { MetricDefinition } from "./metric-engine";
-import { warnCore } from "./log";
 import { hashContent, type TrustGate, type TrustLayer } from "./rule-trust";
+import { BUILTIN_METRICS, BUILTIN_RULES } from "./rules-data";
 
 let defaultTrustGate: TrustGate | undefined;
 export function setDefaultTrustGate(gate: TrustGate | undefined): void {

@@ -21,7 +21,7 @@
  *   args       := expr (',' expr)*
  */
 
-import { Token, TokenType, ASTNode } from "./types";
+import { type ASTNode, type Token, TokenType } from "./types";
 
 export class ParseError extends Error {
   constructor(

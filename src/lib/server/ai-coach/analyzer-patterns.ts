@@ -5,22 +5,22 @@
 
 /* Recommendations + anti-pattern detection analytics */
 
-import {
-  Session,
-  SessionRequest,
-  DateFilter,
-  RecommendationResult,
+import { AnalyzerBase } from "./analyzer-base";
+import { LONG_SESSION_REQS } from "./constants";
+import { getDetectorGroupCounts, runDetectors } from "./detector-registry";
+import { computeWeeklyScores, computeWeeklyTrend } from "./detectors";
+import { modelMultiplier, normalizeModel, toDateStr } from "./helpers";
+import type {
   AntiPatternData,
-  PracticeGroup,
+  DateFilter,
   GroupScore,
+  PracticeGroup,
   ProjectOverviewData,
   ProjectOverviewItem,
+  RecommendationResult,
+  Session,
+  SessionRequest,
 } from "./types";
-import { toDateStr, normalizeModel, modelMultiplier } from "./helpers";
-import { LONG_SESSION_REQS } from "./constants";
-import { AnalyzerBase } from "./analyzer-base";
-import { computeWeeklyTrend, computeWeeklyScores } from "./detectors";
-import { getDetectorGroupCounts, runDetectors } from "./detector-registry";
 
 function scoreToStatus(
   score: number,
@@ -211,8 +211,8 @@ export class PatternsAnalyzer extends AnalyzerBase {
   private checkFeatureBreadth(reqs: SessionRequest[]): RecommendationResult {
     const features = new Set<string>();
     for (const r of reqs) {
-      if (r.agentName) features.add("agent:" + r.agentName);
-      if (r.slashCommand) features.add("slash:" + r.slashCommand);
+      if (r.agentName) features.add(`agent:${r.agentName}`);
+      if (r.slashCommand) features.add(`slash:${r.slashCommand}`);
       if (r.toolsUsed.length > 0) features.add("tools");
       if (r.editedFiles.length > 0) features.add("edits");
       if (r.referencedFiles.length > 0) features.add("file-refs");
@@ -345,7 +345,7 @@ export class PatternsAnalyzer extends AnalyzerBase {
 
   private checkFileContextUsage(reqs: SessionRequest[]): RecommendationResult {
     const withRefs = reqs.filter(
-      (r) => r.referencedFiles.length > 0 || r.variableKinds["file"] > 0,
+      (r) => r.referencedFiles.length > 0 || r.variableKinds.file > 0,
     ).length;
     const ratio = reqs.length > 0 ? withRefs / reqs.length : 0;
     const score =
@@ -632,7 +632,7 @@ export class PatternsAnalyzer extends AnalyzerBase {
       if (!request.timestamp) continue;
       const dayKey = toDateStr(request.timestamp);
       if (!dayGroups.has(dayKey)) dayGroups.set(dayKey, []);
-      dayGroups.get(dayKey)!.push(request.timestamp);
+      dayGroups.get(dayKey)?.push(request.timestamp);
     }
 
     let totalMinutes = 0;

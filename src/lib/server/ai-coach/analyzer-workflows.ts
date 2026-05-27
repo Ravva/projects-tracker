@@ -5,9 +5,13 @@
 
 /* Workflow optimization analyzer -- clusters repeated similar prompts */
 
-import { DateFilter, WorkflowCluster, WorkflowOptimizationData } from "./types";
 import { AnalyzerBase } from "./analyzer-base";
 import { toDateStr } from "./helpers";
+import type {
+  DateFilter,
+  WorkflowCluster,
+  WorkflowOptimizationData,
+} from "./types";
 
 /** Minimum prompt length to consider for clustering (skip trivial messages) */
 const MIN_PROMPT_LEN = 15;
@@ -244,7 +248,7 @@ export class WorkflowAnalyzer extends AnalyzerBase {
       const members = c.members;
       const canonical = pickCanonical(members);
       const label =
-        canonical.length > 80 ? canonical.slice(0, 77) + "..." : canonical;
+        canonical.length > 80 ? `${canonical.slice(0, 77)}...` : canonical;
       const uniqueSessions = new Set(members.map((m) => m.sessionId));
       const uniqueWs = [...new Set(members.map((m) => m.workspaceName))];
       const uniqueHarnesses = [...new Set(members.map((m) => m.harness))];
@@ -313,7 +317,7 @@ export class WorkflowAnalyzer extends AnalyzerBase {
     for (const c of clusters) {
       for (const ws of c.workspaces) {
         if (!wsClusters.has(ws)) wsClusters.set(ws, new Set());
-        wsClusters.get(ws)!.add(c.id);
+        wsClusters.get(ws)?.add(c.id);
       }
     }
     const topWorkspaces = [...wsClusters.entries()]

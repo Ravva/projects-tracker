@@ -6,31 +6,31 @@
 /* Insights analyzer -- learning velocity, intent classification, spec-driven,
    production/review ratio, sustainable pace, prompt maturity, migration readiness */
 
-import {
-  Session,
-  DateFilter,
-  SessionIntent,
-  SESSION_INTENTS,
-  LearningVelocityData,
-  IntentClassificationData,
-  SpecDrivenData,
-  ProductionReviewData,
-  SustainablePaceData,
-  PromptMaturityData,
-  MigrationReadinessData,
-  InsightsData,
-} from "./types";
-import { toDateStr, isoWeek, classifyWorkType } from "./helpers";
-import {
-  REVIEW_GAP_THRESHOLD_MS,
-  LATE_NIGHT_START,
-  LATE_NIGHT_END,
-  BURNOUT_STREAK_DAYS,
-  BURNOUT_LATE_NIGHT_RATE,
-  BURNOUT_WEEKEND_RATE,
-  PROMPT_MATURITY_SAMPLE_SIZE,
-} from "./constants";
 import { AnalyzerBase } from "./analyzer-base";
+import {
+  BURNOUT_LATE_NIGHT_RATE,
+  BURNOUT_STREAK_DAYS,
+  BURNOUT_WEEKEND_RATE,
+  LATE_NIGHT_END,
+  LATE_NIGHT_START,
+  PROMPT_MATURITY_SAMPLE_SIZE,
+  REVIEW_GAP_THRESHOLD_MS,
+} from "./constants";
+import { classifyWorkType, isoWeek, toDateStr } from "./helpers";
+import {
+  type DateFilter,
+  type InsightsData,
+  type IntentClassificationData,
+  type LearningVelocityData,
+  type MigrationReadinessData,
+  type ProductionReviewData,
+  type PromptMaturityData,
+  SESSION_INTENTS,
+  type Session,
+  type SessionIntent,
+  type SpecDrivenData,
+  type SustainablePaceData,
+} from "./types";
 
 /* ════════════════════════════════════════════════════════════════════
    Intent classification helpers
@@ -398,9 +398,11 @@ export class InsightsAnalyzer extends AnalyzerBase {
       const ts = s.lastMessageDate || s.creationDate;
       if (ts == null) continue;
       const week = isoWeek(new Date(ts));
-      if (!weekBuckets.has(week))
-        weekBuckets.set(week, { spec: 0, unstructured: 0 });
-      const b = weekBuckets.get(week)!;
+      let b = weekBuckets.get(week);
+      if (!b) {
+        b = { spec: 0, unstructured: 0 };
+        weekBuckets.set(week, b);
+      }
       if (isSpecDriven(s)) b.spec++;
       else b.unstructured++;
     }
@@ -422,8 +424,10 @@ export class InsightsAnalyzer extends AnalyzerBase {
         sessions.length > 0 ? specDriven.length / sessions.length : 0,
       weeklyTrend: {
         labels: sortedWeeks,
-        specDriven: sortedWeeks.map((w) => weekBuckets.get(w)!.spec),
-        unstructured: sortedWeeks.map((w) => weekBuckets.get(w)!.unstructured),
+        specDriven: sortedWeeks.map((w) => weekBuckets.get(w)?.spec ?? 0),
+        unstructured: sortedWeeks.map(
+          (w) => weekBuckets.get(w)?.unstructured ?? 0,
+        ),
       },
       unstructuredExamples,
     };
@@ -471,7 +475,9 @@ export class InsightsAnalyzer extends AnalyzerBase {
       if (sessionAiLoc > 0 && sessionReviewedLoc === 0) sessionsNoReview++;
 
       if (week) {
-        const b = weekBuckets.get(week)!;
+        const b = weekBuckets.get(week);
+        if (!b) continue;
+
         b.produced += sessionAiLoc;
         b.reviewed += sessionReviewedLoc;
       }
@@ -491,9 +497,9 @@ export class InsightsAnalyzer extends AnalyzerBase {
       reviewRatio: totalAiLoc > 0 ? reviewedLoc / totalAiLoc : 0,
       weeklyTrend: {
         labels: sortedWeeks,
-        produced: sortedWeeks.map((w) => weekBuckets.get(w)!.produced),
+        produced: sortedWeeks.map((w) => weekBuckets.get(w)?.produced ?? 0),
         estimated_reviewed: sortedWeeks.map(
-          (w) => weekBuckets.get(w)!.reviewed,
+          (w) => weekBuckets.get(w)?.reviewed ?? 0,
         ),
       },
       sessionsWithoutReview: sessionsNoReview,
@@ -508,11 +514,15 @@ export class InsightsAnalyzer extends AnalyzerBase {
     const sessions = this.filteredSessions(f);
     const weekBuckets = this.buildSustainablePaceBuckets(reqs, sessions);
     const sortedWeeks = Array.from(weekBuckets.keys()).sort();
-    const lateNightReqs = sortedWeeks.map((w) => weekBuckets.get(w)!.lateNight);
-    const weekendReqs = sortedWeeks.map((w) => weekBuckets.get(w)!.weekend);
-    const totalReqs = sortedWeeks.map((w) => weekBuckets.get(w)!.total);
+    const lateNightReqs = sortedWeeks.map(
+      (w) => weekBuckets.get(w)?.lateNight ?? 0,
+    );
+    const weekendReqs = sortedWeeks.map(
+      (w) => weekBuckets.get(w)?.weekend ?? 0,
+    );
+    const totalReqs = sortedWeeks.map((w) => weekBuckets.get(w)?.total ?? 0);
     const avgSessionLength = sortedWeeks.map((w) => {
-      const lengths = weekBuckets.get(w)!.sessionLengths;
+      const lengths = weekBuckets.get(w)?.sessionLengths ?? [];
       return lengths.length > 0
         ? Math.round(lengths.reduce((a, b) => a + b, 0) / lengths.length)
         : 0;
@@ -588,7 +598,7 @@ export class InsightsAnalyzer extends AnalyzerBase {
 
     const graded = sampled.map((r) => {
       const hasFileRefs =
-        r.referencedFiles.length > 0 || r.variableKinds["file"] > 0;
+        r.referencedFiles.length > 0 || r.variableKinds.file > 0;
       const hasCode = r.userCode.length > 0;
       const g = gradePrompt(r.messageText, hasFileRefs, hasCode);
       totals.constraints += g.constraints;
@@ -629,11 +639,11 @@ export class InsightsAnalyzer extends AnalyzerBase {
       const week = isoWeek(new Date(r.timestamp));
       if (!weekScores.has(week)) weekScores.set(week, []);
       const hasFileRefs =
-        r.referencedFiles.length > 0 || r.variableKinds["file"] > 0;
+        r.referencedFiles.length > 0 || r.variableKinds.file > 0;
       const hasCode = r.userCode.length > 0;
       weekScores
-        .get(week)!
-        .push(gradePrompt(r.messageText, hasFileRefs, hasCode).total);
+        .get(week)
+        ?.push(gradePrompt(r.messageText, hasFileRefs, hasCode).total);
     }
     const sortedWeeks = Array.from(weekScores.keys()).sort();
     const weeklyScores = sortedWeeks.map((w) => {
@@ -774,7 +784,7 @@ export class InsightsAnalyzer extends AnalyzerBase {
           weekend: 0,
           sessionLengths: [],
         });
-      weekBuckets.get(week)!.sessionLengths.push(session.requestCount);
+      weekBuckets.get(week)?.sessionLengths.push(session.requestCount);
     }
     return weekBuckets;
   }
@@ -790,7 +800,7 @@ export class InsightsAnalyzer extends AnalyzerBase {
     for (const day of sortedDays) {
       if (day !== checkDate) break;
       currentStreak++;
-      const date = new Date(checkDate + "T00:00:00");
+      const date = new Date(`${checkDate}T00:00:00`);
       date.setDate(date.getDate() - 1);
       checkDate = toDateStr(date.getTime());
     }
@@ -944,10 +954,7 @@ export class InsightsAnalyzer extends AnalyzerBase {
         )
       )
         usedFeatures.add("Terminal Access");
-      if (
-        request.referencedFiles.length > 0 ||
-        request.variableKinds["file"] > 0
-      )
+      if (request.referencedFiles.length > 0 || request.variableKinds.file > 0)
         usedFeatures.add("File References");
     }
     const daySessions = new Map<string, number>();

@@ -5,10 +5,10 @@
 
 /* Code production analytics */
 
-import { DateFilter, CodeProductionData } from "./types";
-import { toDateStr, fillDayRange, normalizeModel } from "./helpers";
-import { LOC_COST_2010 } from "./constants";
 import { AnalyzerBase } from "./analyzer-base";
+import { LOC_COST_2010 } from "./constants";
+import { fillDayRange, normalizeModel, toDateStr } from "./helpers";
+import type { CodeProductionData, DateFilter } from "./types";
 
 export class ProductionAnalyzer extends AnalyzerBase {
   getCodeProduction(f?: DateFilter): CodeProductionData {
@@ -23,7 +23,9 @@ export class ProductionAnalyzer extends AnalyzerBase {
     const dailyHarnessAi = new Map<string, Map<string, number>>();
 
     for (const request of reqs) {
-      const day = toDateStr(request.timestamp!);
+      if (!request.timestamp) continue;
+
+      const day = toDateStr(request.timestamp);
       const session = this.requestSessionMap.get(request);
       const workspaceName = session?.workspaceName || "";
       const model = normalizeModel(request.modelId || "unknown");
@@ -158,7 +160,9 @@ export class ProductionAnalyzer extends AnalyzerBase {
     loc: number,
   ): void {
     if (!groupMap.has(key)) groupMap.set(key, new Map());
-    const dayMap = groupMap.get(key)!;
+    const dayMap = groupMap.get(key);
+    if (!dayMap) return;
+
     dayMap.set(day, (dayMap.get(day) || 0) + loc);
   }
 
@@ -173,6 +177,9 @@ export class ProductionAnalyzer extends AnalyzerBase {
     this.addProductionLoc(wsAi, workspaceName, loc);
     if (!day) return;
     if (!dailyWsAi.has(workspaceName)) dailyWsAi.set(workspaceName, new Map());
-    this.addProductionLoc(dailyWsAi.get(workspaceName)!, day, loc);
+    const workspaceDayMap = dailyWsAi.get(workspaceName);
+    if (!workspaceDayMap) return;
+
+    this.addProductionLoc(workspaceDayMap, day, loc);
   }
 }

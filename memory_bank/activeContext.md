@@ -13,14 +13,14 @@
 - ✅ Добавлена команда `bun run appwrite:migrate` в package.json
 - ✅ Создана документация `docs/appwrite-migration.md`
 - ✅ Создана схема БД на локальном сервере через `bun run db:provision`
-- ✅ Успешно мигрировано 136 документов из 7 коллекций:
+- ✅ Успешно мигрировано 1169 документов из 7 коллекций:
   - students: 25 документов
-  - lessons: 25 документов
-  - attendance: 25 документов
-  - projects: 25 документов
+  - lessons: 54 документа
+  - attendance: 801 документ
+  - projects: 31 документ
   - project_memberships: 11 документов
   - project_selection_locks: 0 документов
-  - project_ai_reports: 25 документов
+  - project_ai_reports: 247 документов
 - ✅ Приложение переключено на локальный Appwrite (endpoint: https://aw.note-canopus.ts.net/v1, project: 6a16b1a80039cd5cbb93)
 
 Миграция завершена. Все данные успешно перенесены с облачного Appwrite на локальный сервер.

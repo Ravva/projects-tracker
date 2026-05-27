@@ -5,7 +5,6 @@
 
 /* External harness collection registry for parser orchestration. */
 
-import { Workspace, Session } from "./types";
 import {
   findClaudeDirs,
   parseClaudeSessions,
@@ -13,6 +12,7 @@ import {
 } from "./parser-claude";
 import { findCodexDirs, parseCodexSessions } from "./parser-codex";
 import { findOpenCodeDirs, parseOpenCodeSessions } from "./parser-opencode";
+import type { Session, Workspace } from "./types";
 
 type WorkspaceMap = Map<string, Workspace>;
 

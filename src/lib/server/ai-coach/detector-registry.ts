@@ -3,32 +3,30 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-  AntiPattern,
-  OccurrenceDetail,
-  PracticeGroup,
-  Session,
-  SessionRequest,
-} from "./types";
-import type {
-  DetectionRule,
-  DetectorEmission,
-  RuleTemplateVars,
-} from "./types";
+import { isoWeek } from "./helpers";
 import { getAllRules } from "./rule-engine";
 import {
-  registerAllBuiltinRules,
   loadPersonalRules,
   registerAllBuiltinMetrics,
+  registerAllBuiltinRules,
 } from "./rule-loader";
 import { fillTemplate } from "./rule-parser";
 import {
-  parsePipeline,
-  executePipeline,
   checkPipelineTrigger,
+  executePipeline,
+  parsePipeline,
   resolveInheritance,
 } from "./rule-pipeline";
-import { isoWeek } from "./helpers";
+import type {
+  AntiPattern,
+  DetectionRule,
+  DetectorEmission,
+  OccurrenceDetail,
+  PracticeGroup,
+  RuleTemplateVars,
+  Session,
+  SessionRequest,
+} from "./types";
 
 registerAllBuiltinRules();
 registerAllBuiltinMetrics();

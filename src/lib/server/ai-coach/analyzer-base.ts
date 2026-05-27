@@ -5,8 +5,8 @@
 
 /* Base class for analyzer modules -- provides shared filtering logic */
 
-import { Session, SessionRequest, DateFilter } from "./types";
 import { toDateStr } from "./helpers";
+import type { DateFilter, Session, SessionRequest } from "./types";
 
 export class AnalyzerBase {
   protected readonly sessions: Session[];

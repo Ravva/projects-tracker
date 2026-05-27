@@ -5,36 +5,36 @@
 
 /* Consumption + burndown analytics */
 
-import {
-  DateFilter,
-  ConsumptionData,
-  BurndownConfig,
-  BurndownData,
-  SKU_BUDGETS,
-  AiCreditData,
-  AiCreditBurndownData,
-  Session,
-  SessionRequest,
-  ModelUsage,
-  TokenCoverageData,
-  TokenCoverageHarness,
-  TokenCoverageWorkspace,
-  TokenCoverageSession,
-  TokenCoverageTimeline,
-  TokenCoverageTimelineCell,
-} from "./types";
-import {
-  toDateStr,
-  normalizeModel,
-  modelMultiplier,
-  isoWeek,
-  resolveTokens,
-  tokenCostInCredits,
-  fillDayRange,
-  fillWeekRange,
-  fillMonthRange,
-} from "./helpers";
 import { AnalyzerBase } from "./analyzer-base";
+import {
+  fillDayRange,
+  fillMonthRange,
+  fillWeekRange,
+  isoWeek,
+  modelMultiplier,
+  normalizeModel,
+  resolveTokens,
+  toDateStr,
+  tokenCostInCredits,
+} from "./helpers";
+import {
+  type AiCreditBurndownData,
+  type AiCreditData,
+  type BurndownConfig,
+  type BurndownData,
+  type ConsumptionData,
+  type DateFilter,
+  type ModelUsage,
+  type Session,
+  type SessionRequest,
+  SKU_BUDGETS,
+  type TokenCoverageData,
+  type TokenCoverageHarness,
+  type TokenCoverageSession,
+  type TokenCoverageTimeline,
+  type TokenCoverageTimelineCell,
+  type TokenCoverageWorkspace,
+} from "./types";
 
 /** Per-request billing token attribution.
  *
@@ -151,7 +151,7 @@ function attributeSessionLevel(
     if (delegatedRequests?.has(r)) continue;
     const m = normalizeModel(r.modelId || "untracked");
     if (!byModel.has(m)) byModel.set(m, []);
-    byModel.get(m)!.push(r);
+    byModel.get(m)?.push(r);
   }
 
   for (const [model, reqs] of byModel) {

@@ -25,7 +25,7 @@
  * tests can inject a Map-backed fake) and has no dependency on `vscode`.
  */
 
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 
 /** Minimum surface of `vscode.Memento` that we need. */
 export interface TrustMemento {

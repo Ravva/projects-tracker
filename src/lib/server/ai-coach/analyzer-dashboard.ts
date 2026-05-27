@@ -5,28 +5,28 @@
 
 /* Dashboard analytics -- daily activity, workspace breakdown, harness breakdown */
 
-import {
-  DateFilter,
-  DailyActivity,
-  WorkspaceBreakdown,
-  WORK_TYPES,
-  HarnessComparisonData,
-  HarnessComparisonItem,
-  StatsResult,
-  CalendarActivityData,
-  CalendarDay,
-  Session,
-  SessionRequest,
-  ParserCoverageData,
-  ParserPreviewData,
-  ParserPreviewSample,
-  FieldMeta,
-  FieldCategory,
-  HourlyDistribution,
-  HeatmapData,
-} from "./types";
-import { toDateStr, classifyWorkType } from "./helpers";
 import { AnalyzerBase } from "./analyzer-base";
+import { classifyWorkType, toDateStr } from "./helpers";
+import {
+  type CalendarActivityData,
+  type CalendarDay,
+  type DailyActivity,
+  type DateFilter,
+  type FieldCategory,
+  type FieldMeta,
+  type HarnessComparisonData,
+  type HarnessComparisonItem,
+  type HeatmapData,
+  type HourlyDistribution,
+  type ParserCoverageData,
+  type ParserPreviewData,
+  type ParserPreviewSample,
+  type Session,
+  type SessionRequest,
+  type StatsResult,
+  WORK_TYPES,
+  type WorkspaceBreakdown,
+} from "./types";
 
 /* ── Parser coverage field metadata ───────────────────────────────── */
 
@@ -79,7 +79,7 @@ function isFieldPopulated(r: SessionRequest, field: string): boolean {
 function stringifyFieldValue(r: SessionRequest, field: string): string {
   const v = (r as unknown as Record<string, unknown>)[field];
   if (v == null) return "—";
-  if (typeof v === "string") return v.length > 80 ? v.slice(0, 77) + "…" : v;
+  if (typeof v === "string") return v.length > 80 ? `${v.slice(0, 77)}…` : v;
   if (typeof v === "number") return String(v);
   if (typeof v === "boolean") return String(v);
   if (typeof v === "bigint" || typeof v === "symbol") return v.toString();
@@ -133,7 +133,7 @@ export class DashboardAnalyzer extends AnalyzerBase {
         workspaces.set(key, { id: key, name: s.workspaceName });
         wsHarnesses.set(key, new Set());
       }
-      wsHarnesses.get(key)!.add(s.harness);
+      wsHarnesses.get(key)?.add(s.harness);
       for (const r of s.requests) {
         const ts = r.timestamp;
         if (ts != null && ts > (lastActivity.get(key) || 0)) {
@@ -242,7 +242,7 @@ export class DashboardAnalyzer extends AnalyzerBase {
       e.harnessReqs.set(harness, (e.harnessReqs.get(harness) || 0) + 1);
       if (!e.harnessSessions.has(harness))
         e.harnessSessions.set(harness, new Set());
-      if (session) e.harnessSessions.get(harness)!.add(session.sessionId);
+      if (session) e.harnessSessions.get(harness)?.add(session.sessionId);
       e.harnessLoc.set(harness, (e.harnessLoc.get(harness) || 0) + rLoc);
     }
 
@@ -570,7 +570,7 @@ function computeFocusHeatmap(reqs: SessionRequest[]): number[][] {
     if (!cellInstances.has(cellKey)) cellInstances.set(cellKey, new Map());
     const weekMap = cellInstances.get(cellKey)!;
     if (!weekMap.has(wk)) weekMap.set(wk, []);
-    weekMap.get(wk)!.push(minute);
+    weekMap.get(wk)?.push(minute);
   }
 
   const focus = makeWeekHourGrid();
@@ -627,7 +627,7 @@ function computeCalendarActivity(reqs: SessionRequest[]): CalendarActivityData {
 
   for (const [date, data] of dayData) {
     maxRequests = Math.max(maxRequests, data.count);
-    const d = new Date(date + "T00:00:00");
+    const d = new Date(`${date}T00:00:00`);
     const dow = d.getDay();
 
     // Compute focus: 15-min bucket coverage over active span

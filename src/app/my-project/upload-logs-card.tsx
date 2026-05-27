@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  Upload,
-  FileJson,
-  CheckCircle2,
   AlertCircle,
+  CheckCircle2,
+  FileJson,
   Loader2,
+  Upload,
 } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -59,7 +59,7 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
     for (const item of items) {
       if (item.kind === "file") {
         const file = item.getAsFile();
-        if (file && file.name.endsWith(".json")) {
+        if (file?.name.endsWith(".json")) {
           const content = await file.text();
           logFiles.push({
             path: file.name,
@@ -122,7 +122,7 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
       {
         name: "API Key",
         pattern:
-          /\b[Aa][Pp][Ii][-_]?[Kk][Ee][Yy]\s*[:=]\s*['"]?([A-Za-z0-9_\-]{20,})/gi,
+          /\b[Aa][Pp][Ii][-_]?[Kk][Ee][Yy]\s*[:=]\s*['"]?([A-Za-z0-9_-]{20,})/gi,
         replacement: "api_key=[REDACTED_API_KEY]",
       },
       {
@@ -137,12 +137,12 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
       },
       {
         name: "Unix Home Path",
-        pattern: /\/home\/[^\s\/]+/gi,
+        pattern: /\/home\/[^\s/]+/gi,
         replacement: "/home/[REDACTED_USER]",
       },
       {
         name: "Mac Home Path",
-        pattern: /\/Users\/[^\s\/]+/gi,
+        pattern: /\/Users\/[^\s/]+/gi,
         replacement: "/Users/[REDACTED_USER]",
       },
     ];
@@ -275,7 +275,8 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
           </div>
         )}
 
-        <div
+        <label
+          htmlFor="file-upload"
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -293,25 +294,23 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
             или выберите файлы вручную
           </div>
           <div className="mt-4">
-            <label htmlFor="file-upload">
-              <Button variant="outline" className="rounded-xl" asChild>
-                <span>Выбрать файлы</span>
-              </Button>
-              <input
-                id="file-upload"
-                type="file"
-                multiple
-                accept=".json"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-            </label>
+            <Button variant="outline" className="rounded-xl" asChild>
+              <span>Выбрать файлы</span>
+            </Button>
+            <input
+              id="file-upload"
+              type="file"
+              multiple
+              accept=".json"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
           </div>
           <div className="mt-4 text-xs text-muted-foreground">
             Принимаются только .json файлы • Максимум 150 файлов • До 10MB
             каждый
           </div>
-        </div>
+        </label>
 
         {files.length > 0 && (
           <div className="space-y-3">
@@ -325,8 +324,11 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
             </div>
 
             <div className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-border/70 bg-background/50 p-3">
-              {files.map((file, index) => (
-                <div key={index} className="flex items-center gap-2 text-sm">
+              {files.map((file) => (
+                <div
+                  key={file.path}
+                  className="flex items-center gap-2 text-sm"
+                >
                   <FileJson className="size-4 text-muted-foreground" />
                   <span className="flex-1 truncate">{file.path}</span>
                   <span className="text-xs text-muted-foreground">

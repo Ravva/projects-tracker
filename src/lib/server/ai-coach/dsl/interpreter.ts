@@ -79,7 +79,7 @@ import {
   extractProfaneWords,
 } from "../profanity";
 import { compileSafe, testSafe } from "./safe-regex";
-import { ASTNode } from "./types";
+import type { ASTNode } from "./types";
 
 export class InterpreterError extends Error {
   constructor(message: string) {
@@ -236,7 +236,7 @@ function evaluatePipe(
     case "truncate": {
       const s = asStr(value);
       const n = numOpt(arg, 80);
-      return s.length > n ? s.substring(0, n) + "..." : s;
+      return s.length > n ? `${s.substring(0, n)}...` : s;
     }
     case "lower":
       return asStr(value).toLowerCase();
@@ -552,7 +552,7 @@ function computeFlowScoreStats(
       .toISOString()
       .substring(0, 10);
     if (!dayScores.has(day)) dayScores.set(day, []);
-    dayScores.get(day)!.push(score);
+    dayScores.get(day)?.push(score);
   }
 
   const totalDays = dayScores.size;
@@ -1245,7 +1245,7 @@ const CALL_DISPATCH: Record<
       const [s, n] = args();
       if (typeof s !== "string") return "";
       const max = toNum(n);
-      return s.length > max ? s.substring(0, max) + "..." : s;
+      return s.length > max ? `${s.substring(0, max)}...` : s;
     }
 
     // Math functions
@@ -1451,13 +1451,11 @@ const CALL_DISPATCH: Record<
     // Utility
   },
   coalesce: (argNodes: ASTNode[], ctx: Record<string, unknown>) => {
-    {
-      for (const arg of argNodes) {
-        const v = evaluate(arg, ctx);
-        if (v != null) return v;
-      }
-      return null;
+    for (const arg of argNodes) {
+      const v = evaluate(arg, ctx);
+      if (v != null) return v;
     }
+    return null;
   },
   iif: (argNodes: ASTNode[], ctx: Record<string, unknown>) => {
     {

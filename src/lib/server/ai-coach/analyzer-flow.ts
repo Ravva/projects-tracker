@@ -5,23 +5,24 @@
 
 /* Flow State analyzer -- measures developer flow depth per session and per day */
 
+import { AnalyzerBase } from "./analyzer-base";
 import {
-  DateFilter,
-  Session,
-  FlowSession,
-  FlowDay,
-  FlowStateData,
-} from "./types";
-import { toDateStr, isoWeek } from "./helpers";
-import {
-  FLOW_RAPID_FOLLOWUP_SEC,
-  FLOW_SESSION_MIN_REQS,
   FLOW_BLOCK_GAP_MIN,
   FLOW_DEEP_SCORE,
   FLOW_MODERATE_SCORE,
+  FLOW_RAPID_FOLLOWUP_SEC,
+  FLOW_SESSION_MIN_REQS,
   FLOW_SHALLOW_SCORE,
 } from "./constants";
-import { AnalyzerBase } from "./analyzer-base";
+import { isoWeek, toDateStr } from "./helpers";
+import type {
+  DateFilter,
+  FlowDay,
+  FlowSession,
+  FlowStateData,
+  Session,
+  SessionRequest,
+} from "./types";
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 
@@ -150,13 +151,15 @@ export class FlowAnalyzer extends AnalyzerBase {
     session: Session,
     f?: DateFilter,
   ): FlowSession | null {
-    const timedReqs = session.requests.filter((r) => r.timestamp != null);
+    const timedReqs = session.requests.filter(
+      (r): r is SessionRequest & { timestamp: number } => r.timestamp != null,
+    );
     if (timedReqs.length < FLOW_SESSION_MIN_REQS) return null;
     if (!this.matchesDateRange(timedReqs, f)) return null;
 
-    timedReqs.sort((a, b) => a.timestamp! - b.timestamp!);
-    const startTs = timedReqs[0].timestamp!;
-    const endTs = timedReqs[timedReqs.length - 1].timestamp!;
+    timedReqs.sort((a, b) => a.timestamp - b.timestamp);
+    const startTs = timedReqs[0].timestamp;
+    const endTs = timedReqs[timedReqs.length - 1].timestamp;
     const durationMin = (endTs - startTs) / 60_000;
     const followUpGaps = this.getFollowUpGaps(timedReqs);
     const medianFollowUpSec = median(followUpGaps);
@@ -188,31 +191,28 @@ export class FlowAnalyzer extends AnalyzerBase {
   }
 
   private matchesDateRange(
-    timedReqs: Array<{ timestamp: number | null }>,
+    timedReqs: Array<{ timestamp: number }>,
     f?: DateFilter,
   ): boolean {
-    if (
-      f?.fromDate &&
-      timedReqs.every((r) => toDateStr(r.timestamp!) < f.fromDate!)
-    )
+    const fromDate = f?.fromDate;
+    const toDate = f?.toDate;
+
+    if (fromDate && timedReqs.every((r) => toDateStr(r.timestamp) < fromDate))
       return false;
-    if (
-      f?.toDate &&
-      timedReqs.every((r) => toDateStr(r.timestamp!) > f.toDate!)
-    )
+    if (toDate && timedReqs.every((r) => toDateStr(r.timestamp) > toDate))
       return false;
     return true;
   }
 
   private getFollowUpGaps(
-    timedReqs: Array<{ timestamp: number | null; totalElapsed: number | null }>,
+    timedReqs: Array<{ timestamp: number; totalElapsed: number | null }>,
   ): number[] {
     const followUpGaps: number[] = [];
     for (let i = 0; i < timedReqs.length - 1; i++) {
       const cur = timedReqs[i];
       const next = timedReqs[i + 1];
-      const responseEnd = cur.timestamp! + (cur.totalElapsed || 0);
-      const gapSec = (next.timestamp! - responseEnd) / 1000;
+      const responseEnd = cur.timestamp + (cur.totalElapsed || 0);
+      const gapSec = (next.timestamp - responseEnd) / 1000;
       if (gapSec >= 0) followUpGaps.push(gapSec);
     }
     return followUpGaps;
@@ -289,9 +289,10 @@ export class FlowAnalyzer extends AnalyzerBase {
       weekMap.set(wk, entry);
     }
     const labels = Array.from(weekMap.keys()).sort();
-    const scores = labels.map((label) =>
-      Math.round(weekMap.get(label)!.total / weekMap.get(label)!.count),
-    );
+    const scores = labels.map((label) => {
+      const week = weekMap.get(label);
+      return week ? Math.round(week.total / week.count) : 0;
+    });
     return { labels, scores };
   }
 

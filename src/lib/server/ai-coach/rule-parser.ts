@@ -44,12 +44,12 @@
  */
 
 import {
-  DetectionRule,
-  RuleCondition,
-  RuleSeverity,
-  RuleScope,
-  PracticeGroup,
+  type DetectionRule,
   PRACTICE_GROUPS,
+  type PracticeGroup,
+  type RuleCondition,
+  type RuleScope,
+  type RuleSeverity,
 } from "./types";
 
 interface ParsedFrontmatter {

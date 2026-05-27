@@ -17,20 +17,20 @@
  * type=response_item:   payload.role, payload.content[]
  */
 
-import * as fs from "fs";
-import * as path from "path";
-import { ModelUsage, Session, SessionRequest } from "./types";
-import {
-  assertTrustedPath,
-  readFileSafe,
-  createRequest,
-  createSession,
-  detectDevcontainerFromRequests,
-} from "./parser-shared";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import {
   canonicalizeReasoningEffort,
   extractReasoningEffortFromModelId,
 } from "./helpers";
+import {
+  assertTrustedPath,
+  createRequest,
+  createSession,
+  detectDevcontainerFromRequests,
+  readFileSafe,
+} from "./parser-shared";
+import type { ModelUsage, Session, SessionRequest } from "./types";
 
 interface CodexLine {
   type: string;

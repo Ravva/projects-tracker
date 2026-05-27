@@ -8,30 +8,30 @@
 
 import { AnalyzerBase } from "./analyzer-base";
 import {
-  DateFilter,
-  Session,
+  CONTEXT_COMPACTION_STORM_MIN,
+  CONTEXT_GROWING_SESSION_GROWTH_RATE,
+  CONTEXT_GROWING_SESSION_MIN_REQS,
+  CONTEXT_LIMITED_UTILIZATION,
+  CONTEXT_MIN_TOKEN_REQUESTS,
+  CONTEXT_OPTIMAL_UTILIZATION,
+  CONTEXT_SATURATION_THRESHOLD,
+  CONTEXT_WINDOW_DEFAULT,
+} from "./constants";
+import { toDateStr } from "./helpers";
+import type {
   AntiPattern,
-  OccurrenceDetail,
   ContextManagementData,
-  ContextVerdictThresholds,
-  WorkspaceContextScore,
   ContextTrend,
-  WorkspaceTrendSeries,
+  ContextVerdictThresholds,
+  DateFilter,
+  OccurrenceDetail,
+  Session,
   SessionContextDetail,
   SessionTimelineEvent,
+  WorkspaceContextScore,
   WorkspaceContextSessionsData,
+  WorkspaceTrendSeries,
 } from "./types";
-import { toDateStr } from "./helpers";
-import {
-  CONTEXT_WINDOW_DEFAULT,
-  CONTEXT_OPTIMAL_UTILIZATION,
-  CONTEXT_LIMITED_UTILIZATION,
-  CONTEXT_SATURATION_THRESHOLD,
-  CONTEXT_COMPACTION_STORM_MIN,
-  CONTEXT_MIN_TOKEN_REQUESTS,
-  CONTEXT_GROWING_SESSION_MIN_REQS,
-  CONTEXT_GROWING_SESSION_GROWTH_RATE,
-} from "./constants";
 
 const ADAPTIVE_CONTEXT_THRESHOLD_MIN_SAMPLES = 20;
 
@@ -148,10 +148,6 @@ export class ContextAnalyzer extends AnalyzerBase {
       return "degraded";
     }
     return "optimal";
-  }
-
-  private verdictSeverity(verdict: "optimal" | "degraded" | "limited"): number {
-    return verdict === "limited" ? 2 : verdict === "degraded" ? 1 : 0;
   }
 
   /**
@@ -283,7 +279,7 @@ export class ContextAnalyzer extends AnalyzerBase {
     for (const session of sessions) {
       const key = session.workspaceName;
       if (!wsMap.has(key)) wsMap.set(key, { ws: session, sessions: [] });
-      wsMap.get(key)!.sessions.push(session);
+      wsMap.get(key)?.sessions.push(session);
     }
     return wsMap;
   }
@@ -490,7 +486,8 @@ export class ContextAnalyzer extends AnalyzerBase {
 
         if (!weekMap.has(label))
           weekMap.set(label, { utils: [], compactions: 0, overThreshold: 0 });
-        const week = weekMap.get(label)!;
+        const week = weekMap.get(label);
+        if (!week) continue;
 
         const tokens = sessionTokens[i];
         if (tokens > 0) {
@@ -508,9 +505,12 @@ export class ContextAnalyzer extends AnalyzerBase {
         // Drop weeks that ended up with no token-bearing samples — emitting
         // a 0% utilization point for such a week would visually misrepresent
         // missing data as zero usage.
-        .filter((label) => weekMap.get(label)!.utils.length > 0)
+        .filter((label) => (weekMap.get(label)?.utils.length ?? 0) > 0)
         .map((label) => {
-          const w = weekMap.get(label)!;
+          const w = weekMap.get(label);
+          if (!w) {
+            return null;
+          }
           const avgUtil =
             w.utils.length > 0
               ? Math.round(
@@ -524,6 +524,7 @@ export class ContextAnalyzer extends AnalyzerBase {
             sessionsOverThreshold: w.overThreshold,
           };
         })
+        .filter((item) => item !== null)
     );
   }
 
@@ -555,7 +556,8 @@ export class ContextAnalyzer extends AnalyzerBase {
 
     for (const s of sessions) {
       if (!topNames.has(s.workspaceName)) continue;
-      const utilMap = wsWeekUtils.get(s.workspaceName)!;
+      const utilMap = wsWeekUtils.get(s.workspaceName);
+      if (!utilMap) continue;
       const sessionTokens = this.estimateSessionTokens(s);
       const sessionCtx = this.estimateSessionContextWindow(s);
 
@@ -573,13 +575,14 @@ export class ContextAnalyzer extends AnalyzerBase {
         const tokens = sessionTokens[i];
         if (tokens > 0) {
           if (!utilMap.has(idx)) utilMap.set(idx, []);
-          utilMap.get(idx)!.push((tokens / sessionCtx) * 100);
+          utilMap.get(idx)?.push((tokens / sessionCtx) * 100);
         }
       }
     }
 
     return top.map((ws) => {
-      const utilMap = wsWeekUtils.get(ws.workspaceName)!;
+      const utilMap =
+        wsWeekUtils.get(ws.workspaceName) ?? new Map<number, number[]>();
       const data: (number | null)[] = Array<number | null>(
         weekLabels.length,
       ).fill(null);
@@ -925,7 +928,7 @@ export class ContextAnalyzer extends AnalyzerBase {
     if (text.length === 0) return "(empty)";
     const firstLine = text.split("\n")[0];
     return firstLine.length > 80
-      ? firstLine.slice(0, 77) + "\u2026"
+      ? `${firstLine.slice(0, 77)}\u2026`
       : firstLine;
   }
 

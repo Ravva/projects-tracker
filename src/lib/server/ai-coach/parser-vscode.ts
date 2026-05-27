@@ -5,32 +5,32 @@
 
 /* VS Code and Copilot CLI session parsing. */
 
-import * as fs from "fs";
-import * as path from "path";
-import { Session, SessionRequest, ToolConfirmation } from "./types";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import {
+  canonicalizeReasoningEffort,
+  extractReasoningEffortFromModelId,
+} from "./helpers";
+import { debugCore, warnCore } from "./log";
 import {
   createRequest,
   createSession,
   detectDevcontainerFromRequests,
   extractSkillNameFromPath,
-  ParseContext,
+  type ParseContext,
   prefetchCache,
 } from "./parser-shared";
-import { debugCore, warnCore } from "./log";
-import {
-  canonicalizeReasoningEffort,
-  extractReasoningEffortFromModelId,
-} from "./helpers";
 import { parseCLIEventsFile } from "./parser-vscode-cli";
 import {
-  parseCLIWorkspaceName,
-  parseWorkspaceName,
-  parseWorkspaceFolderPath,
   parseCLIWorkspaceFolderPath,
+  parseCLIWorkspaceName,
+  parseWorkspaceFolderPath,
+  parseWorkspaceName,
   readFile,
   reconstructFromJsonl,
   stripImageData,
 } from "./parser-vscode-files";
+import type { Session, SessionRequest, ToolConfirmation } from "./types";
 
 function isObj(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -97,7 +97,6 @@ export function scanVsCodeDirs(logsDirs: string[]): {
       entries.push({ logsDir, dirEntries: dirs });
     } catch (e) {
       debugCore("parser-vscode", `Cannot read logs dir ${logsDir}`, e);
-      continue;
     }
   }
 
@@ -596,7 +595,6 @@ function extractResponseText(resp: unknown[] | undefined): string {
       }
       if (typeof v === "string") {
         parts.push(v);
-        continue;
       }
     }
   }
@@ -699,10 +697,11 @@ function extractSkillsFromXml(
       typeof v.value === "string" &&
       v.value.includes("<skill>")
     ) {
-      let sm: RegExpExecArray | null;
-      while ((sm = skillRe.exec(v.value)) !== null) {
+      let sm = skillRe.exec(v.value);
+      while (sm !== null) {
         const sn = sm[1].trim();
         if (sn && !sn.includes("ai_toolkit")) skills.add(sn);
+        sm = skillRe.exec(v.value);
       }
       skillRe.lastIndex = 0;
     }

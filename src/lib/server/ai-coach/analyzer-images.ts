@@ -6,8 +6,8 @@
 /* Image Gallery analyzer -- extracts image usage moments from sessions */
 
 import { AnalyzerBase } from "./analyzer-base";
-import { DateFilter, Session } from "./types";
 import { toDateStr } from "./helpers";
+import type { DateFilter, Session } from "./types";
 
 /* ── Public types ─────────────────────────────────────────────── */
 
@@ -128,7 +128,7 @@ export class ImageAnalyzer extends AnalyzerBase {
     const sessionImageCounts = new Map<string, number>();
 
     for (const r of reqs) {
-      const imgCount = r.variableKinds["image"] || 0;
+      const imgCount = r.variableKinds.image || 0;
       if (imgCount <= 0) continue;
 
       const session =
@@ -224,7 +224,7 @@ export class ImageAnalyzer extends AnalyzerBase {
     for (const m of moments) {
       const key = m.workspaceId || m.workspace;
       if (!byWorkspace.has(key)) byWorkspace.set(key, []);
-      byWorkspace.get(key)!.push(m);
+      byWorkspace.get(key)?.push(m);
     }
 
     const journeys: CodingJourney[] = [];
@@ -260,7 +260,7 @@ export class ImageAnalyzer extends AnalyzerBase {
     const bySession = new Map<string, ImageMoment[]>();
     for (const m of moments) {
       if (!bySession.has(m.sessionId)) bySession.set(m.sessionId, []);
-      bySession.get(m.sessionId)!.push(m);
+      bySession.get(m.sessionId)?.push(m);
     }
 
     const stories: ImageStory[] = [];
@@ -270,7 +270,11 @@ export class ImageAnalyzer extends AnalyzerBase {
         (a, b) => a.turnNumber - b.turnNumber,
       );
       const allFiles = new Set<string>();
-      for (const m of sorted) m.editedFiles.forEach((f) => allFiles.add(f));
+      for (const m of sorted) {
+        for (const file of m.editedFiles) {
+          allFiles.add(file);
+        }
+      }
       const modelCounts = new Map<string, number>();
       for (const m of sorted)
         modelCounts.set(m.model, (modelCounts.get(m.model) ?? 0) + 1);
@@ -331,7 +335,7 @@ export class ImageAnalyzer extends AnalyzerBase {
 function truncate(text: string, max: number): string {
   if (!text) return "";
   const clean = text.replace(/\s+/g, " ").trim();
-  return clean.length <= max ? clean : clean.slice(0, max - 1) + "\u2026";
+  return clean.length <= max ? clean : `${clean.slice(0, max - 1)}\u2026`;
 }
 
 function maxEntry(map: Map<string, number>): string | undefined {

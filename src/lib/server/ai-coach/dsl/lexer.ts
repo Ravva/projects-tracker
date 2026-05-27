@@ -8,7 +8,7 @@
  * Converts a source string into a list of tokens.
  */
 
-import { Token, TokenType } from "./types";
+import { type Token, TokenType } from "./types";
 
 const KEYWORDS: Record<string, TokenType> = {
   and: TokenType.AND,

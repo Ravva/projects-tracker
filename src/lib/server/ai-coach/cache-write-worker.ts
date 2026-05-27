@@ -5,8 +5,8 @@
 
 /* Cache write worker — writes cache data to disk off the main thread. */
 
-import { workerData } from "worker_threads";
-import * as fs from "fs";
+import * as fs from "node:fs";
+import { workerData } from "node:worker_threads";
 
 interface CacheWriteWorkerData {
   f: string;

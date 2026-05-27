@@ -11,18 +11,18 @@
  * Uses sqlite3 CLI to query Conversation and Turn tables.
  */
 
-import * as fs from "fs";
-import * as path from "path";
-import { execFileSync, execFile } from "child_process";
-import { Session, SessionRequest } from "./types";
+import { execFile, execFileSync } from "node:child_process";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { fileUriToPath } from "./helpers";
 import {
   assertTrustedPath,
-  extractCodeBlocks,
   createRequest,
   createSession,
   detectDevcontainerFromRequests,
+  extractCodeBlocks,
 } from "./parser-shared";
-import { fileUriToPath } from "./helpers";
+import type { Session, SessionRequest } from "./types";
 
 /* ---- Directory discovery ---- */
 

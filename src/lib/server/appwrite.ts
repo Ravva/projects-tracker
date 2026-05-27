@@ -6,6 +6,7 @@ type AppwriteConfig = {
   endpoint: string;
   projectId: string;
   apiKey: string;
+  responseFormat: string | null;
   databaseId: string;
   collections: {
     students: string;
@@ -42,6 +43,7 @@ export function getAppwriteConfig(): AppwriteConfig | null {
   const endpoint = process.env.APPWRITE_ENDPOINT;
   const projectId = process.env.APPWRITE_PROJECT_ID;
   const apiKey = process.env.APPWRITE_API_KEY;
+  const responseFormat = process.env.APPWRITE_RESPONSE_FORMAT ?? "1.9.0";
   const databaseId = process.env.APPWRITE_DATABASE_ID ?? DEFAULT_DATABASE_ID;
 
   if (!endpoint || !projectId || !apiKey) {
@@ -52,6 +54,7 @@ export function getAppwriteConfig(): AppwriteConfig | null {
     endpoint,
     projectId,
     apiKey,
+    responseFormat,
     databaseId,
     collections: {
       students: process.env.APPWRITE_STUDENTS_COLLECTION_ID ?? "students",
@@ -82,6 +85,10 @@ export function getAppwriteDatabases() {
     .setEndpoint(config.endpoint)
     .setProject(config.projectId)
     .setKey(config.apiKey);
+
+  if (config.responseFormat) {
+    client.headers["X-Appwrite-Response-Format"] = config.responseFormat;
+  }
 
   return {
     databases: new Databases(client),

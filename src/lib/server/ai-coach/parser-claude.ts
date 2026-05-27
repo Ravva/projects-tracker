@@ -15,19 +15,19 @@
  *                  message.model, message.usage, timestamp
  */
 
-import * as fs from "fs";
-import * as path from "path";
-import { Session, SessionRequest } from "./types";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { extractReasoningEffortFromModelId } from "./helpers";
+import { warnCore } from "./log";
 import {
   assertTrustedPath,
-  readFileSafe,
   createRequest,
   createSession,
   detectDevcontainerFromRequests,
   extractSkillNameFromPath,
+  readFileSafe,
 } from "./parser-shared";
-import { extractReasoningEffortFromModelId } from "./helpers";
-import { warnCore } from "./log";
+import type { Session, SessionRequest } from "./types";
 
 interface ClaudeContentBlock {
   type: string;
@@ -469,7 +469,7 @@ function projectNameFromEncoded(encoded: string, _projectsDir: string): string {
         found = true;
         break;
       }
-      if (rest.startsWith(entry.encoded + "-")) {
+      if (rest.startsWith(`${entry.encoded}-`)) {
         resolved = path.join(resolved, entry.name);
         offset += entry.encoded.length + 1;
         found = true;
