@@ -88,8 +88,9 @@
   --color-sidebar-border: hsl(var(--sidebar-border));
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
-  --font-sans: "Inter", "Noto Sans", sans-serif;
-  --font-mono: "IBM Plex Mono", "Cascadia Code", "Fira Code", monospace;
+  --font-sans: var(--font-inter), "Inter", "Noto Sans", sans-serif;
+  --font-title: var(--font-unbounded), "Unbounded", display, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
 
   --radius-sm: calc(var(--radius) - 0.5rem); /* 8px  */
   --radius-md: calc(var(--radius) - 0.25rem); /* 12px */
@@ -250,3 +251,16 @@ body {
     transform: scale(1.1);
   }
 }
+
+/* ─── Interactive Card Hover Lighting Glow ─── */
+.card-hover-glow {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-hover-glow:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 12px 30px -10px var(--ambient-glow-color),
+    0 0 20px -2px var(--direct-glow-color);
+}
+

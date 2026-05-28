@@ -134,18 +134,19 @@ function KpiCard({
 
   const content = (
     <div
-      className="group relative flex flex-col gap-3 rounded-2xl px-5 py-5 transition-all duration-300 hover:scale-[1.01]"
+      className="group relative flex flex-col gap-3 rounded-2xl px-5 py-5 card-hover-glow"
       style={{
         background: c.bg,
         border: `1px solid ${c.border}`,
-        boxShadow: `0 0 20px ${c.glow}`,
         backdropFilter: "blur(12px)",
-      }}
+        "--ambient-glow-color": c.glow,
+        "--direct-glow-color": c.glow,
+      } as React.CSSProperties}
     >
       {/* top accent line */}
       <div
         aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-px rounded-t-2xl"
+        className="absolute inset-x-0 top-0 h-px rounded-t-2xl opacity-50 transition-opacity duration-300 group-hover:opacity-100"
         style={{
           background: `linear-gradient(90deg, transparent, ${c.border} 50%, transparent)`,
         }}
@@ -165,7 +166,7 @@ function KpiCard({
           />
         </div>
         {title && (
-          <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          <div className="text-[10px] font-title font-semibold uppercase tracking-[0.14em] text-muted-foreground/90">
             {title}
           </div>
         )}
@@ -174,16 +175,16 @@ function KpiCard({
       {/* value */}
       <div>
         <div
-          className="text-2xl font-bold leading-none tracking-tight"
+          className="font-title text-2xl font-bold leading-none tracking-tight sm:text-3xl"
           style={{ color: c.text }}
         >
           {value}
         </div>
         {label && (
-          <div className="mt-1 text-xs text-muted-foreground">{label}</div>
+          <div className="mt-2 text-xs text-muted-foreground">{label}</div>
         )}
         {sublabel && (
-          <div className="mt-0.5 text-[11px] text-muted-foreground/70">
+          <div className="mt-1 font-mono text-[10px] tracking-tight text-muted-foreground/60">
             {sublabel}
           </div>
         )}
