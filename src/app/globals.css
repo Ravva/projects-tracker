@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
-/* ─── AI Platform Interface — Dark-only token system ─── */
-:root {
+/* ─── AI Platform Interface — Multi-Theme Token System ─── */
+:root,
+html[data-theme="cyber-emerald"] {
   /* Base surfaces */
   --background: 222 28% 8%; /* #11141D */
   --background-secondary: 222 25% 10%;
@@ -54,6 +55,72 @@
   --status-calm: 189 94% 43%; /* reuse primary cyan */
   --status-success: 160 60% 48%;
 
+  /* WebGL background details */
+  --webgl-glow-1: 6, 182, 212;   /* cyan */
+  --webgl-glow-2: 20, 184, 166;  /* teal */
+  --webgl-glow-3: 14, 116, 144;  /* deep cyan */
+}
+
+html[data-theme="amethyst-eclipse"] {
+  /* Base surfaces - Deep space amethyst black */
+  --background: 260 40% 6%; /* #0B0715 - Extremely deep beautiful purple */
+  --background-secondary: 260 35% 8%;
+  --foreground: 250 20% 88%;
+
+  /* Card / popover surfaces */
+  --card: 260 30% 11%; /* #140E26 - Royal obsidian */
+  --card-foreground: 250 20% 88%;
+  --popover: 260 30% 10%;
+  --popover-foreground: 250 20% 88%;
+
+  /* Primary — violet #8B5CF6 */
+  --primary: 263 90% 65%;
+  --primary-foreground: 260 40% 6%;
+
+  /* Secondary — fuchsia #D946EF */
+  --secondary: 302 85% 55%;
+  --secondary-foreground: 260 40% 6%;
+
+  /* Muted */
+  --muted: 260 20% 14%;
+  --muted-foreground: 250 12% 64%;
+
+  /* Accent */
+  --accent: 260 22% 16%;
+  --accent-foreground: 250 20% 88%;
+
+  /* Border / input */
+  --border: 260 18% 18%;
+  --input: 260 18% 16%;
+  --ring: 263 90% 65%;
+
+  /* Destructive */
+  --destructive: 346 84% 61%;
+  --destructive-foreground: 260 40% 6%;
+
+  /* Sidebar */
+  --sidebar: 260 42% 7%;
+  --sidebar-foreground: 250 20% 88%;
+  --sidebar-primary: 263 90% 65%;
+  --sidebar-primary-foreground: 260 40% 6%;
+  --sidebar-accent: 260 25% 12%;
+  --sidebar-accent-foreground: 250 20% 88%;
+  --sidebar-border: 260 18% 16%;
+  --sidebar-ring: 263 90% 65%;
+
+  /* Semantic status */
+  --status-critical: 346 84% 61%;
+  --status-warning: 37 88% 61%;
+  --status-calm: 263 90% 65%;
+  --status-success: 142 70% 45%;
+
+  /* WebGL background details */
+  --webgl-glow-1: 139, 92, 246;   /* violet */
+  --webgl-glow-2: 217, 70, 239;   /* fuchsia */
+  --webgl-glow-3: 79, 70, 229;    /* indigo */
+}
+
+:root {
   /* Shape */
   --radius: 1rem; /* 16px base */
 }
@@ -114,12 +181,12 @@ body {
   background-image:
     radial-gradient(
       ellipse 80% 50% at 50% -20%,
-      hsl(189 94% 43% / 0.12),
+      hsl(var(--primary) / 0.12),
       transparent
     ),
     radial-gradient(
       ellipse 60% 40% at 80% 80%,
-      hsl(173 80% 40% / 0.07),
+      hsl(var(--secondary) / 0.07),
       transparent
     );
   color: hsl(var(--foreground));

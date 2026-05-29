@@ -1,6 +1,10 @@
 "use client";
 
-import { Moon02Icon, Sun02Icon, ComputerIcon } from "@hugeicons/core-free-icons";
+import {
+  ComputerIcon,
+  Leaf01Icon,
+  MoonEclipseIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "@/components/theme/theme-provider";
 import {
@@ -13,19 +17,19 @@ import {
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
-  const getThemeIconAndLabel = () => {
+  const getThemeDetails = () => {
     switch (theme) {
-      case "light":
-        return { icon: Sun02Icon, label: "Light" };
+      case "amethyst-eclipse":
+        return { icon: MoonEclipseIcon, label: "Аметист" };
       case "system":
-        return { icon: ComputerIcon, label: "System" };
-      case "dark":
+        return { icon: ComputerIcon, label: "Система" };
+      case "cyber-emerald":
       default:
-        return { icon: Moon02Icon, label: "Dark" };
+        return { icon: Leaf01Icon, label: "Изумруд" };
     }
   };
 
-  const { icon, label } = getThemeIconAndLabel();
+  const { icon, label } = getThemeDetails();
 
   return (
     <DropdownMenu>
@@ -43,14 +47,14 @@ export function ThemeToggle() {
           <span className="hidden sm:inline">{label}</span>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[120px]">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          <HugeiconsIcon icon={Sun02Icon} strokeWidth={2} />
-          <span>Светлая</span>
+      <DropdownMenuContent align="end" className="min-w-[170px]">
+        <DropdownMenuItem onClick={() => setTheme("cyber-emerald")}>
+          <HugeiconsIcon icon={Leaf01Icon} strokeWidth={2} />
+          <span>Кибер-изумруд</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <HugeiconsIcon icon={Moon02Icon} strokeWidth={2} />
-          <span>Тёмная</span>
+        <DropdownMenuItem onClick={() => setTheme("amethyst-eclipse")}>
+          <HugeiconsIcon icon={MoonEclipseIcon} strokeWidth={2} />
+          <span>Сумеречный аметист</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
           <HugeiconsIcon icon={ComputerIcon} strokeWidth={2} />

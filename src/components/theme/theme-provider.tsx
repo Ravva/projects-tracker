@@ -9,8 +9,8 @@ import {
   useState,
 } from "react";
 
-export type ThemeMode = "system" | "light" | "dark";
-type ResolvedTheme = Exclude<ThemeMode, "system">;
+export type ThemeMode = "cyber-emerald" | "amethyst-eclipse" | "system";
+type ResolvedTheme = "cyber-emerald" | "amethyst-eclipse";
 
 const THEME_STORAGE_KEY = "projects-tracker-theme";
 
@@ -23,13 +23,7 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function getSystemTheme(): ResolvedTheme {
-  if (typeof window === "undefined") {
-    return "light";
-  }
-
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return "cyber-emerald";
 }
 
 function readStoredTheme(): ThemeMode {
@@ -40,11 +34,16 @@ function readStoredTheme(): ThemeMode {
   const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
 
   if (
-    storedTheme === "light" ||
-    storedTheme === "dark" ||
+    storedTheme === "cyber-emerald" ||
+    storedTheme === "amethyst-eclipse" ||
     storedTheme === "system"
   ) {
     return storedTheme;
+  }
+
+  // Fallback for legacy dark theme setting
+  if (storedTheme === "dark" || storedTheme === "light") {
+    return "cyber-emerald";
   }
 
   return "system";
@@ -59,12 +58,13 @@ function applyTheme(theme: ThemeMode, resolvedTheme: ResolvedTheme) {
     root.setAttribute("data-theme", theme);
   }
 
-  root.style.colorScheme = resolvedTheme;
+  root.style.colorScheme = "dark";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<ThemeMode>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
+  const [resolvedTheme, setResolvedTheme] =
+    useState<ResolvedTheme>("cyber-emerald");
 
   useEffect(() => {
     const currentTheme = readStoredTheme();

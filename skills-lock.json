@@ -5,6 +5,12 @@
       "source": "appwrite/agent-skills",
       "sourceType": "github",
       "computedHash": "c2654d10a77e48197df43d29b3dcfe230b6f3b8efc81c5566f0f45afffb28e09"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "f0fdd03f4755cbb3b57e20fe6fd4a97c00d34e6780187b6559316986e8d848db"
     }
   }
 }
