@@ -331,3 +331,16 @@ body {
     0 0 20px -2px var(--direct-glow-color);
 }
 
+/* ─── Print overrides for Parent/Student reports ─── */
+@media print {
+  nav,
+  button,
+  .print-hide,
+  .print\:hidden,
+  [role="button"],
+  select,
+  input {
+    display: none !important;
+  }
+}
+

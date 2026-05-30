@@ -101,14 +101,7 @@ function SignalCard({
   const c = signalToneConfig[tone];
   return (
     <div
-      className="relative flex flex-col overflow-hidden rounded-2xl p-4 transition-all duration-200"
-      style={{
-        background: c.bg,
-        border: `1px solid ${c.border}`,
-        boxShadow: `0 0 16px ${c.glow}`,
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-      }}
+      className="relative flex flex-col overflow-hidden rounded-2xl p-4 transition-all duration-200 border border-white/5 bg-background/40"
     >
       {/* Top accent line */}
       <div

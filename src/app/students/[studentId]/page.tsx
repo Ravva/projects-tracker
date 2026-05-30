@@ -203,7 +203,7 @@ export default async function StudentDetailsPage({
           </CardContent>
         </Card>
 
-        <div className="grid gap-6">
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-1">
           <TelegramLinkCard
             studentId={student.id}
             status={student.telegramLinkStatus}
@@ -252,7 +252,7 @@ export default async function StudentDetailsPage({
               <CardTitle className="text-base">Контрольные сигналы</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="rounded-2xl bg-background/40 p-4">
                 <div className="flex items-center gap-3 font-medium">
                   <HugeiconsIcon
                     icon={Notification01Icon}
@@ -267,7 +267,7 @@ export default async function StudentDetailsPage({
                     : "chat id отсутствует, пока доступен только общий канал уведомлений."}
                 </p>
               </div>
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="rounded-2xl bg-background/40 p-4">
                 <div className="flex items-center gap-3 font-medium">
                   <HugeiconsIcon
                     icon={Github01Icon}
@@ -281,7 +281,7 @@ export default async function StudentDetailsPage({
                   будущего student-access.
                 </p>
               </div>
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="rounded-2xl bg-background/40 p-4">
                 <div className="flex items-center gap-3 font-medium">
                   <HugeiconsIcon
                     icon={Note01Icon}
@@ -290,9 +290,9 @@ export default async function StudentDetailsPage({
                   />
                   Последняя AI-сводка
                 </div>
-                <p className="mt-2 leading-6 text-muted-foreground">
+                <div className="mt-2 max-h-48 overflow-y-auto pr-1 text-xs leading-5 text-muted-foreground scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                   {student.aiSummary}
-                </p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -306,7 +306,7 @@ export default async function StudentDetailsPage({
                 studentProjects.map((project) => (
                   <div
                     key={project.id}
-                    className="rounded-2xl border border-border/70 bg-background/70 p-4"
+                    className="rounded-2xl bg-background/40 p-4"
                   >
                     <div className="font-medium text-foreground">
                       {project.name}

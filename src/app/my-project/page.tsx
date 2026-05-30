@@ -447,90 +447,90 @@ export default async function MyProjectPage({
         </section>
 
         <Card className="overflow-hidden border-[hsl(var(--status-warning)/0.28)] bg-[linear-gradient(135deg,hsl(var(--status-warning)/0.16),hsl(var(--status-calm)/0.1)_52%,hsl(var(--background)))] shadow-none">
-          <CardHeader>
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-              <div className="space-y-3">
+          <details className="group">
+            <summary className="flex cursor-pointer list-none items-center justify-between p-6 focus:outline-none select-none">
+              <div className="space-y-2 pr-4">
                 <div className="inline-flex w-fit rounded-full border border-[hsl(var(--status-warning)/0.28)] bg-background/70 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--status-warning))]">
                   Project readiness
                 </div>
-                <div className="space-y-2">
-                  <CardTitle className="text-xl leading-tight">
-                    Два шага — и репозиторий готов к AI-анализу
-                  </CardTitle>
-                  <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
-                    Добавьте <code>AGENTS.md</code> и запустите готовый промпт в
-                    ИИ. Он проверит <code>memory_bank</code>, исправит{" "}
-                    <code>Project Deliverables</code> и подготовит репозиторий
-                    автоматически.
+                <CardTitle className="text-xl leading-tight">
+                  Два шага — и репозиторий готов к AI-анализу
+                </CardTitle>
+                <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                  Нажмите, чтобы развернуть инструкцию по добавлению <code>AGENTS.md</code> и первичному промпту.
+                </p>
+              </div>
+              <div className="text-[hsl(var(--status-warning))] transition-transform duration-200 group-open:rotate-180 shrink-0">
+                <svg className="size-6" fill="fill" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </summary>
+            <CardContent className="space-y-4 text-sm leading-7 text-muted-foreground border-t border-[hsl(var(--status-warning)/0.15)] bg-background/20 p-6">
+              <div className="grid gap-3 lg:grid-cols-2">
+                <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
+                  <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-[hsl(var(--status-warning)/0.14)] font-semibold text-[hsl(var(--status-warning))]">
+                    1
+                  </div>
+                  <div className="font-medium text-foreground">
+                    Скопируйте AGENTS.md
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Вставьте файл в корень вашего репозитория. Он содержит
+                    правила, по которым ИИ оценивает прогресс проекта.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    <CopyTextButton
+                      text={canonicalAgentsDocument.content}
+                      idleLabel="Скопировать AGENTS.md"
+                      successLabel="AGENTS.md скопирован"
+                    />
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="rounded-xl bg-background/90"
+                    >
+                      <Link
+                        href={canonicalAgentsDocument.blobUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Открыть источник
+                      </Link>
+                    </Button>
+                  </div>
+                  <p className="mt-3 text-xs leading-6 text-muted-foreground">
+                    Источник:{" "}
+                    {canonicalAgentsDocument.source === "remote"
+                      ? "актуальная версия из GitHub"
+                      : "локальный fallback, если GitHub временно недоступен"}
+                    .
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
+                  <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-[hsl(var(--status-calm)/0.14)] font-semibold text-[hsl(var(--status-calm))]">
+                    2
+                  </div>
+                  <div className="font-medium text-foreground">
+                    Вставьте промпт в ИИ
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Скопируйте готовый промпт ниже и отправьте его в ChatGPT,
+                    Cursor или любой другой ИИ-ассистент, работающий с вашим
+                    репозиторием.
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    ИИ автоматически проверит структуру <code>memory_bank</code>,
+                    создаст <code>projectbrief.md</code> с таблицей{" "}
+                    <code>Project Deliverables</code> и сделает коммит.
                   </p>
                 </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm leading-7 text-muted-foreground">
-            <div className="grid gap-3 lg:grid-cols-2">
-              <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
-                <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-[hsl(var(--status-warning)/0.14)] font-semibold text-[hsl(var(--status-warning))]">
-                  1
-                </div>
-                <div className="font-medium text-foreground">
-                  Скопируйте AGENTS.md
-                </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Вставьте файл в корень вашего репозитория. Он содержит
-                  правила, по которым ИИ оценивает прогресс проекта.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-3">
-                  <CopyTextButton
-                    text={canonicalAgentsDocument.content}
-                    idleLabel="Скопировать AGENTS.md"
-                    successLabel="AGENTS.md скопирован"
-                  />
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="rounded-xl bg-background/90"
-                  >
-                    <Link
-                      href={canonicalAgentsDocument.blobUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Открыть источник
-                    </Link>
-                  </Button>
-                </div>
-                <p className="mt-3 text-xs leading-6 text-muted-foreground">
-                  Источник:{" "}
-                  {canonicalAgentsDocument.source === "remote"
-                    ? "актуальная версия из GitHub"
-                    : "локальный fallback, если GitHub временно недоступен"}
-                  .
-                </p>
-              </div>
-              <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
-                <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-[hsl(var(--status-calm)/0.14)] font-semibold text-[hsl(var(--status-calm))]">
-                  2
-                </div>
-                <div className="font-medium text-foreground">
-                  Вставьте промпт в ИИ
-                </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Скопируйте готовый промпт ниже и отправьте его в ChatGPT,
-                  Cursor или любой другой ИИ-ассистент, работающий с вашим
-                  репозиторием.
-                </p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  ИИ автоматически проверит структуру <code>memory_bank</code>,
-                  создаст <code>projectbrief.md</code> с таблицей{" "}
-                  <code>Project Deliverables</code> и сделает коммит.
-                </p>
-              </div>
-            </div>
-            <CopyProjectSetupPrompt
-              agentsSourceUrl={canonicalAgentsDocument.blobUrl}
-            />
-          </CardContent>
+              <CopyProjectSetupPrompt
+                agentsSourceUrl={canonicalAgentsDocument.blobUrl}
+              />
+            </CardContent>
+          </details>
         </Card>
 
         {currentProjects.length > 0 && !isTeacherPreview && (

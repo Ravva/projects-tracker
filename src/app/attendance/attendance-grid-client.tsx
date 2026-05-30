@@ -478,12 +478,12 @@ export function AttendanceGridClient({
       <Table className="mt-4 w-auto min-w-[34rem]">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[18rem]">Ученик</TableHead>
+            <TableHead className="w-[14rem] max-w-[14rem]">Ученик</TableHead>
             {WEEKDAY_COLUMNS.map((column) => {
               const lesson = lessonsByWeekday.get(column.code);
 
               return (
-                <TableHead key={column.code} className="w-24">
+                <TableHead key={column.code} className="w-20 text-center">
                   {lesson ? (
                     <button
                       type="button"
@@ -500,7 +500,7 @@ export function AttendanceGridClient({
                 </TableHead>
               );
             })}
-            <TableHead className="w-24">Статус недели</TableHead>
+            <TableHead className="w-24 text-center">Статус</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -529,7 +529,7 @@ export function AttendanceGridClient({
 
               return (
                 <TableRow key={row.student.id}>
-                  <TableCell className="py-2 text-sm font-medium">
+                  <TableCell className="max-w-[14rem] truncate py-1.5 pr-2 text-sm font-medium">
                     {row.student.lastName} {row.student.firstName}
                   </TableCell>
                   {WEEKDAY_COLUMNS.map((column) => {
@@ -537,7 +537,7 @@ export function AttendanceGridClient({
 
                     if (!lesson) {
                       return (
-                        <TableCell key={column.code} className="px-1 py-2">
+                        <TableCell key={column.code} className="px-0.5 py-1.5">
                           <div className="text-center text-base text-muted-foreground">
                             -
                           </div>
@@ -550,7 +550,7 @@ export function AttendanceGridClient({
                       : (studentStates[lesson.id] ?? "unmarked");
 
                     return (
-                      <TableCell key={column.code} className="px-1 py-2">
+                      <TableCell key={column.code} className="px-0.5 py-1.5">
                         <div className="flex justify-center">
                           <button
                             type="button"
@@ -572,7 +572,7 @@ export function AttendanceGridClient({
                       </TableCell>
                     );
                   })}
-                  <TableCell className="px-1 py-2 text-center">
+                  <TableCell className="px-0.5 py-1.5 text-center">
                     <span
                       className="inline-flex items-center"
                       title={`Статус недели: ${attendanceRate}%`}

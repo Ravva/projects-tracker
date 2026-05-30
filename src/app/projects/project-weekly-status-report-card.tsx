@@ -29,41 +29,32 @@ export function ProjectWeeklyStatusReportCard({
   };
 
   return (
-    <Card className="border-border/70 bg-card/88 shadow-none">
-      <CardHeader>
-        <div>
-          <CardTitle>Еженедельный отчёт</CardTitle>
-          <CardDescription>
-            Страница для показа родителям, печати и сохранения в PDF.
+    <Card className="border-border/70 bg-card/88 shadow-none p-4 md:p-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <CardTitle className="text-base font-semibold">Еженедельный отчёт</CardTitle>
+          <CardDescription className="text-xs text-muted-foreground">
+            Отчёт для родителей, печати и сохранения в PDF. На основе сигналов, истории AI-сводок и проектов.
           </CardDescription>
         </div>
-        <CardAction>
-          <div className="flex items-center gap-2">
-            <Button
-              asChild
-              variant="outline"
-              className="rounded-xl bg-background/90"
-            >
-              <Link href="/projects/report">Открыть отчёт</Link>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-xl bg-background/90"
-              onClick={handleCopy}
-            >
-              {copied ? "Ссылка скопирована" : "Скопировать ссылку"}
-            </Button>
-          </div>
-        </CardAction>
-      </CardHeader>
-      <CardContent>
-        <p className="mb-3 text-xs text-muted-foreground">
-          Отчёт формируется на основе текущих сигналов проектов, истории
-          AI-отчётов и зарегистрированных проектов учеников. Для получения
-          свежих данных сначала запустите «Sync + AI».
-        </p>
-      </CardContent>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-xl bg-background/90 text-xs px-3 py-1.5 h-8"
+          >
+            <Link href="/projects/report">Открыть отчёт</Link>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-xl bg-background/90 text-xs px-3 py-1.5 h-8 min-w-[130px]"
+            onClick={handleCopy}
+          >
+            {copied ? "Скопировано" : "Копировать ссылку"}
+          </Button>
+        </div>
+      </div>
     </Card>
   );
 }

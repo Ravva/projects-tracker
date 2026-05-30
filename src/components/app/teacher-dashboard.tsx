@@ -426,7 +426,7 @@ export async function TeacherDashboard({
                   </div>
                   <div>
                     <div className="text-sm font-medium text-foreground">
-                      Нет проектов в зоне контроля
+                      Нет проектов в зоне риска
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       Все активные проекты идут в штатном режиме
@@ -441,50 +441,64 @@ export async function TeacherDashboard({
                   </Link>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="px-5">Ученик</TableHead>
-                      <TableHead>Проект</TableHead>
-                      <TableHead>Риск</TableHead>
-                      <TableHead className="text-right">Прогресс</TableHead>
-                      <TableHead className="w-8" />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {riskyProjects.map((project) => (
-                      <TableRow key={project.id} className="cursor-pointer">
-                        <TableCell className="px-5 font-medium">
-                          {project.studentName}
-                        </TableCell>
-                        <TableCell className="max-w-[180px] truncate">
-                          {project.name}
-                        </TableCell>
-                        <TableCell>
-                          <StatusPill
-                            tone={getProjectRiskTone(project)}
-                            label={getProjectRiskLabel(project.risk)}
-                          />
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {getProjectProgressLabel(project)}
-                        </TableCell>
-                        <TableCell>
-                          <Link
-                            href={`/projects/${project.id}`}
-                            className="flex items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-                          >
-                            <HugeiconsIcon
-                              icon={ArrowRight02Icon}
-                              size={14}
-                              strokeWidth={2}
-                            />
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <div className="flex flex-col">
+                  <div className="max-h-[290px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-b border-white/5 hover:bg-transparent">
+                          <TableHead className="px-5 font-semibold text-xs tracking-wider uppercase text-muted-foreground">Ученик</TableHead>
+                          <TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground">Проект</TableHead>
+                          <TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground">Риск</TableHead>
+                          <TableHead className="text-right font-semibold text-xs tracking-wider uppercase text-muted-foreground">Прогресс</TableHead>
+                          <TableHead className="w-8" />
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {riskyProjects.map((project) => (
+                          <TableRow key={project.id} className="cursor-pointer border-b border-white/5 hover:bg-white/[0.02]">
+                            <TableCell className="px-5 font-medium">
+                              {project.studentName}
+                            </TableCell>
+                            <TableCell className="max-w-[180px] truncate text-xs text-muted-foreground">
+                              {project.name}
+                            </TableCell>
+                            <TableCell>
+                              <StatusPill
+                                tone={getProjectRiskTone(project)}
+                                label={getProjectRiskLabel(project.risk)}
+                              />
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {getProjectProgressLabel(project)}
+                            </TableCell>
+                            <TableCell>
+                              <Link
+                                href={`/projects/${project.id}`}
+                                className="flex items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                              >
+                                <HugeiconsIcon
+                                  icon={ArrowRight02Icon}
+                                  size={14}
+                                  strokeWidth={2}
+                                />
+                              </Link>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <div className="flex items-center justify-end px-5 py-3 border-t border-white/5 bg-white/[0.01]">
+                    <Link
+                      href="/projects"
+                      className="inline-flex items-center gap-1 text-xs font-semibold tracking-wide transition-colors hover:opacity-80"
+                      style={{ color: "hsl(var(--status-calm))" }}
+                    >
+                      Все проекты
+                      <HugeiconsIcon icon={ArrowRight02Icon} size={12} strokeWidth={2} />
+                    </Link>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>

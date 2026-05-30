@@ -7,6 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 
 import { createStudentAction } from "@/app/students/actions";
+import { StatusPill } from "@/components/app/status-pill";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -126,31 +127,18 @@ export default async function StudentsPage() {
                         {student.activeProjectsCount}/{student.projectsCount}
                       </TableCell>
                       <TableCell>
-                        <span
-                          className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
-                          style={{
-                            background:
+                        <div className="inline-flex">
+                          <StatusPill
+                            tone={
                               student.attendanceRate >= 100
-                                ? "rgba(34,197,94,0.12)"
+                                ? "success"
                                 : student.attendanceRate > 0
-                                  ? "rgba(245,158,11,0.12)"
-                                  : "rgba(239,68,68,0.12)",
-                            border:
-                              student.attendanceRate >= 100
-                                ? "1px solid rgba(34,197,94,0.3)"
-                                : student.attendanceRate > 0
-                                  ? "1px solid rgba(245,158,11,0.3)"
-                                  : "1px solid rgba(239,68,68,0.3)",
-                            color:
-                              student.attendanceRate >= 100
-                                ? "hsl(160 60% 48%)"
-                                : student.attendanceRate > 0
-                                  ? "hsl(37 88% 61%)"
-                                  : "hsl(8 79% 66%)",
-                          }}
-                        >
-                          {student.attendanceRate}%
-                        </span>
+                                  ? "warning"
+                                  : "critical"
+                            }
+                            label={`${student.attendanceRate}%`}
+                          />
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

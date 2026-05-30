@@ -37,6 +37,18 @@ last_checked_commit: 957a8d1
 
 ## Changelog
 
+- 2026-05-30: **Полный визуальный рефакторинг 7 страниц и UI-полировка на основе рекомендаций Kimi завершены успешно!**
+  * **Teacher Dashboard (`/`)**: Сетка «Зона контроля» получила вертикальный скролл `max-h-[290px]` с тонким скроллбаром и красивую нативную footer-ссылку «Все проекты →» взамен старых выбивающихся кнопок.
+  * **Students (`/students`)**: Столбец посещаемости переведен с разнородных span-стилей на единые переиспользуемые `<StatusPill tone="success"|"warning"|"critical">`.
+  * **Attendance Grid (`/attendance`)**: Уменьшена ширина ячейки имени до `w-[14rem]` с эллипсисом (`truncate`), ширина столбцов дней недели сокращена до `w-20`, ячейки переведены на сокращенный паддинг `px-0.5 py-1.5`.
+  * **Projects List**: Отчет `ProjectWeeklyStatusReportCard` переведен в горизонтальный flex-компонент, разгрузив верхнюю часть списка проектов.
+  * **Project details (`/my-project` и `[projectId]`)**:
+    - Инструкция onboarding на `/my-project` скрыта под Details/Summary с анимированным вращающимся шевроном.
+    - В `[projectId]/page.tsx` свернуты visual outlines/glow у `SignalCard`.
+  * **Reports Print**: Добавлены print style правила `@media print` в `globals.css` для скрытия Back/Print/Share кнопок.
+  * **Student details (`/students/[studentId]`)**: Вертикальный стек перестроен в адаптивную сетку `grid sm:grid-cols-2 xl:grid-cols-1`, а AI-сводка получила скролл `max-h-48` и скрытые границы секций.
+  * Все изменения верифицированы успешным `production build`.
+
 - 2026-05-23 (текущая сессия): Интегрирован анализатор сессий O‍penCode AI Engineering Coach (метрики гигиены работы с ИИ) в качестве автономной in-memory фичи. Настроен удаленный сбор логов (пути `.ai-coach/logs` и `.opencode-logs`) через GitHub API без клонирования на сервер. Логика градации скоринга (0-100 очков) очищена от платформозависимых Windows-проверок. Вся терминология локализована под русский язык и сущность «Ученик» (Pupil) вместо прежней «Студент» (Student). Результаты сохранены в `report_payload_json` проекта и выведены на фронтенд в интерактивном виджете AI Coach. `bun run build` успешно выполняет сборку всей кодовой базы.
 
 - 2025-07-18 (предыдущая сессия): UI-polish трёх компонентов под AI Platform Interface dark design system.
