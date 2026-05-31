@@ -113,3 +113,22 @@ export function daysSince(isoDate: string | null | undefined) {
 
   return Math.floor((Date.now() - target.getTime()) / MS_IN_DAY);
 }
+
+export function formatDateTimeShort(dateString: string | Date): string {
+  const date =
+    typeof dateString === "string" ? new Date(dateString) : dateString;
+  if (Number.isNaN(date.getTime())) {
+    return String(dateString);
+  }
+
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Moscow",
+  })
+    .format(date)
+    .replace(", ", " ");
+}

@@ -37,6 +37,7 @@ import {
   getProjectSyncStatusTone,
 } from "@/lib/project-sync";
 import { requireTeacherSession } from "@/lib/server/auth";
+import { formatDateTimeShort } from "@/lib/server/date-utils";
 import { getUploadedLogsMetadata } from "@/lib/server/logs-storage";
 import { parseProjectAiInputSnapshot } from "@/lib/server/project-ai-report-snapshot";
 import {
@@ -826,7 +827,8 @@ export default async function ProjectDetailsPage({
                       className="rounded-xl border border-border/70 bg-background/70 p-3"
                     >
                       <div className="font-medium">
-                        {report.completionPercent}% • {report.createdAt}
+                        {report.completionPercent}% •{" "}
+                        {formatDateTimeShort(report.createdAt)}
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">
                         memory_bank: {report.hasMemoryBank ? "да" : "нет"} • ТЗ:{" "}
