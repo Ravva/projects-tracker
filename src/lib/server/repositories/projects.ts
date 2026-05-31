@@ -26,6 +26,7 @@ import {
 import { getOpenCodeCoachAnalysis } from "@/lib/server/opencode-coach-integration";
 import {
   type ProjectAiInputSnapshot,
+  parseProjectAiInputSnapshot,
   serializeProjectAiInputSnapshot,
 } from "@/lib/server/project-ai-report-snapshot";
 import { deleteProjectCascade } from "@/lib/server/project-cleanup";
@@ -1552,7 +1553,7 @@ export async function runProjectAiAnalysis(
     defaultBranch: repositoryAnalysis.repository.defaultBranch,
     githubUrl: repositoryAnalysis.repository.htmlUrl,
   });
-  const inputSnapshot: ProjectAiInputSnapshot = {
+  const rawInputSnapshot: ProjectAiInputSnapshot = {
     name: project.name,
     summary: project.summary,
     github: {
@@ -1596,6 +1597,12 @@ export async function runProjectAiAnalysis(
       docsReadme: repositoryAnalysis.files.docsReadme?.content ?? "",
     },
   };
+
+  // Safe Smart Truncation: Use the pre-built serialize + parse roundtrip to apply the exact MEMORY_BANK_MAX_LENGTHS limits
+  const serializedSnapshot = serializeProjectAiInputSnapshot(rawInputSnapshot);
+  const inputSnapshot =
+    parseProjectAiInputSnapshot(serializedSnapshot.snapshotJson) ||
+    rawInputSnapshot;
 
   // 🤖 AI Engineering Coach - OpenCode Session Analysis
   const openCodeCoachResult = await getOpenCodeCoachAnalysis(projectId);
