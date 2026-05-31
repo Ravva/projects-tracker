@@ -77,7 +77,23 @@ function buildWeeklyState(attendanceRate: number): WeeklyState {
   return "success";
 }
 
-function getAttendanceDotClassName(state: AttendanceState) {
+function getAttendanceCellClassName(state: AttendanceState) {
+  if (state === "cancelled") {
+    return "bg-fuchsia-50/60 text-fuchsia-700 border-fuchsia-200 shadow-sm dark:bg-fuchsia-950/40 dark:text-fuchsia-400 dark:border-fuchsia-900/50";
+  }
+
+  if (state === "absent") {
+    return "bg-rose-50 text-rose-700 border-rose-200 shadow-sm dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/50";
+  }
+
+  if (state === "present") {
+    return "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/50";
+  }
+
+  return "bg-background text-muted-foreground border-border hover:bg-accent/50";
+}
+
+function getAttendanceLegendDotClassName(state: AttendanceState) {
   if (state === "cancelled") {
     return "bg-fuchsia-500 shadow-[0_0_0_1px_rgba(217,70,239,0.34)] dark:bg-fuchsia-400";
   }
@@ -91,6 +107,13 @@ function getAttendanceDotClassName(state: AttendanceState) {
   }
 
   return "bg-background shadow-[0_0_0_1px_hsl(var(--border))]";
+}
+
+function getAttendanceSymbol(state: AttendanceState) {
+  if (state === "cancelled") return "✕";
+  if (state === "absent") return "Н";
+  if (state === "present") return "П";
+  return "";
 }
 
 function getWeeklyStatusDotClassName(weeklyState: WeeklyState) {
@@ -422,7 +445,7 @@ export function AttendanceGridClient({
                     item.state === "warning" ||
                     item.state === "success"
                       ? getWeeklyStatusDotClassName(item.state)
-                      : getAttendanceDotClassName(item.state)
+                      : getAttendanceLegendDotClassName(item.state)
                   }`}
                 />
                 <span>{item.label}</span>
@@ -558,15 +581,13 @@ export function AttendanceGridClient({
                               isPending || lessonClosedStates[lesson.id]
                             }
                             aria-label={STATE_LABELS[currentState]}
-                            className="inline-flex items-center justify-center rounded-full p-1.5 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
+                            className={`inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border font-medium text-xs transition-all hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 ${getAttendanceCellClassName(currentState)}`}
                             title={STATE_LABELS[currentState]}
                             onClick={() =>
                               handleCellToggle(row.student.id, lesson.id)
                             }
                           >
-                            <span
-                              className={`inline-flex size-4 rounded-full ${getAttendanceDotClassName(currentState)}`}
-                            />
+                            {getAttendanceSymbol(currentState)}
                           </button>
                         </div>
                       </TableCell>

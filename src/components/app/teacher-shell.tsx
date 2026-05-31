@@ -136,7 +136,9 @@ export function TeacherShell({
               </div>
             </header>
 
-            <main className="px-5 py-6 lg:px-8">{children}</main>
+            <main className="px-5 py-5 lg:px-8 max-w-[1600px] mx-auto w-full">
+              {children}
+            </main>
           </div>
         </SidebarInset>
       </SidebarProvider>

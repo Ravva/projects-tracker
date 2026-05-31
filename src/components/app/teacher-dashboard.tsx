@@ -109,7 +109,7 @@ const toneConfig = {
 
 type Tone = keyof typeof toneConfig;
 
-/* ─── KpiCard ──────────────────────────────────────────── */
+/* ─── KpiCard — compact, info-dense variant ───────────────────── */
 
 function KpiCard({
   icon,
@@ -135,13 +135,15 @@ function KpiCard({
   const content = (
     <div
       className="group relative flex flex-col gap-3 rounded-2xl px-5 py-5 card-hover-glow"
-      style={{
-        background: c.bg,
-        border: `1px solid ${c.border}`,
-        backdropFilter: "blur(12px)",
-        "--ambient-glow-color": c.glow,
-        "--direct-glow-color": c.glow,
-      } as React.CSSProperties}
+      style={
+        {
+          background: c.bg,
+          border: `1px solid ${c.border}`,
+          backdropFilter: "blur(12px)",
+          "--ambient-glow-color": c.glow,
+          "--direct-glow-color": c.glow,
+        } as React.CSSProperties
+      }
     >
       {/* top accent line */}
       <div
@@ -446,16 +448,27 @@ export async function TeacherDashboard({
                     <Table>
                       <TableHeader>
                         <TableRow className="border-b border-white/5 hover:bg-transparent">
-                          <TableHead className="px-5 font-semibold text-xs tracking-wider uppercase text-muted-foreground">Ученик</TableHead>
-                          <TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground">Проект</TableHead>
-                          <TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground">Риск</TableHead>
-                          <TableHead className="text-right font-semibold text-xs tracking-wider uppercase text-muted-foreground">Прогресс</TableHead>
+                          <TableHead className="px-5 font-semibold text-xs tracking-wider uppercase text-muted-foreground">
+                            Ученик
+                          </TableHead>
+                          <TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground">
+                            Проект
+                          </TableHead>
+                          <TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground">
+                            Риск
+                          </TableHead>
+                          <TableHead className="text-right font-semibold text-xs tracking-wider uppercase text-muted-foreground">
+                            Прогресс
+                          </TableHead>
                           <TableHead className="w-8" />
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {riskyProjects.map((project) => (
-                          <TableRow key={project.id} className="cursor-pointer border-b border-white/5 hover:bg-white/[0.02]">
+                          <TableRow
+                            key={project.id}
+                            className="cursor-pointer border-b border-white/5 hover:bg-white/[0.02]"
+                          >
                             <TableCell className="px-5 font-medium">
                               {project.studentName}
                             </TableCell>
@@ -495,7 +508,11 @@ export async function TeacherDashboard({
                       style={{ color: "hsl(var(--status-calm))" }}
                     >
                       Все проекты
-                      <HugeiconsIcon icon={ArrowRight02Icon} size={12} strokeWidth={2} />
+                      <HugeiconsIcon
+                        icon={ArrowRight02Icon}
+                        size={12}
+                        strokeWidth={2}
+                      />
                     </Link>
                   </div>
                 </div>
