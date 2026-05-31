@@ -26,6 +26,18 @@ function getSystemTheme(): ResolvedTheme {
   return "cyber-emerald";
 }
 
+function isThemeMode(value: string | null): value is ThemeMode {
+  return (
+    value === "cyber-emerald" ||
+    value === "amethyst-eclipse" ||
+    value === "system"
+  );
+}
+
+function getResolvedTheme(theme: ThemeMode): ResolvedTheme {
+  return theme === "system" ? getSystemTheme() : theme;
+}
+
 function readStoredTheme(): ThemeMode {
   if (typeof window === "undefined") {
     return "system";
@@ -33,11 +45,7 @@ function readStoredTheme(): ThemeMode {
 
   const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
 
-  if (
-    storedTheme === "cyber-emerald" ||
-    storedTheme === "amethyst-eclipse" ||
-    storedTheme === "system"
-  ) {
+  if (isThemeMode(storedTheme)) {
     return storedTheme;
   }
 
@@ -49,11 +57,12 @@ function readStoredTheme(): ThemeMode {
   return "system";
 }
 
-function applyTheme(theme: ThemeMode, resolvedTheme: ResolvedTheme) {
+function applyTheme(theme: ThemeMode) {
   const root = document.documentElement;
+  const resolvedTheme = getResolvedTheme(theme);
 
   if (theme === "system") {
-    root.removeAttribute("data-theme");
+    root.setAttribute("data-theme", resolvedTheme);
   } else {
     root.setAttribute("data-theme", theme);
   }
@@ -62,18 +71,18 @@ function applyTheme(theme: ThemeMode, resolvedTheme: ResolvedTheme) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<ThemeMode>("system");
-  const [resolvedTheme, setResolvedTheme] =
-    useState<ResolvedTheme>("cyber-emerald");
+  const [theme, setThemeState] = useState<ThemeMode>(() => readStoredTheme());
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
+    getResolvedTheme(readStoredTheme()),
+  );
 
   useEffect(() => {
     const currentTheme = readStoredTheme();
-    const nextResolvedTheme =
-      currentTheme === "system" ? getSystemTheme() : currentTheme;
+    const nextResolvedTheme = getResolvedTheme(currentTheme);
 
-    setTheme(currentTheme);
+    setThemeState(currentTheme);
     setResolvedTheme(nextResolvedTheme);
-    applyTheme(currentTheme, nextResolvedTheme);
+    applyTheme(currentTheme);
   }, []);
 
   useEffect(() => {
@@ -84,9 +93,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const nextResolvedTheme = getSystemTheme();
+      const nextResolvedTheme = getResolvedTheme("system");
       setResolvedTheme(nextResolvedTheme);
-      applyTheme("system", nextResolvedTheme);
+      applyTheme("system");
     };
 
     handleSystemThemeChange();
@@ -102,14 +111,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       theme,
       resolvedTheme,
       setTheme: (nextTheme) => {
-        const nextResolvedTheme =
-          nextTheme === "system" ? getSystemTheme() : nextTheme;
+        const nextResolvedTheme = getResolvedTheme(nextTheme);
 
-        setTheme(nextTheme);
+        setThemeState(nextTheme);
         setResolvedTheme(nextResolvedTheme);
 
         window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-        applyTheme(nextTheme, nextResolvedTheme);
+        applyTheme(nextTheme);
       },
     }),
     [resolvedTheme, theme],

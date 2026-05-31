@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Inter, Unbounded, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Unbounded } from "next/font/google";
+import Script from "next/script";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import "./globals.css";
 
@@ -32,19 +33,44 @@ export const metadata: Metadata = {
   },
 };
 
+const themeInitScript = `
+(() => {
+  try {
+    const storageKey = "projects-tracker-theme";
+    const storedTheme = window.localStorage.getItem(storageKey);
+    const validThemes = ["cyber-emerald", "amethyst-eclipse", "system"];
+    const theme = validThemes.includes(storedTheme) ? storedTheme : "system";
+    const root = document.documentElement;
+
+    root.setAttribute(
+      "data-theme",
+      theme === "system" ? "cyber-emerald" : theme,
+    );
+
+    root.style.colorScheme = "dark";
+  } catch {
+    document.documentElement.setAttribute("data-theme", "cyber-emerald");
+    document.documentElement.style.colorScheme = "dark";
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" data-theme="dark" suppressHydrationWarning>
+    <html lang="ru" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${unbounded.variable} ${jetbrainsMono.variable} bg-background text-foreground antialiased`}
         style={{
           fontFamily: "var(--font-inter), Inter, Noto Sans, sans-serif",
         }}
       >
+        <Script id="theme-init" strategy="beforeInteractive">
+          {themeInitScript}
+        </Script>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
