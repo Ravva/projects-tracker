@@ -100,11 +100,13 @@ function ProjectKindIcon({ membersCount }: { membersCount: number }) {
 export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
   if (rows.length === 0) {
     return (
-      <Table className="w-max text-sm md:text-base">
+      <Table className="w-full text-sm md:text-base">
         <TableHeader>
           <TableRow>
             <TableHead>Участники</TableHead>
-            <TableHead>Проект</TableHead>
+            <TableHead className="max-w-[260px] whitespace-normal">
+              Проект
+            </TableHead>
             <TableHead>Последнее изменение</TableHead>
             <TableHead>Статус</TableHead>
             <TableHead>Repo sync</TableHead>
@@ -128,11 +130,13 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
   }
 
   return (
-    <Table className="w-max text-sm md:text-base">
+    <Table className="w-full text-sm md:text-base">
       <TableHeader>
         <TableRow>
           <TableHead>Участники</TableHead>
-          <TableHead>Проект</TableHead>
+          <TableHead className="max-w-[260px] whitespace-normal">
+            Проект
+          </TableHead>
           <TableHead>Последнее изменение</TableHead>
           <TableHead>Статус</TableHead>
           <TableHead>Repo sync</TableHead>
@@ -191,17 +195,19 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
                   <div className="font-medium">{row.studentName}</div>
                 </RowLink>
               </TableCell>
-              <TableCell>
+              <TableCell className="max-w-[260px] whitespace-normal">
                 <RowLink href={href}>
-                  <div className="flex items-center gap-2 font-medium">
-                    <ProjectKindIcon membersCount={project.membersCount} />
-                    <span>{project.name}</span>
-                  </div>
-                  {project.syncStatusReason ? (
-                    <div className="text-xs text-muted-foreground">
-                      {project.syncStatusReason}
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 font-medium">
+                      <ProjectKindIcon membersCount={project.membersCount} />
+                      <span className="break-all">{project.name}</span>
                     </div>
-                  ) : null}
+                    {project.syncStatusReason ? (
+                      <div className="text-xs text-muted-foreground break-all leading-normal">
+                        {project.syncStatusReason}
+                      </div>
+                    ) : null}
+                  </div>
                 </RowLink>
               </TableCell>
               <TableCell className="p-0">
