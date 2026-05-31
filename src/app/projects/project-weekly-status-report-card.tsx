@@ -32,9 +32,12 @@ export function ProjectWeeklyStatusReportCard({
     <Card className="border-border/70 bg-card/88 shadow-none p-4 md:p-5">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <CardTitle className="text-base font-semibold">Еженедельный отчёт</CardTitle>
+          <CardTitle className="text-base font-semibold">
+            Еженедельный отчёт
+          </CardTitle>
           <CardDescription className="text-xs text-muted-foreground">
-            Отчёт для родителей, печати и сохранения в PDF. На основе сигналов, истории AI-сводок и проектов.
+            Отчёт для родителей, печати и сохранения в PDF. На основе сигналов,
+            истории AI-сводок и проектов.
           </CardDescription>
         </div>
         <div className="flex items-center gap-2 shrink-0">

@@ -9,8 +9,12 @@ import {
   useState,
 } from "react";
 
-export type ThemeMode = "cyber-emerald" | "amethyst-eclipse" | "system";
-type ResolvedTheme = "cyber-emerald" | "amethyst-eclipse";
+export type ThemeMode =
+  | "cyber-emerald"
+  | "amethyst-eclipse"
+  | "amber-core"
+  | "system";
+type ResolvedTheme = "cyber-emerald" | "amethyst-eclipse" | "amber-core";
 
 const THEME_STORAGE_KEY = "projects-tracker-theme";
 
@@ -30,6 +34,7 @@ function isThemeMode(value: string | null): value is ThemeMode {
   return (
     value === "cyber-emerald" ||
     value === "amethyst-eclipse" ||
+    value === "amber-core" ||
     value === "system"
   );
 }

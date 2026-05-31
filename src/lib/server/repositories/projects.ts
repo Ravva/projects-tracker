@@ -23,13 +23,13 @@ import {
   mapProjectDocument,
   mapProjectMembershipDocument,
 } from "@/lib/server/mappers";
+import { getOpenCodeCoachAnalysis } from "@/lib/server/opencode-coach-integration";
 import {
   type ProjectAiInputSnapshot,
   serializeProjectAiInputSnapshot,
 } from "@/lib/server/project-ai-report-snapshot";
 import { deleteProjectCascade } from "@/lib/server/project-cleanup";
 import { analyzeProjectRepository } from "@/lib/server/project-repository-analysis";
-import { getOpenCodeCoachAnalysis } from "@/lib/server/opencode-coach-integration";
 import { listStudentNameMap } from "@/lib/server/repositories/students";
 import type {
   ProjectAiReportRecord,

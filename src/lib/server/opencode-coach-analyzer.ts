@@ -1,12 +1,12 @@
 import "server-only";
 
-import { getUploadedLogs } from "@/lib/server/logs-storage";
+import { runDetectors } from "@/lib/server/ai-coach/detector-registry";
 import { parseInMemoryOpenCodeSessions } from "@/lib/server/ai-coach/parser-opencode";
 import {
-  registerAllBuiltinRules,
   registerAllBuiltinMetrics,
+  registerAllBuiltinRules,
 } from "@/lib/server/ai-coach/rule-loader";
-import { runDetectors } from "@/lib/server/ai-coach/detector-registry";
+import { getUploadedLogs } from "@/lib/server/logs-storage";
 
 export interface OpenCodeCoachAnalysisResult {
   score: number;

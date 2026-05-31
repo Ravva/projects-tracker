@@ -1,11 +1,11 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TeacherShell } from "@/components/app/teacher-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireTeacherSession } from "@/lib/server/auth";
-import { getProject } from "@/lib/server/repositories/projects";
 import { getUploadedLogsMetadata } from "@/lib/server/logs-storage";
-import Link from "next/link";
+import { getProject } from "@/lib/server/repositories/projects";
 
 export default async function ProjectLogsPage({
   params,

@@ -37,6 +37,7 @@ import {
   getProjectSyncStatusTone,
 } from "@/lib/project-sync";
 import { requireTeacherSession } from "@/lib/server/auth";
+import { getUploadedLogsMetadata } from "@/lib/server/logs-storage";
 import { parseProjectAiInputSnapshot } from "@/lib/server/project-ai-report-snapshot";
 import {
   getProject,
@@ -44,7 +45,6 @@ import {
   listProjectMembers,
 } from "@/lib/server/repositories/projects";
 import { listStudents } from "@/lib/server/repositories/students";
-import { getUploadedLogsMetadata } from "@/lib/server/logs-storage";
 
 function extractTextOrFallback(value: string | undefined, fallback: string) {
   const normalized = value?.trim();
@@ -100,9 +100,7 @@ function SignalCard({
 }) {
   const c = signalToneConfig[tone];
   return (
-    <div
-      className="relative flex flex-col overflow-hidden rounded-2xl p-4 transition-all duration-200 border border-white/5 bg-background/40"
-    >
+    <div className="relative flex flex-col overflow-hidden rounded-2xl p-4 transition-all duration-200 border border-white/5 bg-background/40">
       {/* Top accent line */}
       <div
         aria-hidden="true"

@@ -2,6 +2,7 @@
 
 import {
   ComputerIcon,
+  FireIcon,
   Leaf01Icon,
   MoonEclipseIcon,
 } from "@hugeicons/core-free-icons";
@@ -24,6 +25,12 @@ export function ThemeToggle() {
           icon: MoonEclipseIcon,
           label: theme === "system" ? "Система: аметист" : "Аметист",
           swatchClassName: "bg-fuchsia-400",
+        };
+      case "amber-core":
+        return {
+          icon: FireIcon,
+          label: theme === "system" ? "Система: янтарь" : "Янтарь",
+          swatchClassName: "bg-amber-500",
         };
       default:
         return {
@@ -72,6 +79,14 @@ export function ThemeToggle() {
         >
           <HugeiconsIcon icon={MoonEclipseIcon} strokeWidth={2} />
           <span>Сумеречный аметист</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          aria-current={theme === "amber-core" ? "true" : undefined}
+          className={theme === "amber-core" ? "bg-accent" : undefined}
+          onSelect={() => setTheme("amber-core")}
+        >
+          <HugeiconsIcon icon={FireIcon} strokeWidth={2} />
+          <span>Янтарное ядро</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           aria-current={theme === "system" ? "true" : undefined}

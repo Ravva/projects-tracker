@@ -457,12 +457,23 @@ export default async function MyProjectPage({
                   Два шага — и репозиторий готов к AI-анализу
                 </CardTitle>
                 <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                  Нажмите, чтобы развернуть инструкцию по добавлению <code>AGENTS.md</code> и первичному промпту.
+                  Нажмите, чтобы развернуть инструкцию по добавлению{" "}
+                  <code>AGENTS.md</code> и первичному промпту.
                 </p>
               </div>
               <div className="text-[hsl(var(--status-warning))] transition-transform duration-200 group-open:rotate-180 shrink-0">
-                <svg className="size-6" fill="fill" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                <svg
+                  className="size-6"
+                  fill="fill"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </summary>
@@ -520,8 +531,8 @@ export default async function MyProjectPage({
                     репозиторием.
                   </p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    ИИ автоматически проверит структуру <code>memory_bank</code>,
-                    создаст <code>projectbrief.md</code> с таблицей{" "}
+                    ИИ автоматически проверит структуру <code>memory_bank</code>
+                    , создаст <code>projectbrief.md</code> с таблицей{" "}
                     <code>Project Deliverables</code> и сделает коммит.
                   </p>
                 </div>
