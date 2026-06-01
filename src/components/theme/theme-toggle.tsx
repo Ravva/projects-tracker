@@ -15,19 +15,24 @@ export function ThemeToggle() {
 
   const presets = [
     {
+      id: "untitled-classic",
+      name: "Untitled UI (Slate)",
+      color: "bg-[#6172F3] shadow-[#6172F3]/40",
+    },
+    {
       id: "amethyst-eclipse",
-      name: "Индиго (Lavender)",
-      color: "bg-[#7F56D9] shadow-[#7F56D9]/50",
+      name: "Аметист (Onyx Purple)",
+      color: "bg-[#9E77ED] shadow-[#9E77ED]/45",
     },
     {
       id: "cyber-emerald",
       name: "Изумруд (Mint)",
-      color: "bg-[#12B76A] shadow-[#12B76A]/50",
+      color: "bg-[#12B76A] shadow-[#12B76A]/45",
     },
     {
       id: "amber-core",
       name: "Янтарь (Honey)",
-      color: "bg-[#F79009] shadow-[#F79009]/50",
+      color: "bg-[#F79009] shadow-[#F79009]/45",
     },
   ];
 

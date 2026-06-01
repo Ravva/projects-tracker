@@ -47,6 +47,7 @@ html[data-theme="amethyst-eclipse"] {
   --webgl-glow-3: 158, 119, 237;
 
   --radius: 0.75rem; /* 12px for modern look matching Untitled UI */
+  --font-title-custom: var(--font-unbounded), "Unbounded", display, sans-serif;
 }
 
 /* ─── Untitled Emerald / Mint (cyber-emerald) - LIGHT MODE ─── */
@@ -125,6 +126,53 @@ html[data-theme="amber-core"] {
   --webgl-glow-1: 236, 122, 8; /* amber rgb */
   --webgl-glow-2: 244, 245, 247;
   --webgl-glow-3: 247, 144, 9;
+}
+
+/* ─── Untitled Classic UI (untitled-classic) - LIGHT MODE ─── */
+html[data-theme="untitled-classic"] {
+  --background: 220 20% 99%; /* #FAFAFB very clean */
+  --background-secondary: 220 15% 97.2%; /* #F2F4F7 */
+  --foreground: 220 40% 10%; /* #101828 */
+
+  --card: 0 0% 100%; /* Pure white #FFFFFF */
+  --card-foreground: 220 40% 10%; /* #101828 */
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 40% 10%;
+
+  --primary: 262 80% 50%; /* Ultimate Brand Purple/Indigo #7F56D9 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 10% 96%; /* #E4E7EC */
+  --secondary-foreground: 220 30% 20%; /* #344054 */
+
+  --muted: 240 10% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 240 10% 94%;
+  --accent-foreground: 220 40% 10%;
+
+  --border: 220 13% 91%; /* #EAECF0 - pristine true gray light borders */
+  --input: 220 13% 89%; /* #D0D5DD */
+  --ring: 262 80% 50%;
+
+  --destructive: 0 84% 60%; /* #F04438 */
+  --destructive-foreground: 0 0% 100%;
+
+  --sidebar: 220 15% 98.8%; /* Pure slate white sidebar background */
+  --sidebar-foreground: 220 40% 10%;
+  --sidebar-primary: 262 80% 50%;
+  --sidebar-accent: 220 12% 94%;
+  --sidebar-border: 220 13% 91%;
+
+  --status-critical: 0 84% 60%;
+  --status-warning: 35 90% 51%;
+  --status-calm: 262 80% 50%;
+  --status-success: 142 70% 45%;
+
+  --webgl-glow-1: 127, 86, 217;
+  --webgl-glow-2: 244, 245, 247;
+  --webgl-glow-3: 158, 119, 237;
+
+  --font-title-custom: var(--font-inter), "Inter", sans-serif;
+  --radius: 0.5rem; /* Standard sharp 8px corners matching Untitled UI buttons */
 }
 
 /* ==================== 2. PREMIUM DARK THEME PRESETS ==================== */
@@ -246,6 +294,48 @@ html[data-theme="amber-core"].dark {
   --webgl-glow-3: 180, 70, 0; /* copper */
 }
 
+/* ─── Untitled Classic UI (untitled-classic) - DARK MODE ─── */
+html[data-theme="untitled-classic"].dark {
+  --background: 220 30% 5.9%; /* #0C111D - true pristine neutral dark canvas */
+  --background-secondary: 220 25% 7.8%; /* #161B26 */
+  --foreground: 220 15% 96%; /* #F9FAFB */
+
+  --card: 220 20% 9.5%; /* #161B26 / #1F242F standard card backgrounds */
+  --card-foreground: 220 15% 96%;
+  --popover: 220 20% 8.5%;
+  --popover-foreground: 220 15% 96%;
+
+  --primary: 259 85% 65%; /* #9E77ED */
+  --primary-foreground: 220 30% 5.9%;
+  --secondary: 220 15% 14%; /* #222939 */
+  --secondary-foreground: 220 15% 90%;
+
+  --muted: 220 15% 14%;
+  --muted-foreground: 220 10% 64%;
+  --accent: 220 16% 16%;
+  --accent-foreground: 220 15% 96%;
+
+  --border: 220 15% 15%; /* #222939 - clean, sharp enterprise dark dividers */
+  --input: 220 15% 17%;
+  --ring: 259 85% 65%;
+
+  --destructive: 7 85% 60%;
+  --destructive-foreground: 220 30% 5.9%;
+
+  --sidebar: 220 30% 5.2%;
+  --sidebar-foreground: 220 15% 96%;
+  --sidebar-primary: 259 85% 65%;
+  --sidebar-accent: 220 15% 11%;
+  --sidebar-border: 220 15% 14%;
+
+  --webgl-glow-1: 158, 119, 237; /* indigo purple */
+  --webgl-glow-2: 65, 80, 220; /* classic brand */
+  --webgl-glow-3: 130, 90, 230;
+
+  --font-title-custom: var(--font-inter), "Inter", sans-serif;
+  --radius: 0.5rem;
+}
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-background-secondary: hsl(var(--background-secondary));
@@ -277,8 +367,19 @@ html[data-theme="amber-core"].dark {
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
   --font-sans: var(--font-inter), "Inter", "Noto Sans", sans-serif;
-  --font-title: var(--font-unbounded), "Unbounded", display, sans-serif;
+  --font-title: var(
+    --font-title-custom,
+    var(--font-unbounded),
+    "Unbounded",
+    display,
+    sans-serif
+  );
   --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
+
+  --color-status-critical: hsl(var(--status-critical));
+  --color-status-warning: hsl(var(--status-warning));
+  --color-status-calm: hsl(var(--status-calm));
+  --color-status-success: hsl(var(--status-success));
 
   --radius-sm: calc(var(--radius) - 0.25rem); /* ~8px  */
   --radius-md: var(--radius); /* 12px */

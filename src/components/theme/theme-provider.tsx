@@ -13,10 +13,15 @@ export type ThemeMode =
   | "cyber-emerald"
   | "amethyst-eclipse"
   | "amber-core"
+  | "untitled-classic"
   | "system";
 
 export type AppearanceMode = "light" | "dark" | "system";
-type ResolvedTheme = "cyber-emerald" | "amethyst-eclipse" | "amber-core";
+type ResolvedTheme =
+  | "cyber-emerald"
+  | "amethyst-eclipse"
+  | "amber-core"
+  | "untitled-classic";
 type ResolvedAppearance = "light" | "dark";
 
 const THEME_STORAGE_KEY = "projects-tracker-theme";
@@ -34,7 +39,7 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function getSystemThemePreset(): ResolvedTheme {
-  return "amethyst-eclipse"; // Default to Untitled Indigo as standard
+  return "untitled-classic"; // Default to Untitled Classic Slate as standard system look
 }
 
 function isThemeMode(value: string | null): value is ThemeMode {
@@ -42,6 +47,7 @@ function isThemeMode(value: string | null): value is ThemeMode {
     value === "cyber-emerald" ||
     value === "amethyst-eclipse" ||
     value === "amber-core" ||
+    value === "untitled-classic" ||
     value === "system"
   );
 }
