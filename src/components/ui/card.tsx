@@ -12,17 +12,9 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card gradient-border relative flex flex-col gap-4 overflow-hidden rounded-2xl py-4 text-xs/relaxed text-card-foreground has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl",
+        "group/card relative flex flex-col gap-4 overflow-hidden rounded-2xl text-xs/relaxed text-card-foreground has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl border border-border/80 bg-card/80 dark:bg-card/75 shadow-xs shadow-[0_1px_3px_rgba(16,24,40,0.05)] backdrop-blur-md transition-all duration-300 hover:shadow-md dark:hover:shadow-primary/5 hover:-translate-y-0.5 py-4",
         className,
       )}
-      style={{
-        background: "rgba(26,31,43,0.8)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        boxShadow:
-          "0px 25px 50px -12px rgba(0,0,0,0.35), 0 1px 0 0 rgba(255,255,255,0.04) inset",
-      }}
       {...props}
     />
   );
@@ -45,7 +37,10 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn("text-sm font-medium tracking-tight", className)}
+      className={cn(
+        "text-sm font-bold tracking-tight text-foreground font-title",
+        className,
+      )}
       {...props}
     />
   );
@@ -55,7 +50,10 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-xs/relaxed text-muted-foreground", className)}
+      className={cn(
+        "text-xs/relaxed text-muted-foreground font-medium",
+        className,
+      )}
       {...props}
     />
   );

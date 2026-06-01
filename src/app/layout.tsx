@@ -38,18 +38,33 @@ const themeInitScript = `
   try {
     const storageKey = "projects-tracker-theme";
     const storedTheme = window.localStorage.getItem(storageKey);
-    const validThemes = ["cyber-emerald", "amethyst-eclipse", "system"];
+    const validThemes = ["cyber-emerald", "amethyst-eclipse", "amber-core", "system"];
     const theme = validThemes.includes(storedTheme) ? storedTheme : "system";
+
+    const modeKey = "projects-tracker-mode";
+    const storedMode = window.localStorage.getItem(modeKey);
+    const validModes = ["light", "dark", "system"];
+    const mode = validModes.includes(storedMode) ? storedMode : "dark";
+
     const root = document.documentElement;
+    const resolvedTheme = theme === "system" ? "amethyst-eclipse" : theme;
+    root.setAttribute("data-theme", resolvedTheme);
 
-    root.setAttribute(
-      "data-theme",
-      theme === "system" ? "cyber-emerald" : theme,
-    );
+    let isDark = mode === "dark";
+    if (mode === "system") {
+      isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
 
-    root.style.colorScheme = "dark";
-  } catch {
-    document.documentElement.setAttribute("data-theme", "cyber-emerald");
+    if (isDark) {
+      root.classList.add("dark");
+      root.style.colorScheme = "dark";
+    } else {
+      root.classList.remove("dark");
+      root.style.colorScheme = "light";
+    }
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "amethyst-eclipse");
+    document.documentElement.classList.add("dark");
     document.documentElement.style.colorScheme = "dark";
   }
 })();
