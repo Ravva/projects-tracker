@@ -17,6 +17,7 @@
     "start": "next start",
     "lint": "biome lint",
     "format": "biome format --write",
+    "test": "bun test",
     "db:provision": "bun run scripts/provision-appwrite.ts"
   },
   "dependencies": {

@@ -27,6 +27,72 @@ type RepositoryFileSnapshot = {
   content: string;
 };
 
+const MEMORY_BANK_SOFT_CAPS = {
+  projectBrief: 4_000,
+  productContext: 1_500,
+  activeContext: 1_500,
+  progress: 1_500,
+  docsReadme: 4_000,
+} as const satisfies Record<string, number>;
+
+function detectMemoryBankSizeWarning(files: {
+  projectBrief: RepositoryFileSnapshot | null;
+  productContext: RepositoryFileSnapshot | null;
+  activeContext: RepositoryFileSnapshot | null;
+  progress: RepositoryFileSnapshot | null;
+  docsReadme: RepositoryFileSnapshot | null;
+}) {
+  const fileChars: Record<string, number> = {};
+  let warning = false;
+
+  if (files.projectBrief) {
+    const length = files.projectBrief.content.length;
+    fileChars.projectBrief = length;
+
+    if (length > MEMORY_BANK_SOFT_CAPS.projectBrief) {
+      warning = true;
+    }
+  }
+
+  if (files.productContext) {
+    const length = files.productContext.content.length;
+    fileChars.productContext = length;
+
+    if (length > MEMORY_BANK_SOFT_CAPS.productContext) {
+      warning = true;
+    }
+  }
+
+  if (files.activeContext) {
+    const length = files.activeContext.content.length;
+    fileChars.activeContext = length;
+
+    if (length > MEMORY_BANK_SOFT_CAPS.activeContext) {
+      warning = true;
+    }
+  }
+
+  if (files.progress) {
+    const length = files.progress.content.length;
+    fileChars.progress = length;
+
+    if (length > MEMORY_BANK_SOFT_CAPS.progress) {
+      warning = true;
+    }
+  }
+
+  if (files.docsReadme) {
+    const length = files.docsReadme.content.length;
+    fileChars.docsReadme = length;
+
+    if (length > MEMORY_BANK_SOFT_CAPS.docsReadme) {
+      warning = true;
+    }
+  }
+
+  return { warning, fileChars };
+}
+
 export type ProjectRepositoryAnalysis = {
   repository: {
     owner: string;
@@ -56,6 +122,8 @@ export type ProjectRepositoryAnalysis = {
     progressCalculationStatus: ProgressCalculationStatus;
     progressCalculationDetails: string;
     deliverablesWeightTotal: number;
+    memoryBankSizeWarning: boolean;
+    memoryBankFileChars: Record<string, number>;
     commitCount: number;
     commitsPerWeek: number;
     lastCommitAt: string;
@@ -461,6 +529,24 @@ export async function analyzeProjectRepository(input: {
     progress ? "memory_bank/progress.md" : null,
     docsReadme ? "docs/README.md" : null,
   ].filter((path): path is string => Boolean(path));
+  const { warning: memoryBankSizeWarning, fileChars: memoryBankFileChars } =
+    detectMemoryBankSizeWarning({
+      projectBrief: projectBrief
+        ? { path: "memory_bank/projectbrief.md", content: projectBrief }
+        : null,
+      productContext: productContext
+        ? { path: "memory_bank/productContext.md", content: productContext }
+        : null,
+      activeContext: activeContext
+        ? { path: "memory_bank/activeContext.md", content: activeContext }
+        : null,
+      progress: progress
+        ? { path: "memory_bank/progress.md", content: progress }
+        : null,
+      docsReadme: docsReadme
+        ? { path: "docs/README.md", content: docsReadme }
+        : null,
+    });
   const parsedDeliverables = parseProjectDeliverables(projectBrief);
   const progressCalculation = buildProgressCalculationDiagnostics({
     projectBrief,
@@ -548,6 +634,8 @@ export async function analyzeProjectRepository(input: {
       progressCalculationStatus: progressCalculation.status,
       progressCalculationDetails: progressCalculation.details,
       deliverablesWeightTotal: parsedDeliverables.totalWeight,
+      memoryBankSizeWarning,
+      memoryBankFileChars,
       commitCount: commits.length,
       commitsPerWeek,
       lastCommitAt: lastCommit?.committedAt ?? "",

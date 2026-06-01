@@ -59,14 +59,37 @@
 - пакетная teacher-only команда `Синхронизировать все` на `/projects` обрабатывает только проекты со статусом `sync_needed`, чтобы не делать лишние GitHub/API-вызовы по уже актуальным snapshot'ам;
 - GitHub Actions workflow `.github/workflows/project-sync.yml` каждые 4 часа по UTC вызывает production route `/api/github-actions/project-sync`; route авторизуется через `PROJECT_SYNC_CRON_SECRET` и переиспользует тот же server-side batch helper, что и teacher-only кнопка массовой синхронизации;
 - backend читает `memory_bank/projectbrief.md`, `productContext.md`, `activeContext.md`, `progress.md` и опциональный `docs/README.md` прямо из student GitHub repository;
+- структура ученического memory_bank канонизирована через `AGENTS.md` и описана в разделе [Memory Bank Contract](#memory-bank-contract-компактный-канон) ниже: обязательные файлы следуют soft caps (projectBrief 4 000, productContext 1 500, activeContext 1 500, progress 1 500, docsReadme 4 000), чтобы AI-snapshot оставался в пределах лимита Appwrite без аварийной обрезки;
 - `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; каноном остается таблица `ID | Deliverable | Status | Weight`, но parser также поддерживает legacy-блоки `### ID: Title` с полями `ID/Название/Статус/Вес`, а deliverables без валидной суммы весов `100` не участвуют в расчете процента;
 - commit metrics и флаг `abandoned` считаются по истории коммитов default branch;
 - snapshot AI-анализа сохраняет явную причину, почему progress не считается корректно: отсутствует `projectbrief.md`, отсутствует секция `Project Deliverables`, deliverables не распарсились или сумма весов не равна `100`;
+- `analyzeProjectRepository` дополнительно вычисляет `memoryBankSizeWarning` и `memoryBankFileChars`, чтобы teacher UI видел, какие именно файлы превысили soft cap, и мог указать ученику на разрастание memory bank;
 - AI используется только для нормализации summary, risks и next steps поверх уже рассчитанного snapshot;
 - Vercel-приложение не ходит к модели напрямую по умолчанию: server-only клиент сначала вызывает token-protected Cloudflare Worker `/chat`, а уже Worker обращается к Workers AI `@cf/qwen/qwen3-30b-a3b-fp8` через binding `AI`; если Worker возвращает quota/error `4006` или gateway не сконфигурирован, server-only клиент может переключиться на Hugging Face Chat Completions через `HF_TOKEN`;
 - до первого AI-анализа проект остается в нейтральном состоянии `данные отсутствуют`; флаги `missing_memory_bank`, `missing_spec` и `missing_plan` выставляются только после реального repo analysis;
 - агрегированные metrics пишутся в `projects.project_state_json`, а история запусков — в `project_ai_reports`;
 - полный текст `Project brief`, `Product context`, `Active context` и `Progress notes` внутри AI-отчета хранится в сжатом виде в `inputSnapshotJson`, чтобы detail page читал весь markdown и оставался в пределах лимита Appwrite.
+
+### Memory Bank Contract (компактный канон)
+
+- канонический источник структуры — `AGENTS.md`, раздел `4. Минимальная структура Memory Bank`; все teacher-only сценарии и student-flow `/my-project` подтягивают именно этот `AGENTS.md` из репозитория `projects-tracker` по GitHub raw URL с локальным fallback;
+- обязательные файлы ученика: `memory_bank/projectbrief.md`, `productContext.md`, `activeContext.md`, `progress.md`; опциональные: `docs/README.md`; технические заметки `systemPatterns.md`/`techContext.md` AI-snapshot не читает;
+- soft caps (рекомендуемый максимум, не hard truncate): projectBrief 4 000, productContext 1 500, activeContext 1 500, progress 1 500, docsReadme 4 000 символов; суммарно ≤ 12 500 — это вписывается в лимит Appwrite `49_000` для `inputSnapshotJson` без аварийной обрезки;
+- при нарушении soft caps `serializeProjectAiInputSnapshot` всё равно обрезает поле по границе последней строки (а не по середине слова) и проставляет флаг в `truncatedFields`; downstream-консьюмеры и `analyzeProjectRepository.memoryBankSizeWarning` показывают, какие файлы нужно сократить;
+- `## Project Deliverables` остаётся единственным источником процента реализации и не подменяется `activeContext.md` или `progress.md`;
+- категорически запрещено складывать в memory_bank полные логи, дампы кода, длинные туториалы, копии ТЗ и подпапки `modules/*`, `ui_extension/*`, `other/*` — AI их не читает, а teacher UI их не показывает.
+
+### Сериализация `ProjectAiInputSnapshot` (контракт smart truncation)
+
+- `serializeProjectAiInputSnapshot` (`src/lib/server/project-ai-report-snapshot.ts`) кладёт в `snapshotJson` **уже усечённый по `MEMORY_BANK_SOFT_CAPS`** `memoryBank` (projectBrief 4 000, productContext 1 500, activeContext 1 500, progress 1 500, docsReadme 4 000), причём `enforceSoftCap` режет по границе последней строки и добавляет суффикс `[truncated: original N chars, soft cap S]`, который вписывается в эти же лимиты, поэтому длина каждого поля после serialize всегда `≤ MEMORY_BANK_SOFT_CAPS[key]`;
+- `truncatedFields` возвращается отдельно и сериализуется в AI-payload как `truncatedFields` flag-map, чтобы downstream-консьюмеры видели, какие поля были усечены; при соблюдении учеником канона `truncatedFields` пуст;
+- `memoryBankCompressed` сохраняется в `snapshotJson` как legacy-зеркало уже усечённого текста для обратной совместимости со старыми `project_ai_reports.report_payload_json` (там парсер идёт по `memoryBank → memoryBankCompressed → memoryBankPreview`);
+- `parseProjectAiInputSnapshot` НЕ должен применяться повторно к уже сериализованному snapshot, потому что downstream-консьюмер (`requestAiGatewayJsonObject`) и так получает готовые укороченные строки в `inputSnapshot.memoryBank` — повторный roundtrip только раздувает payload и отключает обрезку;
+- в `runProjectAiAnalysis` единственный обязательный шаг перед отправкой в AI-gateway — `serialize → parse` один раз, чтобы получить структурно валидный snapshot с усечённым `memoryBank`, после чего этот `inputSnapshot` напрямую передаётся в `requestAiGatewayJsonObject`;
+- в `buildProjectReportPayload` (`src/lib/server/repositories/projects.ts`) аварийная обрезка `inputSnapshotJson` по `PAYLOAD_HARD_LIMIT = 49_000` всегда режет по границе JSON-токенов и закрывает JSON (`}` или `\"…[truncated]\"}`); при соблюдении канона эта ветка не срабатывает;
+- инвариант проверяется unit-тестом `src/lib/server/project-ai-report-snapshot.test.ts`:
+  - `canonical minimal memory bank` (MiniBank-фикстура) — soft caps соблюдены, `truncatedFields` пуст, roundtrip serialize→parse сохраняет текст без потерь, итоговый `snapshotJson.length < capsTotal * 4`;
+  - `regression on oversized memory bank (BankBot)` — проект с раздутым `projectBrief 360 000+ chars` и остальными полями по 90 000 символов; все поля после `enforceSoftCap` ≤ soft cap, обрезка идёт по границе строки, итоговая длина укладывается в `20_000`.
 
 ## Data Isolation
 

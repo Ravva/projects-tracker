@@ -486,7 +486,15 @@ function buildProjectReportPayload(input: {
     const overhead = payload.length - PAYLOAD_HARD_LIMIT;
     const snapshotLen = serialized.snapshotJson.length;
     const reducedSnapshotLen = Math.max(snapshotLen - overhead - 200, 1_000);
-    const truncatedSnapshot = `${serialized.snapshotJson.slice(0, reducedSnapshotLen)}...`;
+    const safeSliceEnd = Math.max(
+      1,
+      Math.min(reducedSnapshotLen, snapshotLen - 1),
+    );
+    const safePrefix = serialized.snapshotJson.slice(0, safeSliceEnd);
+    const closingMarker = '"…[truncated]"';
+    const truncatedSnapshot = safePrefix.endsWith("}")
+      ? safePrefix
+      : `${safePrefix.replace(/[,[\s]*$/, "")}${closingMarker}}`;
 
     payload = JSON.stringify({
       inputSnapshotJson: truncatedSnapshot,

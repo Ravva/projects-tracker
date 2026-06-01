@@ -7,9 +7,20 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 function buildProjectSetupPrompt(agentsSourceUrl: string) {
-  return `Скачай и используй актуальный AGENTS.md из ${agentsSourceUrl}
-Проверь, что в memory_bank/projectbrief.md есть раздел ## Project Deliverables в виде markdown-таблицы с колонками ID | Deliverable | Status | Weight.
-Проверь, что сумма всех Weight ровно 100.
+  return `Скачай и используй актуальный AGENTS.md из ${agentsSourceUrl} как единственный источник правил.
+Подготовь memory_bank строго по компактному канону AGENTS.md: только четыре обязательных файла и опциональный docs/README.md, без подпапок modules/, ui_extension/, other/.
+
+Soft caps (рекомендуемый максимум, не hard truncate):
+- memory_bank/projectbrief.md — ≤ 4 000 символов, ≤ 30 строк;
+- memory_bank/productContext.md — ≤ 1 500 символов, ≤ 10 строк;
+- memory_bank/activeContext.md — ≤ 1 500 символов, ≤ 10 строк;
+- memory_bank/progress.md — ≤ 1 500 символов, ≤ 15 строк;
+- docs/README.md (опционально) — ≤ 4 000 символов, ≤ 50 строк.
+
+Проверь, что в memory_bank/projectbrief.md есть раздел ## Project Deliverables в виде markdown-таблицы с колонками ID | Deliverable | Status | Weight и что сумма всех Weight ровно 100.
+Проверь, что каждый Status равен одному из канонических значений: pending, in_progress, completed, blocked.
+Не складывай в memory_bank полные логи, дампы кода, длинные туториалы, копии ТЗ и историю коммитов — это сломает AI-анализ.
+Если какой-то файл уже есть, но превышает свой soft cap — сократи его до канона: оставь только ключевые факты, удали воду и второстепенные детали.
 Если memory_bank отсутствует или заполнен неверно, создай или исправь его по правилам AGENTS.md.
 После исправлений обнови Memory Bank, выполни коммит и пуш всех файлов.`;
 }

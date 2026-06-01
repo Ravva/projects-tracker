@@ -22,6 +22,7 @@
 7. Выбранный репозиторий создается как `draft`-проект в `projects`.
 8. Если проект выполняется в паре, преподаватель добавляет второго ученика в этот же project record через teacher-only detail page проекта.
 9. После teacher-only AI-анализа проект автоматически переводится в `active`, если в репозитории найдены `memory_bank`, осмысленные `spec/plan` и валидный repository snapshot.
+10. Канонический формат ученического `memory_bank` описан в `AGENTS.md` (раздел `4. Минимальная структура Memory Bank`): `projectbrief.md` 4 000 символов / 30 строк, `productContext.md` 1 500 / 10, `activeContext.md` 1 500 / 10, `progress.md` 1 500 / 15, опциональный `docs/README.md` 4 000 / 50; при превышении soft caps teacher UI выставит `memoryBankSizeWarning` и попросит ученика сократить memory bank до канонических размеров.
 
 ## Ограничения доступа
 

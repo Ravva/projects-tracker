@@ -78,6 +78,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - фоновая синхронизация проектов через GitHub Actions переведена в ручной режим `workflow_dispatch`; teacher-side массовый `Синхронизировать все` и ручной запуск workflow остаются основными способами запуска защищенного route `/api/github-actions/project-sync` с секретом `PROJECT_SYNC_CRON_SECRET`;
 - teacher-only detail page проекта умеет переводить проект в `completed` и обратно в `active`, чтобы открывать ученику доступ к следующему проекту;
 - AI-анализ teacher-only проекта читает `memory_bank` и commit history прямо из student GitHub repository, а не полагается только на локально заполненные поля проекта;
+- структура ученического `memory_bank` канонизирована в `AGENTS.md` через soft caps: `projectbrief.md` 4 000 символов, `productContext.md` / `activeContext.md` / `progress.md` по 1 500, опциональный `docs/README.md` 4 000; суммарно ≤ 12 500 символов, что вписывается в лимит Appwrite `49 000` для `inputSnapshotJson` без аварийной обрезки; при нарушении soft caps `analyzeProjectRepository` поднимает `memoryBankSizeWarning`, а `serializeProjectAiInputSnapshot` обрезает поле по границе последней строки и проставляет флаг в `truncatedFields` — чтобы AI-анализ оставался валидным, но ученик получил сигнал, что memory bank нужно сократить;
 - вызов модели идет через отдельный Cloudflare Worker gateway с Workers AI `@cf/qwen/qwen3-30b-a3b-fp8`; если Cloudflare возвращает quota/error по Workers AI или gateway временно не настроен, server-only AI client может уйти в fallback на Hugging Face Chat Completions через `HF_TOKEN`, без пользовательских OAuth-токенов и неофициальных ChatGPT-потоков;
 - `completion_percent` считается детерминированно только по `## Project Deliverables` в `memory_bank/projectbrief.md`; вес завершенных deliverables дает итоговый процент, а `activeContext.md` и `progress.md` больше не используются как источник процента;
 - канонический формат `## Project Deliverables` фиксирован: Markdown-таблица `ID | Deliverable | Status | Weight`, где `Status` может быть только `pending`, `in_progress`, `completed` или `blocked`, а сумма всех `Weight` обязана быть ровно `100`;
@@ -177,6 +178,7 @@ Student-access строится на GitHub OAuth и стабильном `githu
 - риск `missing_memory_bank` означает отсутствие ожидаемых файлов `memory_bank` в student repo.
 - риск `missing_spec` означает отсутствие осмысленного ТЗ в `projectbrief.md` и `productContext.md`.
 - риск `missing_plan` означает отсутствие осмысленного плана в `activeContext.md` и `progress.md`.
+- риск `memory_bank_size_warning` означает, что хотя бы один файл memory bank превысил свой soft cap; флаг не блокирует AI-анализ, но служит сигналом преподавателю и ученику, что memory bank нужно сократить до канонических размеров из `AGENTS.md`.
 - риск `abandoned` означает, что последний коммит старше 7 дней.
 
 ## Dashboard Thresholds
