@@ -60,7 +60,7 @@ function getProjectSelectionSummary(input: {
       tone: "success" as const,
       title: "Можно выбрать следующий проект",
       description:
-        "Текущих проектов больше нет. Выберите новый репозиторий справа или повторно запустите репозиторий из истории, если хотите продолжить его новой итерацией.",
+        "Текущих проектов больше нет. Выберите новый репозиторий или повторно запустите репозиторий из истории, если хотите продолжить его новой итерацией.",
     };
   }
 
@@ -68,7 +68,7 @@ function getProjectSelectionSummary(input: {
     tone: "calm" as const,
     title: "Можно выбрать первый проект",
     description:
-      "Список репозиториев справа уже готов. Выберите тот, с которого хотите начать работу в Projects Tracker.",
+      "Список репозиториев уже готов. Выберите тот, с которого хотите начать работу в Projects Tracker.",
   };
 }
 
@@ -105,7 +105,7 @@ function getRepositorySelectionState(input: {
     return {
       label: "Ожидает завершения",
       tone: "warning" as const,
-      actionLabel: "Сначала завершите текущий",
+      actionLabel: "Завершите текущий",
       reason:
         "Сначала преподаватель должен завершить ваш текущий проект. После этого новый репозиторий станет доступен сразу на этой странице.",
       disabled: true,
@@ -116,7 +116,7 @@ function getRepositorySelectionState(input: {
     return {
       label: "Preview",
       tone: "calm" as const,
-      actionLabel: "Недоступно в preview",
+      actionLabel: "Недоступно",
       reason:
         "В teacher preview кнопка отключена, чтобы не запускать реальные student-действия.",
       disabled: true,
@@ -350,29 +350,29 @@ export default async function MyProjectPage({
   });
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--status-calm)/0.12),transparent_28%),radial-gradient(circle_at_top_right,hsl(var(--status-warning)/0.12),transparent_22%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--background-secondary)))] px-5 py-10">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,hsl(var(--status-calm)/0.09),transparent_32%),radial-gradient(circle_at_top_right,hsl(var(--status-warning)/0.09),transparent_25%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--background-secondary)))] px-4 py-12 md:py-20">
       <div className="mx-auto max-w-6xl space-y-6">
-        <section className="rounded-[2rem] border border-border/70 bg-card/88 p-8 shadow-none">
-          <div className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
+        <section className="glass rounded-lg border border-border/80 bg-card/65 backdrop-blur-md p-8 shadow-sm transition-all duration-200">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             {isTeacherPreview ? "Teacher preview" : "Student access"}
           </div>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight">
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
             Ваши проекты
           </h1>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground">
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground font-medium">
             {student.studentName}, здесь хранится история ваших GitHub-проектов
             в Projects Tracker, включая групповые проекты. Новый репозиторий
             можно начать только после завершения текущего проекта
             преподавателем.
           </p>
           {isTeacherPreview ? (
-            <div className="mt-4 rounded-2xl border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] px-4 py-3 text-sm text-foreground">
-              Это teacher-only предпросмотр student-экрана на демо-данных.
-              Реальные student-проверки авторизации и привязки не изменены.
+            <div className="mt-4 rounded-lg border border-[hsl(var(--status-calm)/0.25)] bg-[hsl(var(--status-calm)/0.08)] px-4 py-3 text-xs leading-relaxed text-foreground font-semibold">
+              Это предпросмотр студенческого экрана преподавателем на
+              демо-данных. Реальные проверки авторизации и привязки не активны.
             </div>
           ) : null}
           {error ? (
-            <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-xs leading-relaxed text-destructive font-semibold">
               {error}
             </div>
           ) : null}
@@ -381,19 +381,19 @@ export default async function MyProjectPage({
               <ScrollToElement elementId="success-banner" />
               <div
                 id="success-banner"
-                className="mt-4 rounded-[1.75rem] border border-[hsl(var(--status-calm)/0.34)] bg-[linear-gradient(135deg,hsl(var(--status-calm)/0.2),hsl(var(--status-calm)/0.08)_58%,hsl(var(--background)))] px-5 py-4 text-foreground shadow-none"
+                className="mt-4 rounded-lg border border-[hsl(var(--status-calm)/0.25)] bg-[hsl(var(--status-calm)/0.08)] px-5 py-4 text-foreground shadow-sm"
               >
-                <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--status-calm))]">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--status-calm))]">
                   Проект создан
                 </div>
-                <div className="mt-2 text-lg font-semibold leading-tight">
+                <div className="mt-1 text-base font-bold leading-tight">
                   {projectName
                     ? `Репозиторий ${projectName} успешно привязан.`
                     : "Репозиторий успешно привязан к новому проекту."}
                 </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Новый проект уже появился в блоке текущих проектов ниже.
-                  Автоматический AI-анализ запущен сразу после привязки.
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground font-medium">
+                  Новый проект уже появился в блоке текущих проектов в нижней
+                  секции. Автоматический AI-анализ запущен сразу после привязки.
                 </p>
               </div>
             </>
@@ -403,17 +403,17 @@ export default async function MyProjectPage({
               <ScrollToElement elementId="success-banner" />
               <div
                 id="success-banner"
-                className="mt-4 rounded-[1.75rem] border border-[hsl(var(--status-success)/0.32)] bg-[linear-gradient(135deg,hsl(var(--status-success)/0.2),hsl(var(--status-calm)/0.08)_58%,hsl(var(--background)))] px-5 py-4 text-foreground shadow-none"
+                className="mt-4 rounded-lg border border-[hsl(var(--status-success)/0.25)] bg-[hsl(var(--status-success)/0.08)] px-5 py-4 text-foreground shadow-sm"
               >
-                <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--status-success))]">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--status-success))]">
                   Проект запущен заново
                 </div>
-                <div className="mt-2 text-lg font-semibold leading-tight">
+                <div className="mt-1 text-base font-bold leading-tight">
                   {projectName
                     ? `Репозиторий ${projectName} снова добавлен в текущие проекты.`
                     : "Репозиторий снова добавлен в текущие проекты."}
                 </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground font-medium">
                   Это новая итерация проекта из вашей истории. Автоматический
                   AI-анализ тоже запущен сразу после привязки.
                 </p>
@@ -421,20 +421,20 @@ export default async function MyProjectPage({
             </>
           ) : null}
           {notice ? (
-            <div className="mt-4 rounded-2xl border border-[hsl(var(--status-warning)/0.3)] bg-[hsl(var(--status-warning)/0.08)] px-4 py-3 text-sm text-foreground">
+            <div className="mt-4 rounded-lg border border-[hsl(var(--status-warning)/0.25)] bg-[hsl(var(--status-warning)/0.08)] px-4 py-3 text-xs leading-relaxed text-foreground font-semibold">
               {notice}
             </div>
           ) : null}
-          <div className="mt-5 rounded-[1.75rem] border border-border/70 bg-background/60 px-5 py-4">
-            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-              <div className="space-y-2">
-                <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+          <div className="mt-6 rounded-lg border border-border bg-background-secondary px-5 py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Состояние выбора проекта
                 </div>
-                <div className="text-lg font-semibold leading-tight text-foreground">
+                <div className="text-base font-bold leading-tight text-foreground">
                   {projectSelectionSummary.title}
                 </div>
-                <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground font-medium mt-1">
                   {projectSelectionSummary.description}
                 </p>
               </div>
@@ -446,28 +446,31 @@ export default async function MyProjectPage({
           </div>
         </section>
 
-        <Card className="overflow-hidden border-[hsl(var(--status-warning)/0.28)] bg-[linear-gradient(135deg,hsl(var(--status-warning)/0.16),hsl(var(--status-calm)/0.1)_52%,hsl(var(--background)))] shadow-none">
+        <Card className="glass overflow-hidden border-border/85 bg-card/65 backdrop-blur-md shadow-sm">
           <details className="group">
             <summary className="flex cursor-pointer list-none items-center justify-between p-6 focus:outline-none select-none">
               <div className="space-y-2 pr-4">
-                <div className="inline-flex w-fit rounded-full border border-[hsl(var(--status-warning)/0.28)] bg-background/70 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--status-warning))]">
+                <div className="inline-flex w-fit rounded-full border border-[hsl(var(--status-warning)/0.25)] bg-[hsl(var(--status-warning)/0.08)] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--status-warning))]">
                   Project readiness
                 </div>
-                <CardTitle className="text-xl leading-tight">
+                <CardTitle className="text-lg leading-tight font-bold text-foreground">
                   Два шага — и репозиторий готов к AI-анализу
                 </CardTitle>
-                <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground font-medium mt-1">
                   Нажмите, чтобы развернуть инструкцию по добавлению{" "}
-                  <code>AGENTS.md</code> и первичному промпту.
+                  <code className="text-foreground font-semibold">
+                    AGENTS.md
+                  </code>{" "}
+                  и первичному промпту.
                 </p>
               </div>
               <div className="text-[hsl(var(--status-warning))] transition-transform duration-200 group-open:rotate-180 shrink-0">
                 <svg
-                  className="size-6"
-                  fill="fill"
+                  className="size-5"
+                  fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
-                  strokeWidth="2"
+                  strokeWidth="2.5"
                 >
                   <path
                     strokeLinecap="round"
@@ -477,30 +480,26 @@ export default async function MyProjectPage({
                 </svg>
               </div>
             </summary>
-            <CardContent className="space-y-4 text-sm leading-7 text-muted-foreground border-t border-[hsl(var(--status-warning)/0.15)] bg-background/20 p-6">
-              <div className="grid gap-3 lg:grid-cols-2">
-                <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
-                  <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-[hsl(var(--status-warning)/0.14)] font-semibold text-[hsl(var(--status-warning))]">
+            <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground border-t border-border bg-background/25 p-6 font-medium">
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="rounded-lg border border-border bg-card p-5 shadow-sm text-sm">
+                  <div className="mb-3 inline-flex size-7 items-center justify-center rounded-full bg-[hsl(var(--status-warning)/0.14)] font-bold text-xs text-[hsl(var(--status-warning))]">
                     1
                   </div>
-                  <div className="font-medium text-foreground">
+                  <div className="font-semibold text-foreground">
                     Скопируйте AGENTS.md
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground font-medium">
                     Вставьте файл в корень вашего репозитория. Он содержит
                     правила, по которым ИИ оценивает прогресс проекта.
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-3">
+                  <div className="mt-4 flex flex-wrap gap-3">
                     <CopyTextButton
                       text={canonicalAgentsDocument.content}
-                      idleLabel="Скопировать AGENTS.md"
-                      successLabel="AGENTS.md скопирован"
+                      idleLabel="Скоропировать AGENTS.md"
+                      successLabel="Копия готова"
                     />
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="rounded-xl bg-background/90"
-                    >
+                    <Button asChild variant="outline">
                       <Link
                         href={canonicalAgentsDocument.blobUrl}
                         target="_blank"
@@ -510,27 +509,27 @@ export default async function MyProjectPage({
                       </Link>
                     </Button>
                   </div>
-                  <p className="mt-3 text-xs leading-6 text-muted-foreground">
+                  <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground font-medium">
                     Источник:{" "}
                     {canonicalAgentsDocument.source === "remote"
                       ? "актуальная версия из GitHub"
-                      : "локальный fallback, если GitHub временно недоступен"}
+                      : "локальный fallback"}
                     .
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
-                  <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-[hsl(var(--status-calm)/0.14)] font-semibold text-[hsl(var(--status-calm))]">
+                <div className="rounded-lg border border-border bg-card p-5 shadow-sm text-sm font-medium">
+                  <div className="mb-3 inline-flex size-7 items-center justify-center rounded-full bg-[hsl(var(--status-calm)/0.14)] font-bold text-xs text-[hsl(var(--status-calm))]">
                     2
                   </div>
-                  <div className="font-medium text-foreground">
+                  <div className="font-semibold text-foreground">
                     Вставьте промпт в ИИ
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground font-medium">
                     Скопируйте готовый промпт ниже и отправьте его в ChatGPT,
                     Cursor или любой другой ИИ-ассистент, работающий с вашим
                     репозиторием.
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground font-medium">
                     ИИ автоматически проверит структуру <code>memory_bank</code>
                     , создаст <code>projectbrief.md</code> с таблицей{" "}
                     <code>Project Deliverables</code> и сделает коммит.
@@ -549,34 +548,44 @@ export default async function MyProjectPage({
         )}
 
         <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-          <Card className="border-border/70 bg-card/88 shadow-none">
+          <Card className="glass border-border/80 bg-card/65 backdrop-blur-md shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base">Текущие и завершенные</CardTitle>
+              <CardTitle className="text-base font-bold text-foreground">
+                Текущие и завершенные
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm">
+            <CardContent className="space-y-4 text-sm font-medium">
               {currentProjects.length > 0 ? (
                 currentProjects.map((project) => (
                   <div
                     key={project.id}
-                    className="rounded-2xl border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] p-4"
+                    className="rounded-lg border border-[hsl(var(--status-calm)/0.25)] bg-[hsl(var(--status-calm)/0.08)] p-5"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="font-medium">{project.name}</div>
-                      <div className="rounded-full border border-border/70 px-3 py-1 text-xs text-muted-foreground">
+                      <div className="font-semibold text-foreground">
+                        {project.name}
+                      </div>
+                      <div className="rounded-full border border-border bg-background px-3 py-0.5 text-xs text-muted-foreground font-semibold">
                         {getProjectStatusLabel(project.status)}
                       </div>
                     </div>
-                    <div className="mt-1 text-muted-foreground">
-                      Прогресс: {project.progress}%. Риск:{" "}
-                      {getProjectRiskLabel(project.risk)}. Участники:{" "}
-                      {project.memberNames.join(", ")}.
+                    <div className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                      Прогресс:{" "}
+                      <span className="font-semibold text-foreground">
+                        {project.progress}%
+                      </span>{" "}
+                      • Риск:{" "}
+                      <span className="font-semibold text-foreground">
+                        {getProjectRiskLabel(project.risk)}
+                      </span>{" "}
+                      • Участники:{" "}
+                      <span className="font-semibold text-foreground">
+                        {project.memberNames.join(", ")}
+                      </span>
+                      .
                     </div>
-                    <div className="mt-3">
-                      <Button
-                        asChild
-                        variant="outline"
-                        className="rounded-xl bg-background/90"
-                      >
+                    <div className="mt-4">
+                      <Button asChild variant="outline">
                         <Link
                           href={project.githubUrl}
                           target="_blank"
@@ -589,37 +598,49 @@ export default async function MyProjectPage({
                   </div>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-border/70 bg-background/50 p-5 text-muted-foreground">
+                <div className="rounded-lg border border-dashed border-border bg-background/50 p-5 text-xs text-muted-foreground font-medium leading-relaxed">
                   Сейчас у вас нет текущего проекта. Можно выбрать новый
                   репозиторий из списка GitHub справа.
                 </div>
               )}
 
-              <div className="space-y-3 pt-2">
-                <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              <div className="space-y-3 pt-4 border-t border-border mt-4">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   История завершённых проектов
                 </div>
                 {completedProjects.length > 0 ? (
                   completedProjects.map((project) => (
                     <div
                       key={project.id}
-                      className="rounded-2xl border border-border/70 bg-background/60 p-4"
+                      className="rounded-lg border border-border bg-background-secondary p-4 shadow-sm"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <div className="font-medium">{project.name}</div>
-                        <div className="rounded-full border border-border/70 px-3 py-1 text-xs text-muted-foreground">
+                        <div className="font-semibold text-foreground">
+                          {project.name}
+                        </div>
+                        <div className="rounded-full border border-border bg-background px-3 py-0.5 text-xs text-muted-foreground font-semibold">
                           {getProjectStatusLabel(project.status)}
                         </div>
                       </div>
-                      <div className="mt-1 text-muted-foreground">
-                        Итоговый прогресс: {project.progress}%. Последний
-                        коммит: {project.lastCommit}. Участники:{" "}
-                        {project.memberNames.join(", ")}.
+                      <div className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                        Итоговый прогресс:{" "}
+                        <span className="font-semibold text-foreground">
+                          {project.progress}%
+                        </span>{" "}
+                        • Последнее обновление:{" "}
+                        <span className="font-semibold text-foreground">
+                          {formatUpdatedAt(project.lastCommit)}
+                        </span>{" "}
+                        • Участники:{" "}
+                        <span className="font-semibold text-foreground">
+                          {project.memberNames.join(", ")}
+                        </span>
+                        .
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-border/70 bg-background/50 p-5 text-muted-foreground">
+                  <div className="rounded-lg border border-dashed border-border bg-background/50 p-5 text-xs text-muted-foreground font-medium leading-relaxed">
                     Завершённых проектов пока нет.
                   </div>
                 )}
@@ -627,22 +648,22 @@ export default async function MyProjectPage({
             </CardContent>
           </Card>
 
-          <Card className="border-border/70 bg-card/88 shadow-none">
+          <Card className="glass border-border/80 bg-card/65 backdrop-blur-md shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base">
+              <CardTitle className="text-base font-bold text-foreground">
                 Репозитории для следующего проекта
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm">
+            <CardContent className="space-y-4 text-xs font-medium">
               {!canChooseNextProject ? (
-                <div className="rounded-2xl border border-[hsl(var(--status-warning)/0.3)] bg-[hsl(var(--status-warning)/0.08)] p-4 text-muted-foreground">
+                <div className="rounded-lg border border-[hsl(var(--status-warning)/0.25)] bg-[hsl(var(--status-warning)/0.08)] p-4 text-xs leading-relaxed text-muted-foreground font-medium">
                   Новый проект пока недоступен: сначала преподаватель должен
                   перевести текущий проект в статус «завершен». Как только это
                   произойдет, список ниже сразу станет активным.
                 </div>
               ) : null}
               {repositoryLoadError ? (
-                <div className="rounded-2xl border border-dashed border-border/70 bg-background/50 p-5 text-muted-foreground">
+                <div className="rounded-lg border border-dashed border-border bg-background/50 p-5 text-xs leading-relaxed text-muted-foreground font-medium">
                   {repositoryLoadError} Проверьте, что вход выполнен через
                   корректный GitHub-аккаунт и у приложения есть доступ к
                   репозиториям владельца.
@@ -671,14 +692,14 @@ export default async function MyProjectPage({
                       key={repository.id}
                       className={
                         repository.private
-                          ? "rounded-2xl border border-[hsl(var(--status-critical)/0.28)] bg-[hsl(var(--status-critical)/0.08)] p-4"
-                          : "rounded-2xl border border-border/70 bg-background/70 p-4"
+                          ? "rounded-lg border border-[hsl(var(--status-critical)/0.25)] bg-[hsl(var(--status-critical)/0.08)] p-5"
+                          : "rounded-lg border border-border bg-card p-5 shadow-sm hover:border-border/100 transition-all duration-200"
                       }
                     >
-                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div className="space-y-1">
+                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div className="space-y-2 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <div className="font-medium">
+                            <div className="font-semibold text-sm text-foreground">
                               {repository.fullName}
                             </div>
                             <StatusPill
@@ -686,25 +707,28 @@ export default async function MyProjectPage({
                               tone={repositoryState.tone}
                             />
                             {repository.private ? (
-                              <span className="rounded-full border border-[hsl(var(--status-critical)/0.28)] bg-[hsl(var(--status-critical)/0.14)] px-2.5 py-0.5 text-[11px] font-medium text-[hsl(var(--status-critical))]">
+                              <span className="rounded-full border border-[hsl(var(--status-critical)/0.25)] bg-[hsl(var(--status-critical)/0.14)] px-2.5 py-0.5 text-[10px] font-semibold text-[hsl(var(--status-critical))] uppercase tracking-wider">
                                 Приватный
                               </span>
                             ) : null}
                           </div>
-                          <div className="text-muted-foreground">
+                          <div className="text-muted-foreground font-medium text-xs leading-relaxed">
                             {repository.description ||
                               "Описание пока отсутствует."}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            Обновлён: {formatUpdatedAt(repository.updatedAt)}.
+                          <div className="text-[10px] text-muted-foreground font-semibold leading-normal">
+                            Обновлён: {formatUpdatedAt(repository.updatedAt)} •
                             Ветка по умолчанию: {repository.defaultBranch}.
                           </div>
-                          <div className="rounded-xl border border-border/60 bg-background/80 px-3 py-2 text-xs leading-6 text-muted-foreground">
+                          <div className="rounded-[8px] border border-border bg-background-secondary px-3.5 py-2.5 text-xs leading-relaxed text-muted-foreground font-medium">
                             {repositoryState.reason}
                           </div>
                         </div>
 
-                        <form action={chooseStudentProjectAction}>
+                        <form
+                          action={chooseStudentProjectAction}
+                          className="shrink-0"
+                        >
                           <input
                             type="hidden"
                             name="repositoryName"
@@ -730,7 +754,7 @@ export default async function MyProjectPage({
                   );
                 })
               ) : (
-                <div className="rounded-2xl border border-dashed border-border/70 bg-background/50 p-5 text-muted-foreground">
+                <div className="rounded-lg border border-dashed border-border bg-background/50 p-5 text-xs leading-relaxed text-muted-foreground font-medium">
                   Не удалось получить список репозиториев GitHub. Проверьте, что
                   вход выполнен через корректный GitHub-аккаунт и у приложения
                   есть доступ к репозиториям владельца.

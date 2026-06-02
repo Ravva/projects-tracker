@@ -33,7 +33,6 @@ export function CopyTextButton({
     <Button
       type="button"
       variant="outline"
-      className="rounded-xl bg-background/90"
       onClick={handleCopy}
       aria-label={currentLabel}
       title={currentLabel}

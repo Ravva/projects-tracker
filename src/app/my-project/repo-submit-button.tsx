@@ -15,7 +15,7 @@ export function RepoSubmitButton({ label, disabled }: RepoSubmitButtonProps) {
   return (
     <Button
       type="submit"
-      className="min-w-[9rem] rounded-xl"
+      className="min-w-[9rem]"
       disabled={isDisabled}
       aria-busy={pending}
     >

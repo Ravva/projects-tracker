@@ -97,7 +97,6 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
   );
 
   const sanitizeLog = (content: string): SanitizationResult => {
-    // Импортируем паттерны санитизации из log-sanitizer
     const patterns = [
       {
         name: "GitHub Token",
@@ -174,7 +173,6 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
     setUploadProgress(0);
 
     try {
-      // Санитизация логов на клиенте
       const sanitizedLogs = files.map((file) => {
         const result = sanitizeLog(file.content);
         return {
@@ -185,7 +183,6 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
 
       setUploadProgress(30);
 
-      // Отправка на сервер
       const response = await fetch(`/api/projects/${projectId}/upload-logs`, {
         method: "POST",
         headers: {
@@ -230,33 +227,37 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
   const totalSizeMB = (totalSize / 1024 / 1024).toFixed(2);
 
   return (
-    <Card className="border-border/70 bg-card/88 shadow-none">
+    <Card className="glass border-border/80 bg-card/65 backdrop-blur-md shadow-sm">
       <CardHeader>
-        <CardTitle className="text-base">Загрузка логов OpenCode</CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <CardTitle className="text-base font-bold text-foreground">
+          Загрузка логов OpenCode
+        </CardTitle>
+        <p className="text-xs leading-relaxed text-muted-foreground font-medium mt-1">
           Перетащите файлы логов из папок <code>.ai-coach/logs/</code> или{" "}
-          <code>.opencode-logs/</code> для анализа AI Engineering Coach
+          <code>.opencode-logs/</code> для анализа AI Engineering Coach.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
         {uploadResult && (
           <div
-            className={`rounded-2xl border p-4 ${
+            className={`rounded-lg border p-4 ${
               uploadResult.success
-                ? "border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)]"
-                : "border-destructive/30 bg-destructive/10"
+                ? "border-[hsl(var(--status-success)/0.25)] bg-[hsl(var(--status-success)/0.08)]"
+                : "border-destructive/20 bg-destructive/10"
             }`}
           >
             <div className="flex items-start gap-3">
               {uploadResult.success ? (
-                <CheckCircle2 className="size-5 text-[hsl(var(--status-success))]" />
+                <CheckCircle2 className="size-5 text-[hsl(var(--status-success))] shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="size-5 text-destructive" />
+                <AlertCircle className="size-5 text-destructive shrink-0 mt-0.5" />
               )}
-              <div className="flex-1">
-                <div className="font-medium">{uploadResult.message}</div>
+              <div className="flex-1 text-sm">
+                <div className="font-semibold text-foreground">
+                  {uploadResult.message}
+                </div>
                 {uploadResult.metadata && (
-                  <div className="mt-2 text-sm text-muted-foreground">
+                  <div className="mt-2 text-xs text-muted-foreground font-medium">
                     Загружено файлов: {uploadResult.metadata.filesCount} •
                     Размер:{" "}
                     {(uploadResult.metadata.totalSize / 1024 / 1024).toFixed(2)}
@@ -280,21 +281,21 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`rounded-2xl border-2 border-dashed p-8 text-center transition-colors ${
+          className={`block rounded-lg border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
             isDragging
               ? "border-[hsl(var(--status-calm))] bg-[hsl(var(--status-calm)/0.08)]"
-              : "border-border/70 bg-background/50"
+              : "border-border bg-background/50 hover:bg-background-secondary"
           }`}
         >
-          <Upload className="mx-auto size-12 text-muted-foreground" />
-          <div className="mt-4 text-sm font-medium">
+          <Upload className="mx-auto size-10 text-muted-foreground" />
+          <div className="mt-4 text-sm font-semibold text-foreground">
             Перетащите файлы логов сюда
           </div>
-          <div className="mt-2 text-sm text-muted-foreground">
+          <div className="mt-1 text-xs text-muted-foreground font-medium">
             или выберите файлы вручную
           </div>
           <div className="mt-4">
-            <Button variant="outline" className="rounded-xl" asChild>
+            <Button variant="outline" asChild>
               <span>Выбрать файлы</span>
             </Button>
             <input
@@ -306,7 +307,7 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
               className="hidden"
             />
           </div>
-          <div className="mt-4 text-xs text-muted-foreground">
+          <div className="mt-4 text-[10px] text-muted-foreground font-medium">
             Принимаются только .json файлы • Максимум 150 файлов • До 10MB
             каждый
           </div>
@@ -314,24 +315,26 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
 
         {files.length > 0 && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-medium">
+            <div className="flex items-center justify-between text-xs font-semibold">
+              <div className="text-foreground">
                 Выбрано файлов: {files.length}
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-muted-foreground">
                 Общий размер: {totalSizeMB}MB
               </div>
             </div>
 
-            <div className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-border/70 bg-background/50 p-3">
+            <div className="max-h-48 space-y-2 overflow-y-auto rounded-lg border border-border bg-background-secondary p-3">
               {files.map((file) => (
                 <div
                   key={file.path}
-                  className="flex items-center gap-2 text-sm"
+                  className="flex items-center gap-2 text-xs font-medium"
                 >
-                  <FileJson className="size-4 text-muted-foreground" />
-                  <span className="flex-1 truncate">{file.path}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <FileJson className="size-4 text-muted-foreground shrink-0" />
+                  <span className="flex-1 truncate text-foreground">
+                    {file.path}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
                     {(file.size / 1024).toFixed(1)}KB
                   </span>
                 </div>
@@ -341,7 +344,7 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
             {isUploading && (
               <div className="space-y-2">
                 <Progress value={uploadProgress} />
-                <div className="text-center text-sm text-muted-foreground">
+                <div className="text-center text-xs text-muted-foreground font-semibold">
                   Загрузка... {uploadProgress}%
                 </div>
               </div>
@@ -350,7 +353,7 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
             <Button
               onClick={handleUpload}
               disabled={isUploading}
-              className="w-full rounded-xl"
+              className="w-full"
             >
               {isUploading ? (
                 <>
@@ -362,9 +365,9 @@ export function UploadLogsCard({ projectId }: { projectId: string }) {
               )}
             </Button>
 
-            <div className="rounded-xl border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] p-3 text-sm text-muted-foreground">
+            <div className="rounded-lg border border-[hsl(var(--status-calm)/0.25)] bg-[hsl(var(--status-calm)/0.08)] p-3 text-xs leading-relaxed text-muted-foreground font-medium">
               🔒 Все чувствительные данные (токены, пароли, email) автоматически
-              удаляются перед отправкой
+              удаляются перед отправкой.
             </div>
           </div>
         )}
