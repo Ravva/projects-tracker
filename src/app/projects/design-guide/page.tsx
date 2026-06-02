@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
 import {
+  AlertCircleIcon,
   Calendar03Icon,
   Github01Icon,
-  User02Icon,
   Settings02Icon,
   StarIcon,
   Task01Icon,
-  AlertCircleIcon,
+  User02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-
+import Link from "next/link";
+import React, { useState } from "react";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { StatusPill } from "../../../../untitled2shadcn/components/app/status-pill";
 // Import 14 registry components (4 levels up since we are at src/app/projects/design-guide/)
 import {
   Avatar,
@@ -23,11 +24,11 @@ import { Badge } from "../../../../untitled2shadcn/components/ui/badge";
 import { Button } from "../../../../untitled2shadcn/components/ui/button";
 import {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
 } from "../../../../untitled2shadcn/components/ui/card";
 import { Checkbox } from "../../../../untitled2shadcn/components/ui/checkbox";
 import { Input } from "../../../../untitled2shadcn/components/ui/input";
@@ -43,7 +44,6 @@ import {
 } from "../../../../untitled2shadcn/components/ui/sheet";
 import {
   Sidebar,
-  SidebarProvider,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
@@ -52,6 +52,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarProvider,
 } from "../../../../untitled2shadcn/components/ui/sidebar";
 import { Skeleton } from "../../../../untitled2shadcn/components/ui/skeleton";
 import {
@@ -68,8 +69,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../../../../untitled2shadcn/components/ui/tooltip";
-import { StatusPill } from "../../../../untitled2shadcn/components/app/status-pill";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 export default function DesignGuidePage() {
   const [progressVal, setProgressVal] = useState(65);

@@ -5,20 +5,20 @@ import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent whitespace-nowrap font-semibold text-sm transition-all duration-200 outline-none select-none disabled:opacity-50 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 shadow-sm active:scale-[0.98]",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent whitespace-nowrap font-semibold text-sm transition-all duration-200 outline-none select-none disabled:opacity-50 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 focus-visible:ring-4 focus-visible:ring-primary/24 focus-visible:border-primary focus-visible:outline-none",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground border border-primary-600/10 hover:bg-primary/95 shadow-[0_1px_2px_rgba(16,24,40,0.05)]",
+          "bg-primary text-primary-foreground border border-primary hover:bg-primary/90 shadow-[0_1px_2px_rgba(16,24,40,0.05)]",
         outline:
           "bg-card border border-input text-foreground hover:bg-background-secondary shadow-[0_1px_2px_rgba(16,24,40,0.05)]",
         secondary:
-          "bg-background-secondary text-foreground hover:bg-accent border border-border/60",
+          "bg-background-secondary text-foreground hover:bg-muted border border-border/80",
         ghost:
-          "bg-transparent border-transparent shadow-none text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+          "bg-transparent border-transparent shadow-none text-muted-foreground hover:bg-muted/45 hover:text-foreground",
         destructive:
-          "bg-destructive text-white border border-destructive/20 hover:bg-destructive/95",
+          "bg-destructive text-white border border-destructive hover:bg-destructive/90 shadow-[0_1px_2px_rgba(16,24,40,0.05)]",
         link: "text-primary underline-offset-4 hover:underline border-transparent shadow-none",
       },
       size: {

@@ -43,8 +43,8 @@ function TooltipContent({
         sideOffset={sideOffset}
         className={cn(
           "z-50 inline-flex w-fit max-w-xs origin-(--radix-tooltip-content-transform-origin) items-center gap-1.5",
-          "rounded-lg px-3 py-2 text-xs font-semibold text-white",
-          "bg-neutral-900 border border-neutral-800 shadow-md",
+          "rounded-lg px-3 py-1.5 text-xs font-medium text-[#F9FAFB]",
+          "bg-[#0C111D] dark:bg-[#161B26] border border-[#1F242F] dark:border-[#222939] shadow-md",
           "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           "data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95",
           "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95",
@@ -54,7 +54,7 @@ function TooltipContent({
         {...props}
       >
         {children}
-        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 bg-neutral-900 fill-neutral-900" />
+        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 bg-[#0C111D] dark:bg-[#161B26] border-r border-b border-[#1F242F] dark:border-[#222939] fill-[#0C111D] dark:fill-[#161B26]" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

@@ -14,7 +14,7 @@ function Checkbox({
       className={cn(
         "peer size-4 shrink-0 cursor-pointer rounded border border-input bg-card outline-none",
         "transition-all duration-200",
-        "focus-visible:ring-4 focus-visible:ring-primary/20",
+        "focus-visible:ring-4 focus-visible:ring-primary/24 focus-visible:border-primary",
         "disabled:cursor-not-allowed disabled:opacity-40",
         "data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
         className,
