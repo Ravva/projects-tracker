@@ -21,7 +21,7 @@ export function LoginButton({
         )
       }
       size="lg"
-      className="rounded-xl px-4 text-sm font-semibold shadow-sm shadow-primary/20"
+      className="w-full font-bold"
     >
       Войти через GitHub
     </Button>

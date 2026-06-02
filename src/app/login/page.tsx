@@ -49,12 +49,12 @@ function BindStepCard({
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
-      <div className="mb-3 inline-flex size-8 items-center justify-center rounded-full bg-[hsl(var(--status-calm)/0.14)] font-semibold text-[hsl(var(--status-calm))]">
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm text-sm transition-all duration-200">
+      <div className="mb-3 inline-flex size-7 items-center justify-center rounded-full bg-[hsl(var(--status-calm)/0.14)] font-bold text-xs text-[hsl(var(--status-calm))] uppercase tracking-wide">
         {index}
       </div>
-      <div className="font-medium text-foreground">{title}</div>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+      <div className="font-semibold text-foreground">{title}</div>
+      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
         {description}
       </p>
     </div>
@@ -118,24 +118,15 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="relative min-h-screen px-5 py-10">
-      <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <section
-          className="shadow-none"
-          style={{
-            background: "rgba(26,31,43,0.75)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            backdropFilter: "blur(12px)",
-            borderRadius: "2rem",
-            padding: "2rem",
-          }}
-        >
+    <main className="flex min-h-screen items-center justify-center px-4 py-12 md:py-24">
+      <div className="mx-auto grid w-full max-w-5xl gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <section className="glass rounded-lg border border-border/80 bg-card/65 backdrop-blur-md p-8 shadow-sm transition-all duration-200">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <div className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">
+            <div className="space-y-1">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 GitHub OAuth
               </div>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight">
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
                 Projects Tracker
               </h1>
             </div>
@@ -145,7 +136,7 @@ export default async function LoginPage({
               <StatusPill label="Teacher and student login" tone="calm" />
             )}
           </div>
-          <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground">
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
             {isStudentBindFlow
               ? "После входа через GitHub система свяжет ваш аккаунт с подтверждённой карточкой ученика и сразу переведет вас к выбору проекта."
               : "Teacher workspace для контроля посещаемости, ученических проектов и AI-анализа. Вход преподавателя и учеников идёт через GitHub OAuth."}
@@ -153,15 +144,15 @@ export default async function LoginPage({
 
           {isStudentBindFlow ? (
             <div className="mt-6 space-y-4">
-              <div className="rounded-[1.75rem] border border-[hsl(var(--status-warning)/0.22)] bg-[linear-gradient(135deg,hsl(var(--status-warning)/0.14),hsl(var(--background)))] px-5 py-4">
-                <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-[hsl(var(--status-warning))]">
+              <div className="rounded-lg border border-[hsl(var(--status-warning)/0.25)] bg-[hsl(var(--status-warning)/0.08)] px-5 py-4">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-[hsl(var(--status-warning))]">
                   Как это работает
                 </div>
-                <div className="mt-2 text-lg font-semibold leading-tight text-foreground">
+                <div className="mt-1 text-base font-bold leading-tight text-foreground">
                   Сначала GitHub-вход, потом автоматическая привязка к карточке
                   ученика.
                 </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   Если в браузере открыт не тот GitHub-аккаунт, ниже можно
                   сменить его до завершения привязки.
                 </p>
@@ -174,21 +165,23 @@ export default async function LoginPage({
                 />
                 <BindStepCard
                   index="2"
-                  title="Проверьте аккаунт и завершите привязку"
+                  title="Проверьте аккаунт"
                   description="После возврата система либо сразу продолжит bind flow, либо предложит подтвердить текущий GitHub-аккаунт перед привязкой."
                 />
               </div>
             </div>
           ) : null}
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8">
             {authConfiguration.isConfigured ? (
-              <LoginButton
-                callbackUrl={oauthCallbackUrl}
-                forceAccountSelection={isStudentBindFlow}
-              />
+              <div className="max-w-xs">
+                <LoginButton
+                  callbackUrl={oauthCallbackUrl}
+                  forceAccountSelection={isStudentBindFlow}
+                />
+              </div>
             ) : (
-              <span className="inline-flex cursor-not-allowed items-center rounded-xl bg-muted px-4 py-2 text-sm font-medium text-muted-foreground">
+              <span className="inline-flex cursor-not-allowed items-center rounded-[8px] bg-muted px-4 py-2.5 text-sm font-semibold text-muted-foreground border border-border">
                 OAuth не настроен
               </span>
             )}
@@ -203,18 +196,11 @@ export default async function LoginPage({
           ) : null}
 
           {error ? (
-            <div
-              className="mt-6 px-5 py-4 text-sm text-destructive"
-              style={{
-                background: "rgba(239,68,68,0.1)",
-                border: "1px solid rgba(239,68,68,0.25)",
-                borderRadius: "1.25rem",
-              }}
-            >
-              <div className="text-[11px] font-medium uppercase tracking-[0.22em]">
+            <div className="mt-6 rounded-lg border border-destructive/20 bg-destructive/10 px-5 py-4 text-sm">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-destructive">
                 Ошибка входа
               </div>
-              <p className="mt-2 leading-6">
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground font-medium">
                 {isStudentBindFlow
                   ? "Связать GitHub-аккаунт не удалось. Проверьте, что открыта актуальная ссылка из Telegram, и попробуйте войти еще раз."
                   : "Доступ отклонён. Проверьте GitHub OAuth настройки и allowlist преподавателя."}
@@ -223,10 +209,10 @@ export default async function LoginPage({
           ) : null}
 
           {isStudentBindFlow && studentLoginPath ? (
-            <div className="mt-6 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
+            <div className="mt-6 rounded-lg border border-border bg-background-secondary px-4 py-3 text-xs leading-relaxed text-muted-foreground">
               Если после GitHub-авторизации браузер снова открыл страницу входа,
               система автоматически продолжит привязку по этой student-ссылке:{" "}
-              <span className="font-medium text-foreground">
+              <span className="font-semibold text-foreground break-all">
                 {studentLoginPath}
               </span>
               .
@@ -234,45 +220,31 @@ export default async function LoginPage({
           ) : null}
 
           {!authConfiguration.isConfigured ? (
-            <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
+            <div className="mt-6 rounded-lg border border-status-warning/20 bg-status-warning/10 px-4 py-3 text-xs text-status-warning font-medium">
               Не хватает env-переменных для входа:{" "}
               {authConfiguration.missingKeys.join(", ")}.
             </div>
           ) : null}
         </section>
 
-        <section className="grid gap-4">
+        <section className="flex flex-col gap-4">
           {isStudentBindFlow ? (
             <>
-              <div
-                className="rounded-[2rem] p-6"
-                style={{
-                  background: "rgba(26,31,43,0.75)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  backdropFilter: "blur(12px)",
-                }}
-              >
-                <div className="text-sm font-medium">
+              <div className="glass rounded-lg border border-border/80 bg-card/65 backdrop-blur-md p-6 shadow-sm transition-all duration-200">
+                <div className="text-sm font-semibold text-foreground">
                   Что произойдет после входа
                 </div>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   Если GitHub-аккаунт совпадает с ожидаемым сценарием, система
                   автоматически продолжит привязку и откроет страницу выбора
                   проекта.
                 </p>
               </div>
-              <div
-                className="rounded-[2rem] p-6"
-                style={{
-                  background: "rgba(26,31,43,0.75)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  backdropFilter: "blur(12px)",
-                }}
-              >
-                <div className="text-sm font-medium">
+              <div className="glass rounded-lg border border-border/80 bg-card/65 backdrop-blur-md p-6 shadow-sm transition-all duration-200">
+                <div className="text-sm font-semibold text-foreground">
                   Если открыт не тот аккаунт
                 </div>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   На этой странице можно выйти и повторить вход с другим GitHub-
                   аккаунтом. Это безопаснее, чем доводить bind flow до ошибочной
                   привязки.
@@ -281,31 +253,21 @@ export default async function LoginPage({
             </>
           ) : (
             <>
-              <div
-                className="rounded-[2rem] p-6"
-                style={{
-                  background: "rgba(26,31,43,0.75)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  backdropFilter: "blur(12px)",
-                }}
-              >
-                <div className="text-sm font-medium">Что защищено</div>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+              <div className="glass rounded-lg border border-border/80 bg-card/65 backdrop-blur-md p-6 shadow-sm transition-all duration-200">
+                <div className="text-sm font-semibold text-foreground">
+                  Что защищено
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   Преподаватель попадает в dashboard, а ученик после
                   подтверждения через Telegram получает доступ только к своему
                   маршруту выбора проекта.
                 </p>
               </div>
-              <div
-                className="rounded-[2rem] p-6"
-                style={{
-                  background: "rgba(26,31,43,0.75)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  backdropFilter: "blur(12px)",
-                }}
-              >
-                <div className="text-sm font-medium">Что потребуется</div>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+              <div className="glass rounded-lg border border-border/80 bg-card/65 backdrop-blur-md p-6 shadow-sm transition-all duration-200">
+                <div className="text-sm font-semibold text-foreground">
+                  Что потребуется
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   `GITHUB_ID`, `GITHUB_SECRET`, `NEXTAUTH_SECRET`, teacher
                   allowlist и заполненный `github_user_id` либо активная
                   student-link ссылка из Telegram.
