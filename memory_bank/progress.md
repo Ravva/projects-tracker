@@ -12,7 +12,7 @@
 
 ## Контроль изменений
 
-last_checked_commit: ffdab8f
+last_checked_commit: b6c7ad2
 
 ## Changelog
 
