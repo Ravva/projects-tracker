@@ -64,7 +64,7 @@ export function ImportStudentsButton() {
       />
       <Button
         variant="outline"
-        className="rounded-xl bg-background/90"
+        className="rounded-md bg-background/90 font-sans"
         disabled={isPending}
         onClick={() => fileInputRef.current?.click()}
       >

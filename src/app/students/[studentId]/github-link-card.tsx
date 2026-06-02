@@ -108,10 +108,12 @@ export function GithubLinkCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/70 p-4">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border/80 bg-background/70 p-4 font-sans">
           <div>
-            <div className="font-medium">Статус привязки GitHub</div>
-            <div className="mt-1 text-muted-foreground">
+            <div className="font-medium text-foreground">
+              Статус привязки GitHub
+            </div>
+            <div className="mt-1 text-muted-foreground font-sans">
               {hasGithubBinding
                 ? "Для карточки уже сохранен GitHub-аккаунт. Его можно сбросить и сразу перевыпустить новую ссылку."
                 : "GitHub-аккаунт еще не привязан. Для выпуска ссылки ученик должен быть уже подтвержден через Telegram."}
@@ -123,7 +125,7 @@ export function GithubLinkCard({
           />
         </div>
 
-        <div className="rounded-2xl border border-border/70 bg-background/70 p-4 text-muted-foreground">
+        <div className="rounded-lg border border-border/80 bg-background/70 p-4 text-muted-foreground font-sans">
           {hasGithubBinding ? (
             <>
               <div>
@@ -140,11 +142,13 @@ export function GithubLinkCard({
         </div>
 
         {loginLink ? (
-          <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+          <div className="rounded-lg border border-border/80 bg-background/70 p-4 font-sans">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="font-medium">Текущая GitHub login-ссылка</div>
-                <div className="mt-2 break-all rounded-xl border border-dashed border-border/70 bg-background/80 px-3 py-2 text-xs text-muted-foreground">
+                <div className="font-medium text-foreground font-sans">
+                  Текущая GitHub login-ссылка
+                </div>
+                <div className="mt-2 break-all rounded-md border border-dashed border-border/80 bg-background/80 px-3 py-2 text-xs text-muted-foreground font-sans">
                   {loginLink}
                 </div>
               </div>
@@ -153,7 +157,7 @@ export function GithubLinkCard({
                 aria-label={
                   copySucceeded ? "Ссылка скопирована" : "Скопировать ссылку"
                 }
-                className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background/90 text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background/90 text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 font-sans"
                 disabled={!loginLink}
                 onClick={handleCopyLink}
               >
@@ -169,7 +173,7 @@ export function GithubLinkCard({
 
         <Button
           type="button"
-          className="rounded-xl"
+          className="rounded-md font-sans"
           disabled={isPending || !canIssueLink}
           onClick={handleIssueLink}
         >
@@ -183,7 +187,7 @@ export function GithubLinkCard({
 
         {inlineMessage ? (
           <div
-            className={`rounded-2xl border px-4 py-3 text-sm ${
+            className={`rounded-lg border px-4 py-3 text-sm font-sans ${
               inlineTone === "error"
                 ? "border-destructive/25 bg-destructive/8 text-destructive"
                 : "border-[hsl(var(--status-success)/0.24)] bg-[hsl(var(--status-success)/0.1)] text-[hsl(var(--status-success))]"
@@ -193,7 +197,7 @@ export function GithubLinkCard({
           </div>
         ) : null}
 
-        <div className="rounded-2xl border border-border/70 bg-background/70 p-4 text-muted-foreground">
+        <div className="rounded-lg border border-border/80 bg-background/70 p-4 text-muted-foreground font-sans">
           {canIssueLink
             ? "Если браузер ученика снова подставит старый GitHub-аккаунт, попросите открыть ссылку в режиме инкогнито или предварительно выйти из неверного аккаунта на github.com."
             : "Сначала нужно привязать Telegram chat id через карточку выше. Только после этого можно безопасно выпустить GitHub-ссылку для этого ученика."}

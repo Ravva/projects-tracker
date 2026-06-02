@@ -69,7 +69,7 @@ export function NotificationCard({
         </CardHeader>
         <CardContent className="space-y-4">
           {telegramChatId ? (
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-3 font-sans">
               <input type="hidden" name="studentId" value={studentId} />
               <textarea
                 name="message"
@@ -77,10 +77,10 @@ export function NotificationCard({
                 value={message}
                 maxLength={maxLength}
                 placeholder="Введите текст сообщения..."
-                className="min-h-24 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none ring-0 transition-colors placeholder:text-muted-foreground/60 focus:border-primary/50"
+                className="min-h-24 w-full rounded-md border border-border bg-background/80 px-4 py-3 text-sm outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-primary/50 font-sans resize-none"
                 onChange={(event) => setMessage(event.target.value)}
               />
-              <div className="flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center justify-between gap-3 text-xs font-sans">
                 <span className="text-muted-foreground">
                   Telegram принимает до {maxLength} символов в одном сообщении.
                 </span>
@@ -91,22 +91,22 @@ export function NotificationCard({
               <Button
                 type="submit"
                 disabled={isPending}
-                className="w-full rounded-xl"
+                className="w-full rounded-md font-sans"
               >
                 {isPending ? "Отправка..." : "Отправить через бота"}
               </Button>
-              <p className="text-[11px] leading-normal italic text-muted-foreground">
+              <p className="text-[11px] leading-normal italic text-muted-foreground font-sans">
                 Сообщение будет доставлено, только если ученик уже нажал
                 `/start` в боте и передан корректный chat id.
               </p>
             </form>
           ) : (
-            <div className="rounded-2xl border border-dashed border-border/70 bg-muted/30 p-4 text-center">
-              <p className="text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border/80 bg-muted/30 p-4 text-center font-sans">
+              <p className="text-sm text-muted-foreground font-sans">
                 Уведомления недоступны, так как у ученика не указан{" "}
                 <b>Telegram chat id</b>.
               </p>
-              <p className="mt-2 text-xs text-muted-foreground/70">
+              <p className="mt-2 text-xs text-muted-foreground/70 font-sans">
                 Ученик должен нажать `/start` в боте и прислать свой числовой ID
                 или ID чата.
               </p>

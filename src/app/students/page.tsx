@@ -42,7 +42,7 @@ export default async function StudentsPage() {
       actions={
         <>
           <ImportStudentsButton />
-          <Button asChild className="rounded-xl">
+          <Button asChild className="rounded-md">
             <Link href="#create-student">Добавить ученика</Link>
           </Button>
         </>
@@ -144,7 +144,7 @@ export default async function StudentsPage() {
                         <Button
                           asChild
                           variant="outline"
-                          className="rounded-xl"
+                          className="rounded-md"
                         >
                           <Link href={`/students/${student.id}`}>
                             <HugeiconsIcon
@@ -182,65 +182,51 @@ export default async function StudentsPage() {
             <form
               id="create-student"
               action={createStudentAction}
-              className="space-y-3 rounded-2xl"
-              style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: "1rem",
-                padding: "1rem",
-              }}
+              className="space-y-3 rounded-lg border border-border/80 bg-card/65 p-4 font-sans"
             >
-              <div className="font-medium">Новый ученик</div>
+              <div className="font-medium text-foreground">Новый ученик</div>
               <Input
                 name="firstName"
                 placeholder="Имя"
-                className="rounded-xl bg-background/80"
+                className="rounded-md bg-background/80 font-sans"
               />
               <Input
                 name="lastName"
                 placeholder="Фамилия"
-                className="rounded-xl bg-background/80"
+                className="rounded-md bg-background/80 font-sans"
               />
               <Input
                 name="githubUsername"
                 placeholder="GitHub username"
-                className="rounded-xl bg-background/80"
+                className="rounded-md bg-background/80 font-sans"
               />
               <Input
                 name="githubUserId"
                 placeholder="GitHub user id"
-                className="rounded-xl bg-background/80"
+                className="rounded-md bg-background/80 font-sans"
               />
               <Input
                 name="telegramUsername"
                 placeholder="Telegram username"
-                className="rounded-xl bg-background/80"
+                className="rounded-md bg-background/80 font-sans"
               />
               <Input
                 name="telegramChatId"
                 placeholder="Telegram chat id"
-                className="rounded-xl bg-background/80"
+                className="rounded-md bg-background/80 font-sans"
               />
               <textarea
                 name="notes"
-                className="min-h-24 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground backdrop-blur-sm transition-all duration-200 focus:border-primary/50 focus:shadow-[0_0_0_3px_rgba(6,182,212,0.12)] resize-none"
+                className="min-h-24 w-full rounded-md border border-border bg-background/60 px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground transition-all duration-200 focus:border-primary/50 resize-none font-sans"
                 placeholder="Заметка преподавателя"
               />
-              <Button type="submit" className="w-full rounded-xl">
+              <Button type="submit" className="w-full rounded-md font-sans">
                 Сохранить карточку
               </Button>
             </form>
 
-            <div
-              className="rounded-2xl"
-              style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: "1rem",
-                padding: "1rem",
-              }}
-            >
-              <div className="flex items-center gap-3 font-medium">
+            <div className="rounded-lg border border-border/80 bg-background/40 p-4 font-sans">
+              <div className="flex items-center gap-3 font-medium text-foreground">
                 <HugeiconsIcon icon={User02Icon} size={18} strokeWidth={1.8} />
                 Активные карточки
               </div>
@@ -250,16 +236,8 @@ export default async function StudentsPage() {
                   : "После настройки Appwrite здесь появятся реальные карточки учеников."}
               </p>
             </div>
-            <div
-              className="rounded-2xl"
-              style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: "1rem",
-                padding: "1rem",
-              }}
-            >
-              <div className="flex items-center gap-3 font-medium">
+            <div className="rounded-lg border border-border/80 bg-background/40 p-4 font-sans">
+              <div className="flex items-center gap-3 font-medium text-foreground">
                 <HugeiconsIcon
                   icon={Notification01Icon}
                   size={18}

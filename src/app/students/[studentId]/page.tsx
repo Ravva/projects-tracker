@@ -59,13 +59,16 @@ export default async function StudentDetailsPage({
           <Button
             asChild
             variant="outline"
-            className="rounded-xl bg-background/90"
+            className="rounded-md bg-background/90 font-sans"
           >
             <Link href="/students">К списку</Link>
           </Button>
           <form action={deleteStudentAction}>
             <input type="hidden" name="studentId" value={student.id} />
-            <Button variant="outline" className="rounded-xl bg-background/90">
+            <Button
+              variant="outline"
+              className="rounded-md bg-background/90 font-sans"
+            >
               Удалить
             </Button>
           </form>
@@ -81,50 +84,56 @@ export default async function StudentDetailsPage({
             <form action={updateStudentAction} className="space-y-6">
               <input type="hidden" name="studentId" value={student.id} />
 
-              <div className="flex items-center gap-4 rounded-3xl border border-border/70 bg-background/70 p-4">
+              <div className="flex items-center gap-4 rounded-lg border border-border/80 bg-background/70 p-4 font-sans">
                 <Avatar size="lg">
-                  <AvatarFallback className="bg-secondary font-semibold text-secondary-foreground">
+                  <AvatarFallback className="bg-secondary font-semibold text-secondary-foreground font-sans">
                     {student.firstName[0]}
                     {student.lastName[0]}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="text-lg font-semibold">
+                  <div className="text-lg font-semibold text-foreground font-sans">
                     {student.firstName} {student.lastName}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground font-sans">
                     {student.lastActivity}
                   </div>
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2 font-sans">
                 <div className="space-y-2">
-                  <label htmlFor="firstName" className="text-sm font-medium">
+                  <label
+                    htmlFor="firstName"
+                    className="text-sm font-medium text-foreground"
+                  >
                     Имя
                   </label>
                   <Input
                     id="firstName"
                     name="firstName"
                     defaultValue={student.firstName}
-                    className="rounded-xl bg-background/80"
+                    className="rounded-md bg-background/80 font-sans"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="lastName" className="text-sm font-medium">
+                  <label
+                    htmlFor="lastName"
+                    className="text-sm font-medium text-foreground"
+                  >
                     Фамилия
                   </label>
                   <Input
                     id="lastName"
                     name="lastName"
                     defaultValue={student.lastName}
-                    className="rounded-xl bg-background/80"
+                    className="rounded-md bg-background/80 font-sans"
                   />
                 </div>
                 <div className="space-y-2">
                   <label
                     htmlFor="githubUsername"
-                    className="text-sm font-medium"
+                    className="text-sm font-medium text-foreground"
                   >
                     GitHub username
                   </label>
@@ -132,24 +141,27 @@ export default async function StudentDetailsPage({
                     id="githubUsername"
                     name="githubUsername"
                     defaultValue={student.githubUsername}
-                    className="rounded-xl bg-background/80"
+                    className="rounded-md bg-background/80 font-sans"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="githubUserId" className="text-sm font-medium">
+                  <label
+                    htmlFor="githubUserId"
+                    className="text-sm font-medium text-foreground"
+                  >
                     GitHub user id
                   </label>
                   <Input
                     id="githubUserId"
                     name="githubUserId"
                     defaultValue={student.githubUserId}
-                    className="rounded-xl bg-background/80"
+                    className="rounded-md bg-background/80 font-sans"
                   />
                 </div>
                 <div className="space-y-2">
                   <label
                     htmlFor="telegramUsername"
-                    className="text-sm font-medium"
+                    className="text-sm font-medium text-foreground"
                   >
                     Telegram username
                   </label>
@@ -157,13 +169,13 @@ export default async function StudentDetailsPage({
                     id="telegramUsername"
                     name="telegramUsername"
                     defaultValue={student.telegramUsername}
-                    className="rounded-xl bg-background/80"
+                    className="rounded-md bg-background/80 font-sans"
                   />
                 </div>
                 <div className="space-y-2">
                   <label
                     htmlFor="telegramChatId"
-                    className="text-sm font-medium"
+                    className="text-sm font-medium text-foreground"
                   >
                     Telegram chat id
                   </label>
@@ -172,31 +184,34 @@ export default async function StudentDetailsPage({
                     name="telegramChatId"
                     defaultValue={student.telegramChatId}
                     placeholder="Например: 123456789 или -1001234567890"
-                    className="rounded-xl bg-background/80"
+                    className="rounded-md bg-background/80 font-sans"
                     maxLength={32}
                     inputMode="numeric"
                   />
-                  <p className="text-xs leading-5 text-muted-foreground">
+                  <p className="text-xs leading-5 text-muted-foreground font-sans">
                     Храним только числовой chat id. Для групп и каналов он часто
                     начинается с `-100`.
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="notes" className="text-sm font-medium">
+              <div className="space-y-2 font-sans">
+                <label
+                  htmlFor="notes"
+                  className="text-sm font-medium text-foreground"
+                >
                   Заметка преподавателя
                 </label>
                 <TextareaWithCounter
                   id="notes"
                   name="notes"
-                  className="min-h-32 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none ring-0"
+                  className="min-h-32 w-full rounded-md border border-border bg-background/80 px-4 py-3 text-sm outline-none font-sans"
                   defaultValue={student.notes}
                   maxLength={2000}
                 />
               </div>
 
-              <Button type="submit" className="rounded-xl">
+              <Button type="submit" className="rounded-md font-sans">
                 Сохранить изменения
               </Button>
             </form>
@@ -252,8 +267,8 @@ export default async function StudentDetailsPage({
               <CardTitle className="text-base">Контрольные сигналы</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="rounded-2xl bg-background/40 p-4">
-                <div className="flex items-center gap-3 font-medium">
+              <div className="rounded-lg border border-border/80 bg-background/40 p-4 font-sans">
+                <div className="flex items-center gap-3 font-medium text-foreground">
                   <HugeiconsIcon
                     icon={Notification01Icon}
                     size={18}
@@ -261,14 +276,14 @@ export default async function StudentDetailsPage({
                   />
                   Telegram
                 </div>
-                <p className="mt-2 leading-6 text-muted-foreground">
+                <p className="mt-2 leading-6 text-muted-foreground font-sans">
                   {student.telegramChatId
                     ? "chat id уже есть, персональные уведомления доступны."
                     : "chat id отсутствует, пока доступен только общий канал уведомлений."}
                 </p>
               </div>
-              <div className="rounded-2xl bg-background/40 p-4">
-                <div className="flex items-center gap-3 font-medium">
+              <div className="rounded-lg border border-border/80 bg-background/40 p-4 font-sans">
+                <div className="flex items-center gap-3 font-medium text-foreground">
                   <HugeiconsIcon
                     icon={Github01Icon}
                     size={18}
@@ -276,13 +291,13 @@ export default async function StudentDetailsPage({
                   />
                   GitHub identity
                 </div>
-                <p className="mt-2 leading-6 text-muted-foreground">
+                <p className="mt-2 leading-6 text-muted-foreground font-sans">
                   Связка уже хранится по `github_user_id`, это безопаснее для
                   будущего student-access.
                 </p>
               </div>
-              <div className="rounded-2xl bg-background/40 p-4">
-                <div className="flex items-center gap-3 font-medium">
+              <div className="rounded-lg border border-border/80 bg-background/40 p-4 font-sans">
+                <div className="flex items-center gap-3 font-medium text-foreground">
                   <HugeiconsIcon
                     icon={Note01Icon}
                     size={18}
@@ -290,7 +305,7 @@ export default async function StudentDetailsPage({
                   />
                   Последняя AI-сводка
                 </div>
-                <div className="mt-2 max-h-48 overflow-y-auto pr-1 text-xs leading-5 text-muted-foreground scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                <div className="mt-2 max-h-48 overflow-y-auto pr-1 text-xs leading-5 text-muted-foreground scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent font-sans">
                   {student.aiSummary}
                 </div>
               </div>
@@ -306,12 +321,12 @@ export default async function StudentDetailsPage({
                 studentProjects.map((project) => (
                   <div
                     key={project.id}
-                    className="rounded-2xl bg-background/40 p-4"
+                    className="rounded-lg border border-border/80 bg-background/40 p-4 font-sans"
                   >
                     <div className="font-medium text-foreground">
                       {project.name}
                     </div>
-                    <div className="mt-1 text-muted-foreground">
+                    <div className="mt-1 text-muted-foreground font-sans">
                       Статус:{" "}
                       {project.status === "completed" ? "завершен" : "в работе"}
                       . Участники: {project.memberNames.join(", ")}.
@@ -319,7 +334,7 @@ export default async function StudentDetailsPage({
                   </div>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-border/70 bg-background/50 p-4 text-muted-foreground">
+                <div className="rounded-lg border border-dashed border-border/80 bg-background/50 p-4 text-muted-foreground font-sans">
                   Проекты для этого ученика пока не подключены.
                 </div>
               )}
