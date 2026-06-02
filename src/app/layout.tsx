@@ -38,7 +38,7 @@ const themeInitScript = `
   try {
     const storageKey = "projects-tracker-theme";
     const storedTheme = window.localStorage.getItem(storageKey);
-    const validThemes = ["cyber-emerald", "amethyst-eclipse", "amber-core", "system"];
+    const validThemes = ["cyber-emerald", "amethyst-eclipse", "amber-core", "untitled-classic", "system"];
     const theme = validThemes.includes(storedTheme) ? storedTheme : "system";
 
     const modeKey = "projects-tracker-mode";
@@ -47,7 +47,7 @@ const themeInitScript = `
     const mode = validModes.includes(storedMode) ? storedMode : "dark";
 
     const root = document.documentElement;
-    const resolvedTheme = theme === "system" ? "amethyst-eclipse" : theme;
+    const resolvedTheme = theme === "system" ? "untitled-classic" : theme;
     root.setAttribute("data-theme", resolvedTheme);
 
     let isDark = mode === "dark";
@@ -63,7 +63,7 @@ const themeInitScript = `
       root.style.colorScheme = "light";
     }
   } catch (e) {
-    document.documentElement.setAttribute("data-theme", "amethyst-eclipse");
+    document.documentElement.setAttribute("data-theme", "untitled-classic");
     document.documentElement.classList.add("dark");
     document.documentElement.style.colorScheme = "dark";
   }
