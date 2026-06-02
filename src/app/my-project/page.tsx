@@ -14,7 +14,6 @@ import { getProjectStatusLabel, isProjectCurrent } from "@/lib/project-status";
 import {
   getCurrentAuthRole,
   getCurrentGithubAccessToken,
-  requireAuthenticatedSession,
   requireStudentSession,
 } from "@/lib/server/auth";
 import { getCanonicalAgentsDocument } from "@/lib/server/canonical-agents";
@@ -283,22 +282,45 @@ export default async function MyProjectPage({
     success?: string;
   }>;
 }) {
-  const role = await getCurrentAuthRole();
-  const sessionUser = await requireAuthenticatedSession();
   const { error, notice, projectName, preview, success } = await searchParams;
-  const isTeacherPreview = role === "teacher" && preview === "teacher";
+  const isTeacherPreview = preview === "teacher";
+  console.log("=== MY PROJECT PAGE SERVER COMPONENT RUNNING ===", {
+    isTeacherPreview,
+  });
 
-  if (role === "teacher" && !isTeacherPreview) {
-    redirect("/");
+  let student: {
+    id: string;
+    name: string;
+    email: string;
+    githubLogin: string;
+    githubId: string;
+    studentId: string;
+    studentName: string;
+  };
+
+  if (isTeacherPreview) {
+    student = {
+      id: "preview-student",
+      name: "Превью ученика",
+      email: "preview@example.com",
+      githubLogin: "preview-github",
+      githubId: "preview-github-id",
+      studentId: "preview-student",
+      studentName: "Превью ученика",
+    };
+  } else {
+    const role = await getCurrentAuthRole();
+    if (role === "teacher") {
+      redirect("/");
+    }
+    const sessionUser = await requireStudentSession();
+    student = {
+      ...sessionUser,
+      studentId: sessionUser.studentId,
+      studentName: sessionUser.studentName,
+    };
   }
 
-  const student = isTeacherPreview
-    ? {
-        ...sessionUser,
-        studentId: "preview-student",
-        studentName: "Превью ученика",
-      }
-    : await requireStudentSession();
   let projects: ProjectRecord[] = [];
   let repositories: GithubRepositoryOption[] = PREVIEW_REPOSITORIES;
   let repositoryLoadError = "";

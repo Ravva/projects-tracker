@@ -5,6 +5,16 @@ export default withAuth({
   pages: {
     signIn: "/login",
   },
+  callbacks: {
+    authorized: ({ req, token }) => {
+      const { searchParams } = req.nextUrl;
+      const isTeacherPreview = searchParams.get("preview") === "teacher";
+      if (isTeacherPreview) {
+        return true;
+      }
+      return !!token;
+    },
+  },
 });
 
 export const config = {
