@@ -18,18 +18,21 @@ const buttonVariants = cva(
         ghost:
           "bg-transparent border-transparent shadow-none text-muted-foreground hover:bg-muted/45 hover:text-foreground",
         destructive:
-          "bg-destructive text-white border border-destructive hover:bg-destructive/90 shadow-[0_1px_2px_rgba(16,24,40,0.05)]",
+          "bg-destructive text-destructive-foreground border border-destructive hover:bg-destructive/90 shadow-[0_1px_2px_rgba(16,24,40,0.05)]",
         link: "text-primary underline-offset-4 hover:underline border-transparent shadow-none",
       },
       size: {
-        default: "h-10 gap-2 rounded-[8px] px-4 [&_svg:not([class*='size-'])]:size-4",
+        default:
+          "h-10 gap-2 rounded-[8px] px-4 [&_svg:not([class*='size-'])]:size-4",
         xs: "h-8 gap-1.5 rounded-[6px] px-2.5 text-xs [&_svg:not([class*='size-'])]:size-3",
         sm: "h-9 gap-2 rounded-[8px] px-3 text-sm [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-11 gap-2.5 rounded-[8px] px-5 text-sm [&_svg:not([class*='size-'])]:size-4.5",
         icon: "size-10 rounded-[8px] [&_svg:not([class*='size-'])]:size-4",
         "icon-xs": "size-8 rounded-[6px] [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-9 rounded-[8px] [&_svg:not([class*='size-'])]:size-3.5",
-        "icon-lg": "size-11 rounded-[8px] [&_svg:not([class*='size-'])]:size-4.5",
+        "icon-sm":
+          "size-9 rounded-[8px] [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-lg":
+          "size-11 rounded-[8px] [&_svg:not([class*='size-'])]:size-4.5",
       },
     },
     defaultVariants: {

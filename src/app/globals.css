@@ -189,7 +189,7 @@ html[data-theme="amethyst-eclipse"].dark {
   --popover-foreground: 250 20% 88%;
 
   --primary: 263 90% 65%; /* Glowing Violet #8B5CF6 */
-  --primary-foreground: 260 40% 6%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 260 20% 14%;
   --secondary-foreground: 250 20% 88%;
 
@@ -203,7 +203,7 @@ html[data-theme="amethyst-eclipse"].dark {
   --ring: 263 90% 65%;
 
   --destructive: 346 84% 61%;
-  --destructive-foreground: 260 40% 6%;
+  --destructive-foreground: 0 0% 100%;
 
   --sidebar: 260 42% 7%;
   --sidebar-foreground: 250 20% 88%;
@@ -228,7 +228,7 @@ html[data-theme="cyber-emerald"].dark {
   --popover-foreground: 215 20% 84%;
 
   --primary: 189 94% 43%; /* Cyan #06B6D4 */
-  --primary-foreground: 222 28% 8%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 173 80% 40%;
   --secondary-foreground: 222 28% 8%;
 
@@ -242,7 +242,7 @@ html[data-theme="cyber-emerald"].dark {
   --ring: 189 94% 43%;
 
   --destructive: 7 74% 62%;
-  --destructive-foreground: 222 28% 8%;
+  --destructive-foreground: 0 0% 100%;
 
   --sidebar: 222 28% 9%;
   --sidebar-foreground: 215 20% 84%;
@@ -267,7 +267,7 @@ html[data-theme="amber-core"].dark {
   --popover-foreground: 35 60% 86%;
 
   --primary: 24 100% 50%; /* #FF6600 */
-  --primary-foreground: 15 45% 4%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 35 85% 58%; /* #FFAE33 */
   --secondary-foreground: 15 45% 4%;
 
@@ -281,7 +281,7 @@ html[data-theme="amber-core"].dark {
   --ring: 24 100% 50%;
 
   --destructive: 8 85% 55%;
-  --destructive-foreground: 15 45% 4%;
+  --destructive-foreground: 0 0% 100%;
 
   --sidebar: 15 42% 5%;
   --sidebar-foreground: 35 60% 86%;
@@ -306,7 +306,7 @@ html[data-theme="untitled-classic"].dark {
   --popover-foreground: 220 15% 96%;
 
   --primary: 259 85% 65%; /* #9E77ED */
-  --primary-foreground: 220 30% 5.9%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 220 15% 14%; /* #222939 */
   --secondary-foreground: 220 15% 90%;
 
@@ -320,7 +320,7 @@ html[data-theme="untitled-classic"].dark {
   --ring: 259 85% 65%;
 
   --destructive: 7 85% 60%;
-  --destructive-foreground: 220 30% 5.9%;
+  --destructive-foreground: 0 0% 100%;
 
   --sidebar: 220 30% 5.2%;
   --sidebar-foreground: 220 15% 96%;
