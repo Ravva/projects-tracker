@@ -29,19 +29,19 @@ function getStateDotClassName(
     | "success",
 ) {
   if (state === "cancelled") {
-    return "bg-fuchsia-500 shadow-[0_0_20px_rgba(217,70,239,0.38)] dark:bg-fuchsia-400";
+    return "bg-fuchsia-500 shadow-[0_0_0_1px_rgba(217,70,239,0.34)] dark:bg-fuchsia-400";
   }
 
   if (state === "present" || state === "success") {
-    return "bg-[hsl(var(--status-success))] shadow-[0_0_20px_hsl(var(--status-success)/0.35)]";
+    return "bg-[hsl(var(--status-success))] shadow-[0_0_0_1px_hsl(var(--status-success)/0.22)]";
   }
 
   if (state === "warning") {
-    return "bg-[hsl(var(--status-warning))] shadow-[0_0_20px_hsl(var(--status-warning)/0.32)]";
+    return "bg-[hsl(var(--status-warning))] shadow-[0_0_0_1px_hsl(var(--status-warning)/0.24)]";
   }
 
   if (state === "absent" || state === "critical") {
-    return "bg-[hsl(var(--status-critical))] shadow-[0_0_20px_hsl(var(--status-critical)/0.32)]";
+    return "bg-[hsl(var(--status-critical))] shadow-[0_0_0_1px_hsl(var(--status-critical)/0.24)]";
   }
 
   return "bg-background shadow-[0_0_0_1px_hsl(var(--border))]";
@@ -70,7 +70,8 @@ export function AttendanceReportView({
             <Button
               asChild
               variant="outline"
-              className="rounded-xl bg-background/90"
+              size="sm"
+              className="bg-background/90"
             >
               <Link href={backHref}>К списку</Link>
             </Button>
@@ -81,9 +82,9 @@ export function AttendanceReportView({
         </div>
       </div>
 
-      <section className="mx-auto w-full max-w-[960px] rounded-[32px] border border-border/70 bg-card px-5 py-5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.45)] print:max-w-none print:rounded-none print:border-0 print:bg-white print:px-10 print:py-8 print:shadow-none">
+      <section className="mx-auto w-full max-w-[960px] rounded-lg border border-border/70 bg-card px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.05)] dark:shadow-none print:max-w-none print:rounded-none print:border-0 print:bg-white print:px-10 print:py-8 print:shadow-none font-sans">
         <header className="border-b border-border/70 pb-5">
-          <h2 className="text-[2rem] font-semibold tracking-tight print:text-black">
+          <h2 className="text-2xl font-semibold tracking-tight print:text-black font-sans">
             Отчет по посещаемости
           </h2>
           <ul className="mt-4 space-y-2 text-base leading-8 text-foreground/95 print:text-black">
@@ -118,7 +119,7 @@ export function AttendanceReportView({
         </header>
 
         <div className="mt-8">
-          <h3 className="text-[2rem] font-semibold tracking-tight print:text-black">
+          <h3 className="text-lg font-semibold tracking-tight print:text-black font-sans">
             Занятия недели
           </h3>
           <div className="mt-3 border-t border-border/70 pt-5 text-base leading-8 text-foreground/90 print:text-black">
@@ -134,11 +135,11 @@ export function AttendanceReportView({
         </div>
 
         <div className="mt-10">
-          <h3 className="text-[2rem] font-semibold tracking-tight print:text-black">
+          <h3 className="text-lg font-semibold tracking-tight print:text-black font-sans">
             По ученикам
           </h3>
-          <div className="mt-3 overflow-hidden rounded-[24px] border border-border/80 bg-background/30 print:rounded-none print:border print:bg-white">
-            <table className="w-full border-collapse text-left text-base">
+          <div className="mt-3 overflow-hidden rounded-lg border border-border/80 bg-background/30 print:rounded-none print:border print:bg-white">
+            <table className="w-full border-collapse text-left text-sm font-sans">
               <thead className="bg-foreground/[0.06] text-foreground print:bg-black/5 print:text-black">
                 <tr>
                   <th className="border-b border-border/70 px-4 py-4 font-semibold">
@@ -198,7 +199,7 @@ export function AttendanceReportView({
 
         {report.attentionItems.length > 0 ? (
           <div className="mt-10">
-            <h3 className="text-[2rem] font-semibold tracking-tight print:text-black">
+            <h3 className="text-lg font-semibold tracking-tight print:text-black font-sans">
               Зона внимания
             </h3>
             <div className="mt-3 border-t border-border/70 pt-5">

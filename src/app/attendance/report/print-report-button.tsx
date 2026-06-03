@@ -7,7 +7,8 @@ export function PrintReportButton({ label }: { label: string }) {
     <Button
       type="button"
       variant="outline"
-      className="rounded-xl bg-background/90 print:hidden"
+      size="sm"
+      className="bg-background/90 print:hidden"
       onClick={() => window.print()}
     >
       {label}

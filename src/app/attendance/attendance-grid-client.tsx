@@ -436,7 +436,7 @@ export function AttendanceGridClient({
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl bg-background/90"
+              className="bg-background/90"
               disabled={isPending}
             >
               Очистить отметки
@@ -446,7 +446,7 @@ export function AttendanceGridClient({
             type="button"
             variant="outline"
             size="sm"
-            className="rounded-xl bg-background/90"
+            className="bg-background/90"
             disabled={!isDirty || isPending || !hasRows}
             onClick={handleSave}
           >
@@ -456,7 +456,7 @@ export function AttendanceGridClient({
             asChild
             variant="outline"
             size="sm"
-            className="rounded-xl bg-background/90"
+            className="bg-background/90"
           >
             <Link href={`/attendance?weekStart=${previousWeekStart}`}>
               Предыдущая неделя
@@ -466,7 +466,7 @@ export function AttendanceGridClient({
             asChild
             variant="outline"
             size="sm"
-            className="rounded-xl bg-background/90"
+            className="bg-background/90"
           >
             <Link href={`/attendance?weekStart=${nextWeekStart}`}>
               Следующая неделя
@@ -475,11 +475,11 @@ export function AttendanceGridClient({
         </div>
       </div>
       {error ? (
-        <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="mt-4 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
         </div>
       ) : null}
-      <Table className="mt-4 w-auto min-w-[34rem]">
+      <Table className="mt-4 w-auto min-w-[34rem] font-sans">
         <TableHeader>
           <TableRow>
             <TableHead className="w-[14rem] max-w-[14rem]">Ученик</TableHead>
@@ -491,7 +491,7 @@ export function AttendanceGridClient({
                   {lesson ? (
                     <button
                       type="button"
-                      className="inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-center text-xs font-semibold transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex cursor-pointer items-center justify-center rounded-md px-2 py-1 text-center text-xs font-semibold font-sans transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-60"
                       disabled={isPending || !hasRows}
                       onClick={() => handleColumnToggle(lesson.id)}
                       title="Массово переключить весь столбец"
@@ -605,7 +605,7 @@ export function AttendanceGridClient({
           <>
             <Button
               type="button"
-              className="rounded-xl"
+              size="sm"
               disabled={isPending}
               onClick={handleModalSave}
             >
@@ -614,7 +614,7 @@ export function AttendanceGridClient({
             <Button
               type="button"
               variant="outline"
-              className="rounded-xl"
+              size="sm"
               disabled={isPending}
               onClick={handleModalDiscard}
             >
@@ -623,7 +623,7 @@ export function AttendanceGridClient({
             <Button
               type="button"
               variant="outline"
-              className="rounded-xl"
+              size="sm"
               disabled={isPending}
               onClick={handleModalCancel}
             >

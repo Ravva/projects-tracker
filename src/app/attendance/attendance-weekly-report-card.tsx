@@ -31,7 +31,8 @@ export function AttendanceWeeklyReportCard({
             <Button
               asChild
               variant="outline"
-              className="rounded-xl bg-background/90"
+              size="sm"
+              className="bg-background/90"
             >
               <Link href={`/attendance/report?weekStart=${weekStart}`}>
                 Открыть отчёт
@@ -40,7 +41,8 @@ export function AttendanceWeeklyReportCard({
             <Button
               type="button"
               variant="outline"
-              className="rounded-xl bg-background/90"
+              size="sm"
+              className="bg-background/90"
               onClick={handleCopyShareLink}
             >
               {copied ? "Ссылка скопирована" : "Скопировать ссылку"}
