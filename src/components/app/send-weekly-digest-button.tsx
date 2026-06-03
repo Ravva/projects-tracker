@@ -51,6 +51,7 @@ export function SendWeeklyDigestButton() {
       <Button
         type="button"
         variant="outline"
+        size="sm"
         className="rounded-xl bg-background/90"
         disabled={isPending}
         onClick={handleSend}
