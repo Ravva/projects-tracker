@@ -42,7 +42,7 @@ export default async function StudentsPage() {
       actions={
         <>
           <ImportStudentsButton />
-          <Button asChild size="sm" className="rounded-xl">
+          <Button asChild size="sm">
             <Link href="#create-student">Добавить ученика</Link>
           </Button>
         </>
@@ -143,12 +143,7 @@ export default async function StudentsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right w-28">
-                          <Button
-                            asChild
-                            variant="outline"
-                            size="sm"
-                            className="h-7 rounded-lg text-xs gap-1 inline-flex"
-                          >
+                          <Button asChild variant="outline" size="xs">
                             <Link href={`/students/${student.id}`}>
                               <HugeiconsIcon
                                 icon={EditUser02Icon}
@@ -225,7 +220,7 @@ export default async function StudentsPage() {
                   className="min-h-24 w-full rounded-md border border-border bg-background/60 px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground transition-all duration-200 focus:border-primary/50 resize-none font-sans"
                   placeholder="Заметка преподавателя"
                 />
-                <Button type="submit" size="sm" className="w-full rounded-xl font-sans">
+                <Button type="submit" size="sm" className="w-full font-sans">
                   Сохранить карточку
                 </Button>
               </form>
