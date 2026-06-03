@@ -533,7 +533,10 @@ export default async function ProjectDetailsPage({
                     </div>
                     {member.role === "owner" ? (
                       <div className="flex flex-wrap items-center gap-3">
-                        <form action={setProjectGroupModeAction}>
+                        <form
+                          action={setProjectGroupModeAction}
+                          className="flex items-center gap-2"
+                        >
                           <input
                             type="hidden"
                             name="projectId"
@@ -544,48 +547,28 @@ export default async function ProjectDetailsPage({
                             name="isGroupProject"
                             value={project.isGroupProject ? "false" : "true"}
                           />
+                          <span className="text-xs font-medium text-muted-foreground mr-1 select-none">
+                            Групповой проект
+                          </span>
                           <button
                             type="submit"
                             role="switch"
                             aria-checked={project.isGroupProject}
                             aria-label="Переключить режим группового проекта"
-                            className={`inline-flex items-center gap-3 rounded-md px-3 py-2 text-left transition-all duration-200 hover:bg-white/5 border ${
+                            className={`group/switch relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full border transition-all duration-200 outline-none ${
                               project.isGroupProject
-                                ? "bg-[hsl(var(--status-calm)/0.08)] border-[hsl(var(--status-calm)/0.3)] shadow-[0_0_0_1px_hsl(var(--status-calm)/0.3)]"
-                                : "bg-white/[0.04] border-white/8 shadow-none"
+                                ? "bg-primary/25 border-primary/40"
+                                : "bg-white/8 border-white/10"
                             }`}
                           >
-                            <span className="flex flex-col">
-                              <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                                Режим проекта
-                              </span>
-                              <span
-                                className={`text-sm font-medium ${
-                                  project.isGroupProject
-                                    ? "text-[hsl(var(--status-calm))]"
-                                    : "text-foreground"
-                                }`}
-                              >
-                                В групповой проект
-                              </span>
-                            </span>
-                            {/* Track */}
+                            {/* Thumb */}
                             <span
-                              className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full border transition-all duration-200 ${
+                              className={`pointer-events-none block size-4 rounded-full shadow-sm transition-all duration-200 ${
                                 project.isGroupProject
-                                  ? "bg-[hsl(var(--status-calm)/0.25)] border-[hsl(var(--status-calm)/0.4)] shadow-[0_0_0_1px_hsl(var(--status-calm)/0.2)]"
-                                  : "bg-white/8 border-white/10 shadow-none"
+                                  ? "translate-x-5 bg-primary"
+                                  : "translate-x-1 bg-white/40"
                               }`}
-                            >
-                              {/* Thumb */}
-                              <span
-                                className={`inline-flex size-4 rounded-full shadow-sm transition-all duration-200 ${
-                                  project.isGroupProject
-                                    ? "translate-x-5 bg-[hsl(var(--status-calm))]"
-                                    : "translate-x-1 bg-white/40"
-                                }`}
-                              />
-                            </span>
+                            />
                           </button>
                         </form>
                         <StatusPill tone="calm" label="Owner" />
