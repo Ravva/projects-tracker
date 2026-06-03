@@ -44,14 +44,16 @@ export function ProjectWeeklyStatusReportCard({
           <Button
             asChild
             variant="outline"
-            className="rounded-xl bg-background/90 text-xs px-3 py-1.5 h-8"
+            size="sm"
+            className="bg-background/90"
           >
             <Link href="/projects/report">Открыть отчёт</Link>
           </Button>
           <Button
             type="button"
             variant="outline"
-            className="rounded-xl bg-background/90 text-xs px-3 py-1.5 h-8 min-w-[130px]"
+            size="sm"
+            className="bg-background/90 min-w-[130px]"
             onClick={handleCopy}
           >
             {copied ? "Скопировано" : "Копировать ссылку"}

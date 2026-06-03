@@ -11,7 +11,7 @@ export function SyncProjectButton() {
     <Button
       variant="outline"
       size="sm"
-      className="rounded-xl bg-background/90"
+      className="bg-background/90"
       disabled={pending}
     >
       <span

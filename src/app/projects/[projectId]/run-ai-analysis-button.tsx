@@ -8,7 +8,7 @@ export function RunAiAnalysisButton() {
   const { pending } = useFormStatus();
 
   return (
-    <Button className="rounded-xl" size="sm" disabled={pending}>
+    <Button size="sm" disabled={pending}>
       <span
         className={[
           "size-3 rounded-full border-2 border-current/30 border-t-current transition-opacity",

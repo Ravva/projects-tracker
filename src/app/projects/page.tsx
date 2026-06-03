@@ -44,7 +44,7 @@ function AlertBanner({
 
   return (
     <div
-      className="mb-4 flex items-start gap-3 rounded-2xl px-4 py-3 text-sm"
+      className="mb-4 flex items-start gap-3 rounded-lg px-4 py-3 text-sm"
       style={{
         background: config.bg,
         border: `1px solid ${config.border}`,
@@ -133,7 +133,8 @@ export default async function ProjectsPage({
             <Button
               type="submit"
               variant="outline"
-              className="rounded-xl bg-background/90"
+              size="sm"
+              className="bg-background/90"
               disabled={projectsNeedingSync === 0}
             >
               Синхронизировать все

@@ -3,21 +3,29 @@ import Link from "next/link";
 import { PrintReportButton } from "@/app/attendance/report/print-report-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { ProjectReportData } from "@/lib/server/project-report";
 
 function getStateDotClassName(
   state: "critical" | "warning" | "success" | "unmarked",
 ) {
   if (state === "success") {
-    return "bg-[hsl(var(--status-success))] shadow-[0_0_20px_hsl(var(--status-success)/0.35)]";
+    return "bg-[hsl(var(--status-success))] shadow-[0_0_0_1px_hsl(var(--status-success)/0.22)]";
   }
 
   if (state === "warning") {
-    return "bg-[hsl(var(--status-warning))] shadow-[0_0_20px_hsl(var(--status-warning)/0.32)]";
+    return "bg-[hsl(var(--status-warning))] shadow-[0_0_0_1px_hsl(var(--status-warning)/0.24)]";
   }
 
   if (state === "critical") {
-    return "bg-[hsl(var(--status-critical))] shadow-[0_0_20px_hsl(var(--status-critical)/0.32)]";
+    return "bg-[hsl(var(--status-critical))] shadow-[0_0_0_1px_hsl(var(--status-critical)/0.24)]";
   }
 
   return "bg-background shadow-[0_0_0_1px_hsl(var(--border))]";
@@ -102,7 +110,7 @@ function Section({
 }) {
   return (
     <div className="mt-10">
-      <h3 className="text-[2rem] font-semibold tracking-tight print:text-black">
+      <h3 className="text-lg font-semibold tracking-tight print:text-black font-sans">
         {title}
       </h3>
       <div className="mt-3 border-t border-border/70 pt-5">
@@ -156,7 +164,8 @@ export function ProjectReportView({
             <Button
               asChild
               variant="outline"
-              className="rounded-xl bg-background/90"
+              size="sm"
+              className="bg-background/90"
             >
               <Link href="/projects">К списку проектов</Link>
             </Button>
@@ -167,9 +176,9 @@ export function ProjectReportView({
         </div>
       </div>
 
-      <section className="mx-auto w-full max-w-[960px] rounded-[32px] border border-border/70 bg-card px-5 py-5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.45)] print:max-w-none print:rounded-none print:border-0 print:bg-white print:px-10 print:py-8 print:shadow-none">
+      <section className="mx-auto w-full max-w-[960px] rounded-lg border border-border/70 bg-card px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.05)] dark:shadow-none print:max-w-none print:rounded-none print:border-0 print:bg-white print:px-10 print:py-8 print:shadow-none font-sans">
         <header className="border-b border-border/70 pb-5">
-          <h2 className="text-[2rem] font-semibold tracking-tight print:text-black">
+          <h2 className="text-2xl font-semibold tracking-tight print:text-black font-sans">
             Отчет по проектам
           </h2>
           <ul className="mt-4 space-y-2 text-base leading-8 text-foreground/95 print:text-black">
@@ -202,43 +211,43 @@ export function ProjectReportView({
         </header>
 
         <div className="mt-10">
-          <h3 className="text-[2rem] font-semibold tracking-tight print:text-black">
+          <h3 className="text-lg font-semibold tracking-tight print:text-black font-sans">
             По ученикам
           </h3>
-          <div className="mt-3 overflow-hidden rounded-[24px] border border-border/80 bg-background/30 print:rounded-none print:border print:bg-white">
-            <table className="w-max border-collapse text-left text-base">
-              <thead className="bg-foreground/[0.06] text-foreground print:bg-black/5 print:text-black">
-                <tr>
-                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
+          <div className="mt-3 overflow-hidden rounded-lg border border-border/70 bg-card print:rounded-none print:border print:bg-white">
+            <Table className="w-full border-collapse font-sans">
+              <TableHeader className="bg-muted/10 print:bg-black/5">
+                <TableRow>
+                  <TableHead className="px-4 py-3 font-semibold font-sans">
                     Фамилия Имя
-                  </th>
-                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 font-semibold font-sans">
                     Проект
-                  </th>
-                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 font-semibold font-sans">
                     Завершено
-                  </th>
-                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 font-semibold font-sans">
                     Прогресс
-                  </th>
-                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 font-semibold font-sans">
                     Динамика
-                  </th>
-                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 font-semibold font-sans">
                     Последнее обновление
-                  </th>
-                  <th className="border-b border-border/70 px-3 py-3 font-semibold">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 font-semibold font-sans">
                     Статус недели
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {report.rows.map((row) => (
-                  <tr key={row.studentId}>
-                    <td className="border-b border-border/60 px-3 py-3 font-medium print:text-black">
+                  <TableRow key={row.studentId}>
+                    <TableCell className="px-4 py-3.5 font-medium print:text-black">
                       {row.studentName}
-                    </td>
-                    <td className="border-b border-border/60 px-3 py-3 print:text-black">
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 print:text-black">
                       {row.projectName
                         ? renderProjectLink({
                             name: row.projectName,
@@ -247,37 +256,37 @@ export function ProjectReportView({
                               "underline decoration-border underline-offset-4 print:text-black",
                           })
                         : "Нет данных"}
-                    </td>
-                    <td className="border-b border-border/60 px-3 py-3 print:text-black">
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 print:text-black">
                       {row.completedProjectsCount}
-                    </td>
-                    <td className="border-b border-border/60 px-3 py-3 print:text-black">
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 print:text-black">
                       {row.hasProject
                         ? renderProgress(row.progress)
                         : "Нет данных"}
-                    </td>
-                    <td className="border-b border-border/60 px-3 py-3 print:text-black">
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 print:text-black">
                       {row.hasProject
                         ? renderDelta(row.progressDelta)
                         : "Нет данных"}
-                    </td>
-                    <td className="border-b border-border/60 px-3 py-3 print:text-black">
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 print:text-black">
                       {row.updateLabel}
-                    </td>
-                    <td className="border-b border-border/60 px-3 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5">
                       <span className="inline-flex items-center gap-3">
                         <span
-                          className={`inline-flex size-4 shrink-0 self-center rounded-full aspect-square ${getStateDotClassName(row.weeklyStatus)}`}
+                          className={`inline-flex size-4 rounded-full shrink-0 self-center ${getStateDotClassName(row.weeklyStatus)}`}
                         />
                         <span className="print:text-black">
                           {renderWeeklyStatusLabel(row)}
                         </span>
                       </span>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
 
@@ -298,7 +307,7 @@ export function ProjectReportView({
         />
 
         <div className="mt-10">
-          <h3 className="text-[2rem] font-semibold tracking-tight print:text-black">
+          <h3 className="text-lg font-semibold tracking-tight print:text-black font-sans">
             Отсутствуют данные о проекте
           </h3>
           <div className="mt-3 border-t border-border/70 pt-5">

@@ -34,7 +34,8 @@ export default async function ProjectLogsPage({
         <Button
           asChild
           variant="outline"
-          className="rounded-xl bg-background/90"
+          size="sm"
+          className="bg-background/90"
         >
           <Link href={`/projects/${projectId}`}>Назад к проекту</Link>
         </Button>
@@ -51,7 +52,7 @@ export default async function ProjectLogsPage({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                  <div className="rounded-lg border border-border/70 bg-background/60 p-4">
                     <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Количество файлов
                     </div>
@@ -60,7 +61,7 @@ export default async function ProjectLogsPage({
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                  <div className="rounded-lg border border-border/70 bg-background/60 p-4">
                     <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Общий размер
                     </div>
@@ -69,7 +70,7 @@ export default async function ProjectLogsPage({
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                  <div className="rounded-lg border border-border/70 bg-background/60 p-4">
                     <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Дата загрузки
                     </div>
@@ -84,7 +85,7 @@ export default async function ProjectLogsPage({
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                  <div className="rounded-lg border border-border/70 bg-background/60 p-4">
                     <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Срок действия
                     </div>
@@ -100,7 +101,7 @@ export default async function ProjectLogsPage({
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] p-4">
+                <div className="rounded-lg border border-[hsl(var(--status-calm)/0.3)] bg-[hsl(var(--status-calm)/0.08)] p-4">
                   <div className="text-sm font-medium">ℹ️ О логах</div>
                   <div className="mt-2 space-y-2 text-sm text-muted-foreground">
                     <p>
@@ -125,18 +126,18 @@ export default async function ProjectLogsPage({
                 <CardTitle className="text-base">Что дальше?</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                <div className="rounded-lg border border-border/70 bg-background/60 p-4">
                   <div className="font-medium">
                     1. AI-анализ запущен автоматически
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    После загрузки логов система автоматически запустила
+                    После загрузки логов system автоматически запустила
                     AI-анализ проекта. Результаты появятся на странице проекта
                     через несколько минут.
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                <div className="rounded-lg border border-border/70 bg-background/60 p-4">
                   <div className="font-medium">2. Просмотр результатов</div>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Вернитесь на страницу проекта, чтобы увидеть блок "🤖 AI
@@ -146,7 +147,8 @@ export default async function ProjectLogsPage({
                     <Button
                       asChild
                       variant="outline"
-                      className="rounded-xl bg-background/90"
+                      size="sm"
+                      className="bg-background/90"
                     >
                       <Link href={`/projects/${projectId}`}>
                         Перейти к проекту
@@ -155,7 +157,7 @@ export default async function ProjectLogsPage({
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                <div className="rounded-lg border border-border/70 bg-background/60 p-4">
                   <div className="font-medium">3. Повторная загрузка</div>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Логи действительны 1 час. Если ученик загрузит новые логи,
@@ -181,7 +183,8 @@ export default async function ProjectLogsPage({
                 <Button
                   asChild
                   variant="outline"
-                  className="rounded-xl bg-background/90"
+                  size="sm"
+                  className="bg-background/90"
                 >
                   <Link href={`/projects/${projectId}`}>
                     Вернуться к проекту

@@ -101,7 +101,7 @@ function SignalCard({
 }) {
   const c = signalToneConfig[tone];
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-2xl p-4 transition-all duration-200 border border-white/5 bg-background/40">
+    <div className="relative flex flex-col overflow-hidden rounded-lg p-4 transition-all duration-200 border border-white/5 bg-background/40">
       {/* Top accent line */}
       <div
         aria-hidden="true"
@@ -280,7 +280,7 @@ export default async function ProjectDetailsPage({
             asChild
             variant="outline"
             size="sm"
-            className="rounded-xl bg-background/90"
+            className="bg-background/90"
           >
             <Link href="/projects">К списку</Link>
           </Button>
@@ -299,7 +299,7 @@ export default async function ProjectDetailsPage({
               name="status"
               value={isProjectCurrent(project.status) ? "completed" : "active"}
             />
-            <Button variant="outline" size="sm" className="rounded-xl bg-background/90">
+            <Button variant="outline" size="sm" className="bg-background/90">
               {isProjectCurrent(project.status)
                 ? "Отметить завершенным"
                 : "Вернуть в работу"}
@@ -309,38 +309,38 @@ export default async function ProjectDetailsPage({
       }
     >
       {error ? (
-        <div className="mb-6 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
         </div>
       ) : null}
       {success === "analysis-complete" ? (
-        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+        <div className="mb-6 rounded-lg border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
           AI-анализ{providerSuffix} завершен, данные проекта обновлены.
         </div>
       ) : null}
       {success === "member-added" ? (
-        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+        <div className="mb-6 rounded-lg border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
           Участник добавлен в проект.
         </div>
       ) : null}
       {success === "member-removed" ? (
-        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+        <div className="mb-6 rounded-lg border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
           Участник удален из проекта.
         </div>
       ) : null}
       {success === "sync-complete" ? (
-        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+        <div className="mb-6 rounded-lg border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
           GitHub sync выполнен, AI-анализ{providerSuffix} обновлен
           автоматически.
         </div>
       ) : null}
       {success === "sync-complete-with-warning" ? (
-        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
+        <div className="mb-6 rounded-lg border border-[hsl(var(--status-success)/0.3)] bg-[hsl(var(--status-success)/0.08)] px-4 py-3 text-sm text-foreground">
           GitHub sync выполнен.
         </div>
       ) : null}
       {notice ? (
-        <div className="mb-6 rounded-2xl border border-[hsl(var(--status-warning)/0.3)] bg-[hsl(var(--status-warning)/0.08)] px-4 py-3 text-sm text-foreground">
+        <div className="mb-6 rounded-lg border border-[hsl(var(--status-warning)/0.3)] bg-[hsl(var(--status-warning)/0.08)] px-4 py-3 text-sm text-foreground">
           {notice}
         </div>
       ) : null}
@@ -439,7 +439,7 @@ export default async function ProjectDetailsPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
-              <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+              <div className="rounded-lg border border-border/70 bg-background/70 p-3">
                 <div className="mb-1 text-sm font-medium text-foreground">
                   docs/README.md
                 </div>
@@ -447,7 +447,7 @@ export default async function ProjectDetailsPage({
                   <MarkdownContent content={docsReadmePreview} />
                 </div>
               </div>
-              <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+              <div className="rounded-lg border border-border/70 bg-background/70 p-3">
                 <div className="mb-1 text-sm font-medium text-foreground">
                   Product context
                 </div>
@@ -466,7 +466,7 @@ export default async function ProjectDetailsPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
-              <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+              <div className="rounded-lg border border-border/70 bg-background/70 p-3">
                 <div className="mb-1 text-sm font-medium text-foreground">
                   Progress
                 </div>
@@ -474,7 +474,7 @@ export default async function ProjectDetailsPage({
                   <MarkdownContent content={progressContextPreview} />
                 </div>
               </div>
-              <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+              <div className="rounded-lg border border-border/70 bg-background/70 p-3">
                 <div className="mb-1 text-sm font-medium text-foreground">
                   Active context
                 </div>
@@ -482,7 +482,7 @@ export default async function ProjectDetailsPage({
                   <MarkdownContent content={activeContextPreview} />
                 </div>
               </div>
-              <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+              <div className="rounded-lg border border-border/70 bg-background/70 p-3">
                 <div className="mb-1 text-sm font-medium text-foreground">
                   Следующие шаги
                 </div>
@@ -508,7 +508,7 @@ export default async function ProjectDetailsPage({
               <CardTitle className="text-base">Участники проекта</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="rounded-xl border border-border/70 bg-background/70 p-3 text-muted-foreground">
+              <div className="rounded-lg border border-border/70 bg-background/70 p-3 text-muted-foreground">
                 Репозиторий закреплен за{" "}
                 <span className="font-medium text-foreground">
                   {project.ownerStudentName}
@@ -519,7 +519,7 @@ export default async function ProjectDetailsPage({
                 {members.map((member) => (
                   <div
                     key={member.id}
-                    className="flex flex-col gap-2 rounded-xl border border-border/70 bg-background/70 p-3 md:flex-row md:items-center md:justify-between"
+                    className="flex flex-col gap-2 rounded-lg border border-border/70 bg-background/70 p-3 md:flex-row md:items-center md:justify-between"
                   >
                     <div>
                       <div className="text-sm font-medium text-foreground">
@@ -549,7 +549,7 @@ export default async function ProjectDetailsPage({
                             role="switch"
                             aria-checked={project.isGroupProject}
                             aria-label="Переключить режим группового проекта"
-                            className="inline-flex items-center gap-3 rounded-2xl px-3 py-2 text-left transition-all duration-200 hover:bg-white/5"
+                            className="inline-flex items-center gap-3 rounded-md px-3 py-2 text-left transition-all duration-200 hover:bg-white/5"
                             style={{
                               background: project.isGroupProject
                                 ? "rgba(6,182,212,0.08)"
@@ -558,7 +558,7 @@ export default async function ProjectDetailsPage({
                                 ? "1px solid rgba(6,182,212,0.3)"
                                 : "1px solid rgba(255,255,255,0.08)",
                               boxShadow: project.isGroupProject
-                                ? "0 0 12px rgba(6,182,212,0.18)"
+                                ? "0 0 0 1px rgba(6,182,212,0.3)"
                                 : "none",
                             }}
                           >
@@ -628,7 +628,7 @@ export default async function ProjectDetailsPage({
                           type="submit"
                           variant="outline"
                           size="xs"
-                          className="rounded-xl bg-background/90"
+                          className="bg-background/90"
                         >
                           Удалить из проекта
                         </Button>
@@ -638,7 +638,7 @@ export default async function ProjectDetailsPage({
                 ))}
               </div>
               {project.isGroupProject && availableStudents.length > 0 ? (
-                <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+                <div className="rounded-lg border border-border/70 bg-background/70 p-3">
                   <div className="mb-2 text-sm font-medium text-foreground">
                     Добавить участника
                   </div>
@@ -647,7 +647,7 @@ export default async function ProjectDetailsPage({
                       <form
                         key={student.id}
                         action={addProjectMemberAction}
-                        className="flex items-center justify-between gap-2 rounded-xl border border-border/70 bg-card/70 px-3 py-2 transition-colors hover:bg-accent/40"
+                        className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-card/70 px-3 py-2 transition-colors hover:bg-accent/40"
                       >
                         <input
                           type="hidden"
@@ -673,7 +673,7 @@ export default async function ProjectDetailsPage({
                           type="submit"
                           variant="outline"
                           size="xs"
-                          className="shrink-0 rounded-xl bg-background/90"
+                          className="shrink-0 bg-background/90"
                         >
                           Добавить
                         </Button>
@@ -699,7 +699,7 @@ export default async function ProjectDetailsPage({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center justify-between rounded-xl bg-background/50 p-3 border border-border/40">
+                <div className="flex items-center justify-between rounded-lg bg-background/50 p-3 border border-border/40">
                   <span className="text-muted-foreground">
                     Индекс гигиены ИИ:
                   </span>
@@ -708,7 +708,7 @@ export default async function ProjectDetailsPage({
                   </span>
                 </div>
                 {latestReport.opencodeCoachReport && (
-                  <div className="app-scrollbar max-h-96 overflow-y-auto pr-2 rounded-xl border border-border/70 bg-background/70 p-3">
+                  <div className="app-scrollbar max-h-96 overflow-y-auto pr-2 rounded-lg border border-border/70 bg-background/70 p-3">
                     <MarkdownContent
                       content={latestReport.opencodeCoachReport}
                     />
@@ -733,7 +733,7 @@ export default async function ProjectDetailsPage({
               <div className="app-scrollbar max-h-64 overflow-y-auto pr-2">
                 <MarkdownContent content={aiSummaryText} />
               </div>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 rounded-xl border border-border/70 bg-background/70 p-3 text-sm text-muted-foreground">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg border border-border/70 bg-background/70 p-3 text-sm text-muted-foreground">
                 <div className="col-span-2 text-sm font-medium text-foreground">
                   Signals
                 </div>
@@ -827,7 +827,7 @@ export default async function ProjectDetailsPage({
                   {reports.map((report) => (
                     <div
                       key={report.id}
-                      className="rounded-xl border border-border/70 bg-background/70 p-3"
+                      className="rounded-lg border border-border/70 bg-background/70 p-3"
                     >
                       <div className="font-medium">
                         {report.completionPercent}% •{" "}
@@ -845,7 +845,7 @@ export default async function ProjectDetailsPage({
                   ))}
                 </div>
               ) : (
-                <div className="rounded-xl border border-border/70 bg-background/70 p-3 text-muted-foreground">
+                <div className="rounded-lg border border-border/70 bg-background/70 p-3 text-muted-foreground">
                   История AI-отчетов пока пуста.
                 </div>
               )}
@@ -854,7 +854,7 @@ export default async function ProjectDetailsPage({
                 <Button
                   variant="outline"
                   size="xs"
-                  className="rounded-lg bg-background/90 text-destructive border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
+                  className="bg-background/90 text-destructive border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
                 >
                   Удалить проект
                 </Button>
