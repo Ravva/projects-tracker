@@ -74,42 +74,42 @@ function getWeeklyAttendanceStats(
   };
 }
 
-/* ─── tone config ──────────────────────────────────────── */
+/* ─── tone config (tailwind-only) ─────────────────────── */
 
-const toneConfig = {
-  critical: {
-    bg: "rgba(239,68,68,0.08)",
-    border: "rgba(239,68,68,0.2)",
-    glow: "rgba(239,68,68,0.15)",
-    icon: "rgba(239,68,68,0.15)",
-    text: "hsl(var(--status-critical))",
-  },
-  warning: {
-    bg: "rgba(245,158,11,0.08)",
-    border: "rgba(245,158,11,0.2)",
-    glow: "rgba(245,158,11,0.15)",
-    icon: "rgba(245,158,11,0.15)",
-    text: "hsl(var(--status-warning))",
-  },
-  success: {
-    bg: "rgba(34,197,94,0.08)",
-    border: "rgba(34,197,94,0.2)",
-    glow: "rgba(34,197,94,0.15)",
-    icon: "rgba(34,197,94,0.15)",
-    text: "hsl(var(--status-success))",
-  },
-  calm: {
-    bg: "rgba(6,182,212,0.08)",
-    border: "rgba(6,182,212,0.2)",
-    glow: "rgba(6,182,212,0.15)",
-    icon: "rgba(6,182,212,0.15)",
-    text: "hsl(var(--status-calm))",
-  },
-} as const;
+type Tone = "critical" | "warning" | "success" | "calm";
 
-type Tone = keyof typeof toneConfig;
+const toneBorderClasses: Record<Tone, string> = {
+  critical: "border-status-critical/20 hover:border-status-critical/40",
+  warning: "border-status-warning/20 hover:border-status-warning/40",
+  success: "border-status-success/20 hover:border-status-success/40",
+  calm: "border-status-calm/20 hover:border-status-calm/40",
+};
 
-/* ─── KpiCard — compact, info-dense variant ───────────────────── */
+const toneAccentLine: Record<Tone, string> = {
+  critical:
+    "bg-gradient-to-r from-transparent via-status-critical/50 to-transparent",
+  warning:
+    "bg-gradient-to-r from-transparent via-status-warning/50 to-transparent",
+  success:
+    "bg-gradient-to-r from-transparent via-status-success/50 to-transparent",
+  calm: "bg-gradient-to-r from-transparent via-status-calm/50 to-transparent",
+};
+
+const toneIconBg: Record<Tone, string> = {
+  critical: "bg-status-critical/10 border-status-critical/20",
+  warning: "bg-status-warning/10 border-status-warning/20",
+  success: "bg-status-success/10 border-status-success/20",
+  calm: "bg-status-calm/10 border-status-calm/20",
+};
+
+const toneText: Record<Tone, string> = {
+  critical: "text-status-critical",
+  warning: "text-status-warning",
+  success: "text-status-success",
+  calm: "text-status-calm",
+};
+
+/* ─── KpiCard — clean flat variant ────────────────────── */
 
 function KpiCard({
   icon,
@@ -130,55 +130,36 @@ function KpiCard({
   href?: string;
   progress?: number;
 }) {
-  const c = toneConfig[tone];
-
   const content = (
     <div
-      className="group relative flex flex-col gap-3 rounded-2xl px-5 py-5 card-hover-glow"
-      style={
-        {
-          background: c.bg,
-          border: `1px solid ${c.border}`,
-          backdropFilter: "blur(12px)",
-          "--ambient-glow-color": c.glow,
-          "--direct-glow-color": c.glow,
-        } as React.CSSProperties
-      }
+      className={`group relative flex flex-col gap-3 rounded-lg border bg-card/80 px-5 py-5 transition-all duration-200 ${toneBorderClasses[tone]}`}
     >
-      {/* top accent line */}
       <div
         aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-px rounded-t-2xl opacity-50 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${c.border} 50%, transparent)`,
-        }}
+        className={`absolute inset-x-0 top-0 h-px rounded-t-lg opacity-70 transition-opacity duration-300 group-hover:opacity-100 ${toneAccentLine[tone]}`}
       />
 
-      {/* header row */}
       <div className="flex items-start justify-between gap-3">
         <div
-          className="flex size-10 shrink-0 items-center justify-center rounded-xl"
-          style={{ background: c.icon, border: `1px solid ${c.border}` }}
+          className={`flex size-10 shrink-0 items-center justify-center rounded-lg border ${toneIconBg[tone]}`}
         >
           <HugeiconsIcon
             icon={icon}
             size={18}
             strokeWidth={1.8}
-            style={{ color: c.text }}
+            className={toneText[tone]}
           />
         </div>
         {title && (
-          <div className="text-[10px] font-title font-semibold uppercase tracking-[0.14em] text-muted-foreground/90">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/90">
             {title}
           </div>
         )}
       </div>
 
-      {/* value */}
       <div>
         <div
-          className="font-title text-2xl font-bold leading-none tracking-tight sm:text-3xl"
-          style={{ color: c.text }}
+          className={`text-2xl font-bold leading-none tracking-tight sm:text-3xl ${toneText[tone]}`}
         >
           {value}
         </div>
@@ -192,7 +173,6 @@ function KpiCard({
         )}
       </div>
 
-      {/* optional progress bar */}
       {typeof progress === "number" && (
         <Progress value={progress} className="h-1" />
       )}
@@ -209,13 +189,7 @@ function KpiCard({
   return content;
 }
 
-/* ─── glass card shell ─────────────────────────────────── */
-
-const glassStyle = {
-  background: "rgba(26,31,43,0.72)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  backdropFilter: "blur(12px)",
-} as const;
+/* ─── SectionHeader ───────────────────────────────────── */
 
 function SectionHeader({
   icon,
@@ -227,7 +201,7 @@ function SectionHeader({
   pill?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-white/6 px-5 py-3">
+    <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-3">
       <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
         <HugeiconsIcon icon={icon} size={13} strokeWidth={2} />
         {label}
@@ -237,7 +211,7 @@ function SectionHeader({
   );
 }
 
-/* ─── LessonCard ────────────────────────────────────────── */
+/* ─── LessonCard ──────────────────────────────────────── */
 
 function LessonCard({
   lesson,
@@ -247,7 +221,7 @@ function LessonCard({
   lessonsCount: number;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl" style={glassStyle}>
+    <Card className="border-border/80 bg-card/80">
       <SectionHeader
         icon={Calendar03Icon}
         label="Ближайшее занятие"
@@ -257,7 +231,7 @@ function LessonCard({
           ) : undefined
         }
       />
-      <div className="px-5 py-4">
+      <CardContent className="py-4">
         {lesson ? (
           <>
             <div className="text-base font-semibold leading-snug text-foreground">
@@ -274,18 +248,58 @@ function LessonCard({
         )}
         <Link
           href="/attendance"
-          className="mt-3 inline-flex items-center gap-1 text-xs font-medium transition-colors"
-          style={{ color: "hsl(var(--status-calm))" }}
+          className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-status-calm transition-colors hover:brightness-110"
         >
           Открыть табель
           <HugeiconsIcon icon={ArrowRight02Icon} size={12} strokeWidth={2} />
         </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ─── empty state (shared) ────────────────────────────── */
+
+function EmptyState({
+  icon,
+  title,
+  description,
+  linkHref,
+  linkLabel,
+}: {
+  icon: typeof CheckmarkCircle02Icon;
+  title: string;
+  description: string;
+  linkHref?: string;
+  linkLabel?: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 px-5 py-12 text-center">
+      <div className="flex size-12 items-center justify-center rounded-lg bg-status-success/10 border border-status-success/20">
+        <HugeiconsIcon
+          icon={icon}
+          size={22}
+          strokeWidth={1.6}
+          className="text-status-success"
+        />
       </div>
+      <div>
+        <div className="text-sm font-medium text-foreground">{title}</div>
+        <div className="mt-1 text-xs text-muted-foreground">{description}</div>
+      </div>
+      {linkHref && linkLabel && (
+        <Link
+          href={linkHref}
+          className="text-xs font-medium text-status-calm transition-colors hover:brightness-110"
+        >
+          {linkLabel}
+        </Link>
+      )}
     </div>
   );
 }
 
-/* ─── main component ────────────────────────────────────── */
+/* ─── main component ──────────────────────────────────── */
 
 export async function TeacherDashboard({
   teacher,
@@ -319,7 +333,6 @@ export async function TeacherDashboard({
       teacherEmail={teacher.email}
       actions={<SendWeeklyDigestButton />}
     >
-      {/* ── Row 1: KPI tiles ────────────────────────────── */}
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           icon={Alert01Icon}
@@ -368,7 +381,7 @@ export async function TeacherDashboard({
                 : "critical"
           }
           value={`${averageRate}%`}
-          label={`средняя за неделю`}
+          label="средняя за неделю"
           sublabel={`${requiredMin} ${requiredMin === 1 ? "урок" : requiredMin <= 4 ? "урока" : "уроков"} в расчёте`}
           progress={averageRate}
           href="/attendance"
@@ -389,139 +402,109 @@ export async function TeacherDashboard({
         />
       </section>
 
-      {/* ── Row 2: Main content ──────────────────────────── */}
       <section className="mt-4 grid gap-4 xl:grid-cols-2">
         <div className="flex flex-col gap-4">
-          {/* Left: риски по проектам */}
-          <Card className="overflow-hidden" style={glassStyle}>
-            <CardContent className="p-0">
-              <SectionHeader
-                icon={Github01Icon}
-                label="Проекты в зоне риска"
-                pill={
-                  riskyProjects.length > 0 ? (
-                    <StatusPill
-                      tone="warning"
-                      label={`${riskyProjects.length} проект${riskyProjects.length > 1 ? "а" : ""}`}
-                    />
-                  ) : (
-                    <StatusPill tone="success" label="всё ок" />
-                  )
-                }
-              />
+          <Card className="border-border/80 bg-card/80">
+            <SectionHeader
+              icon={Github01Icon}
+              label="Проекты в зоне риска"
+              pill={
+                riskyProjects.length > 0 ? (
+                  <StatusPill
+                    tone="warning"
+                    label={`${riskyProjects.length} проект${riskyProjects.length > 1 ? "а" : ""}`}
+                  />
+                ) : (
+                  <StatusPill tone="success" label="всё ок" />
+                )
+              }
+            />
 
-              {riskyProjects.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-3 px-5 py-12 text-center">
-                  <div
-                    className="flex size-12 items-center justify-center rounded-2xl"
-                    style={{
-                      background: "rgba(34,197,94,0.1)",
-                      border: "1px solid rgba(34,197,94,0.2)",
-                    }}
-                  >
-                    <HugeiconsIcon
-                      icon={CheckmarkCircle02Icon}
-                      size={22}
-                      strokeWidth={1.6}
-                      style={{ color: "hsl(var(--status-success))" }}
-                    />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-foreground">
-                      Нет проектов в зоне риска
-                    </div>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      Все активные проекты идут в штатном режиме
-                    </div>
-                  </div>
+            {riskyProjects.length === 0 ? (
+              <EmptyState
+                icon={CheckmarkCircle02Icon}
+                title="Нет проектов в зоне риска"
+                description="Все активные проекты идут в штатном режиме"
+                linkHref="/projects"
+                linkLabel="Все проекты →"
+              />
+            ) : (
+              <div className="flex flex-col">
+                <div className="max-h-[290px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-border/40 scrollbar-track-transparent">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b border-border/50 hover:bg-transparent">
+                        <TableHead className="px-5 font-semibold text-xs tracking-wider uppercase text-muted-foreground">
+                          Ученик
+                        </TableHead>
+                        <TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground">
+                          Проект
+                        </TableHead>
+                        <TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground">
+                          Риск
+                        </TableHead>
+                        <TableHead className="text-right font-semibold text-xs tracking-wider uppercase text-muted-foreground">
+                          Прогресс
+                        </TableHead>
+                        <TableHead className="w-8" />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {riskyProjects.map((project) => (
+                        <TableRow
+                          key={project.id}
+                          className="cursor-pointer border-b border-border/50 hover:bg-accent/30"
+                        >
+                          <TableCell className="px-5 font-medium">
+                            {project.studentName}
+                          </TableCell>
+                          <TableCell className="max-w-[180px] truncate text-xs text-muted-foreground">
+                            {project.name}
+                          </TableCell>
+                          <TableCell>
+                            <StatusPill
+                              tone={getProjectRiskTone(project)}
+                              label={getProjectRiskLabel(project.risk)}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {getProjectProgressLabel(project)}
+                          </TableCell>
+                          <TableCell>
+                            <Link
+                              href={`/projects/${project.id}`}
+                              className="flex items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                            >
+                              <HugeiconsIcon
+                                icon={ArrowRight02Icon}
+                                size={14}
+                                strokeWidth={2}
+                              />
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="flex items-center justify-end border-t border-border/50 bg-accent/20 px-5 py-3">
                   <Link
                     href="/projects"
-                    className="text-xs font-medium transition-colors"
-                    style={{ color: "hsl(var(--status-calm))" }}
+                    className="inline-flex items-center gap-1 text-xs font-semibold tracking-wide text-status-calm transition-colors hover:brightness-110"
                   >
-                    Все проекты →
+                    Все проекты
+                    <HugeiconsIcon
+                      icon={ArrowRight02Icon}
+                      size={12}
+                      strokeWidth={2}
+                    />
                   </Link>
                 </div>
-              ) : (
-                <div className="flex flex-col">
-                  <div className="max-h-[290px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-b border-white/5 hover:bg-transparent">
-                          <TableHead className="px-5 font-semibold text-xs tracking-wider uppercase text-muted-foreground">
-                            Ученик
-                          </TableHead>
-                          <TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground">
-                            Проект
-                          </TableHead>
-                          <TableHead className="font-semibold text-xs tracking-wider uppercase text-muted-foreground">
-                            Риск
-                          </TableHead>
-                          <TableHead className="text-right font-semibold text-xs tracking-wider uppercase text-muted-foreground">
-                            Прогресс
-                          </TableHead>
-                          <TableHead className="w-8" />
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {riskyProjects.map((project) => (
-                          <TableRow
-                            key={project.id}
-                            className="cursor-pointer border-b border-white/5 hover:bg-white/[0.02]"
-                          >
-                            <TableCell className="px-5 font-medium">
-                              {project.studentName}
-                            </TableCell>
-                            <TableCell className="max-w-[180px] truncate text-xs text-muted-foreground">
-                              {project.name}
-                            </TableCell>
-                            <TableCell>
-                              <StatusPill
-                                tone={getProjectRiskTone(project)}
-                                label={getProjectRiskLabel(project.risk)}
-                              />
-                            </TableCell>
-                            <TableCell className="text-right font-medium">
-                              {getProjectProgressLabel(project)}
-                            </TableCell>
-                            <TableCell>
-                              <Link
-                                href={`/projects/${project.id}`}
-                                className="flex items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-                              >
-                                <HugeiconsIcon
-                                  icon={ArrowRight02Icon}
-                                  size={14}
-                                  strokeWidth={2}
-                                />
-                              </Link>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  <div className="flex items-center justify-end px-5 py-3 border-t border-white/5 bg-white/[0.01]">
-                    <Link
-                      href="/projects"
-                      className="inline-flex items-center gap-1 text-xs font-semibold tracking-wide transition-colors hover:opacity-80"
-                      style={{ color: "hsl(var(--status-calm))" }}
-                    >
-                      Все проекты
-                      <HugeiconsIcon
-                        icon={ArrowRight02Icon}
-                        size={12}
-                        strokeWidth={2}
-                      />
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </CardContent>
+              </div>
+            )}
           </Card>
 
-          {/* Требуют внимания */}
-          <div className="overflow-hidden rounded-2xl" style={glassStyle}>
+          <Card className="border-border/80 bg-card/80">
             <SectionHeader
               icon={Alert01Icon}
               label="Требуют внимания"
@@ -538,25 +521,21 @@ export async function TeacherDashboard({
             />
 
             {studentsNeedingAttention.length === 0 ? (
-              <div className="px-5 py-4 text-xs text-muted-foreground">
-                Все ученики в норме на этой неделе.
-              </div>
+              <CardContent className="py-4">
+                <div className="text-xs text-muted-foreground">
+                  Все ученики в норме на этой неделе.
+                </div>
+              </CardContent>
             ) : (
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-border/50">
                 {studentsNeedingAttention.slice(0, 5).map((student) => (
                   <Link
                     key={student.id}
                     href={`/students/${student.id}`}
-                    className="flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-white/4"
+                    className="flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-accent/30"
                   >
                     <Avatar className="size-7 shrink-0">
-                      <AvatarFallback
-                        className="text-xs font-semibold"
-                        style={{
-                          background: "rgba(239,68,68,0.12)",
-                          color: "hsl(var(--status-critical))",
-                        }}
-                      >
+                      <AvatarFallback className="text-xs font-semibold bg-status-critical/10 text-status-critical">
                         {student.firstName[0]}
                         {student.lastName[0]}
                       </AvatarFallback>
@@ -579,19 +558,17 @@ export async function TeacherDashboard({
                 )}
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
         <div className="flex flex-col gap-4">
-          {/* Ближайший урок */}
           <LessonCard
             lesson={nearestLesson}
             lessonsCount={attendanceLessons.length}
           />
 
-          {/* AI-инсайты — только если есть данные */}
           {projectsWithAiReports.length > 0 && (
-            <div className="overflow-hidden rounded-2xl" style={glassStyle}>
+            <Card className="border-border/80 bg-card/80">
               <SectionHeader
                 icon={AiBrain03Icon}
                 label="AI-инсайты"
@@ -599,12 +576,12 @@ export async function TeacherDashboard({
                   <StatusPill tone="calm" label={`${aiReportsCount} отчётов`} />
                 }
               />
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-border/50">
                 {projectsWithAiReports.slice(0, 3).map((project) => (
                   <Link
                     key={project.id}
                     href={`/projects/${project.id}`}
-                    className="block px-5 py-3 transition-colors hover:bg-white/4"
+                    className="block px-5 py-3 transition-colors hover:bg-accent/30"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate text-xs font-medium text-foreground">
@@ -624,50 +601,43 @@ export async function TeacherDashboard({
 
               {projectsWithAiReports.length > 3 && (
                 <>
-                  <Separator />
+                  <Separator className="bg-border/50" />
                   <div className="px-5 py-2.5">
                     <Link
                       href="/projects"
-                      className="text-xs font-medium transition-colors"
-                      style={{ color: "hsl(var(--status-calm))" }}
+                      className="text-xs font-medium text-status-calm transition-colors hover:brightness-110"
                     >
                       Все проекты →
                     </Link>
                   </div>
                 </>
               )}
-            </div>
+            </Card>
           )}
 
-          {/* AI-подсказка если ещё нет отчётов */}
           {projectsWithAiReports.length === 0 && currentProjects.length > 0 && (
-            <div
-              className="overflow-hidden rounded-2xl px-5 py-4"
-              style={{
-                background: "rgba(6,182,212,0.06)",
-                border: "1px solid rgba(6,182,212,0.15)",
-              }}
-            >
-              <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
-                <HugeiconsIcon
-                  icon={Notebook01Icon}
-                  size={13}
-                  strokeWidth={2}
-                />
-                AI-анализ
-              </div>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                По активным проектам ещё нет AI-отчётов. Откройте любой проект и
-                запустите анализ.
-              </p>
-              <Link
-                href="/projects"
-                className="mt-2 inline-flex text-xs font-medium transition-colors"
-                style={{ color: "hsl(var(--status-calm))" }}
-              >
-                Перейти к проектам →
-              </Link>
-            </div>
+            <Card className="border-status-calm/20 bg-status-calm/5">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                  <HugeiconsIcon
+                    icon={Notebook01Icon}
+                    size={13}
+                    strokeWidth={2}
+                  />
+                  AI-анализ
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  По активным проектам ещё нет AI-отчётов. Откройте любой проект
+                  и запустите анализ.
+                </p>
+                <Link
+                  href="/projects"
+                  className="mt-2 inline-flex text-xs font-medium text-status-calm transition-colors hover:brightness-110"
+                >
+                  Перейти к проектам →
+                </Link>
+              </CardContent>
+            </Card>
           )}
         </div>
       </section>
