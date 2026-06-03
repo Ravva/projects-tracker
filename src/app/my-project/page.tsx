@@ -493,6 +493,7 @@ export default async function MyProjectPage({
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                   strokeWidth="2.5"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -742,7 +743,7 @@ export default async function MyProjectPage({
                             Обновлён: {formatUpdatedAt(repository.updatedAt)} •
                             Ветка по умолчанию: {repository.defaultBranch}.
                           </div>
-                          <div className="rounded-[8px] border border-border bg-background-secondary px-3.5 py-2.5 text-xs leading-relaxed text-muted-foreground font-medium">
+                          <div className="rounded-md border border-border bg-background-secondary px-3.5 py-2.5 text-xs leading-relaxed text-muted-foreground font-medium">
                             {repositoryState.reason}
                           </div>
                         </div>
