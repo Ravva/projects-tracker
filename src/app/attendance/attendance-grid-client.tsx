@@ -435,6 +435,7 @@ export function AttendanceGridClient({
             <input type="hidden" name="weekStart" value={weekStart} />
             <Button
               variant="outline"
+              size="sm"
               className="rounded-xl bg-background/90"
               disabled={isPending}
             >
@@ -444,6 +445,7 @@ export function AttendanceGridClient({
           <Button
             type="button"
             variant="outline"
+            size="sm"
             className="rounded-xl bg-background/90"
             disabled={!isDirty || isPending || !hasRows}
             onClick={handleSave}
@@ -453,6 +455,7 @@ export function AttendanceGridClient({
           <Button
             asChild
             variant="outline"
+            size="sm"
             className="rounded-xl bg-background/90"
           >
             <Link href={`/attendance?weekStart=${previousWeekStart}`}>
@@ -462,6 +465,7 @@ export function AttendanceGridClient({
           <Button
             asChild
             variant="outline"
+            size="sm"
             className="rounded-xl bg-background/90"
           >
             <Link href={`/attendance?weekStart=${nextWeekStart}`}>
@@ -487,7 +491,7 @@ export function AttendanceGridClient({
                   {lesson ? (
                     <button
                       type="button"
-                      className="inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-center text-sm transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex cursor-pointer items-center justify-center rounded-lg px-2 py-1 text-center text-xs font-semibold transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-60"
                       disabled={isPending || !hasRows}
                       onClick={() => handleColumnToggle(lesson.id)}
                       title="Массово переключить весь столбец"
@@ -529,7 +533,7 @@ export function AttendanceGridClient({
 
               return (
                 <TableRow key={row.student.id}>
-                  <TableCell className="max-w-[14rem] truncate py-1.5 pr-2 text-sm font-medium">
+                  <TableCell className="max-w-[14rem] truncate py-1.5 pr-2 text-xs font-semibold">
                     {row.student.lastName} {row.student.firstName}
                   </TableCell>
                   {WEEKDAY_COLUMNS.map((column) => {
