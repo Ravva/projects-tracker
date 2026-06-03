@@ -5,10 +5,12 @@ import { formatDateLabel } from "@/lib/server/date-utils";
 import type {
   AttendanceLessonRecord,
   ProjectAiReportRecord,
+  ProjectAiStatus,
   ProjectMemberRecord,
   ProjectMemberRole,
   ProjectRecord,
   ProjectRisk,
+  ProjectSyncStatus,
   StudentInput,
   StudentRecord,
   TelegramLinkStatus,
@@ -207,6 +209,11 @@ export function mapProjectDocument(
     lastCommitAt?: string;
     lastCommitSha?: string;
     lastSyncAt?: string;
+    syncStatus?: string;
+    syncStatusReason?: string;
+    aiStatus?: string;
+    remoteLastCommit?: string;
+    remoteLastCommitSha?: string;
   };
   const projectState = parseObject(
     getField(document, "project_state_json"),
@@ -300,11 +307,17 @@ export function mapProjectDocument(
     planMarkdown: String(getField(document, "plan_markdown") ?? ""),
     aiSummary: String(projectState.aiSummary ?? ""),
     nextSteps: parseStringList(projectState.nextSteps),
-    syncStatus: "unknown",
-    syncStatusReason: "",
-    aiStatus: lastAiAnalysisAtRaw ? "up_to_date" : "not_started",
-    remoteLastCommit: "",
-    remoteLastCommitSha: "",
+    syncStatus:
+      (githubState.syncStatus as ProjectSyncStatus) ||
+      (githubState.lastCommitSha ? "synced" : "unknown"),
+    syncStatusReason: githubState.syncStatusReason || "",
+    aiStatus:
+      (githubState.aiStatus as ProjectAiStatus) ||
+      (lastAiAnalysisAtRaw ? "up_to_date" : "not_started"),
+    remoteLastCommit:
+      githubState.remoteLastCommit || (githubState.lastCommitAt ?? ""),
+    remoteLastCommitSha:
+      githubState.remoteLastCommitSha || (githubState.lastCommitSha ?? ""),
   };
 }
 
