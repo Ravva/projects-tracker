@@ -444,9 +444,8 @@ export function AttendanceGridClient({
           </form>
           <Button
             type="button"
-            variant="outline"
+            variant="default"
             size="sm"
-            className="bg-background/90"
             disabled={!isDirty || isPending || !hasRows}
             onClick={handleSave}
           >
@@ -491,7 +490,7 @@ export function AttendanceGridClient({
                   {lesson ? (
                     <button
                       type="button"
-                      className="inline-flex cursor-pointer items-center justify-center rounded-md px-2 py-1 text-center text-xs font-semibold font-sans transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex cursor-pointer items-center justify-center rounded-md px-2 py-1 text-center text-xs font-medium font-sans uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:text-muted-foreground"
                       disabled={isPending || !hasRows}
                       onClick={() => handleColumnToggle(lesson.id)}
                       title="Массово переключить весь столбец"
@@ -562,7 +561,7 @@ export function AttendanceGridClient({
                               isPending || lessonClosedStates[lesson.id]
                             }
                             aria-label={STATE_LABELS[currentState]}
-                            className="inline-flex items-center justify-center rounded-full p-1.5 transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex size-7 items-center justify-center rounded-full transition-colors hover:bg-muted/40 dark:hover:bg-muted/20 disabled:cursor-not-allowed disabled:opacity-60"
                             title={STATE_LABELS[currentState]}
                             onClick={() =>
                               handleCellToggle(row.student.id, lesson.id)

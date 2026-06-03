@@ -3,6 +3,14 @@ import Link from "next/link";
 import { PrintReportButton } from "@/app/attendance/report/print-report-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { AttendanceReportData } from "@/lib/server/attendance-report";
 
 const WEEKDAY_SHORT_LABELS: Record<string, string> = {
@@ -138,62 +146,62 @@ export function AttendanceReportView({
           <h3 className="text-lg font-semibold tracking-tight print:text-black font-sans">
             По ученикам
           </h3>
-          <div className="mt-3 overflow-hidden rounded-lg border border-border/80 bg-background/30 print:rounded-none print:border print:bg-white">
-            <table className="w-full border-collapse text-left text-sm font-sans">
-              <thead className="bg-foreground/[0.06] text-foreground print:bg-black/5 print:text-black">
-                <tr>
-                  <th className="border-b border-border/70 px-4 py-4 font-semibold">
+          <div className="mt-3 overflow-hidden rounded-lg border border-border/70 bg-card print:rounded-none print:border print:bg-white">
+            <Table className="w-full border-collapse font-sans">
+              <TableHeader className="bg-muted/10 print:bg-black/5">
+                <TableRow>
+                  <TableHead className="px-4 py-3 font-semibold font-sans">
                     Ученик
-                  </th>
-                  <th className="border-b border-border/70 px-4 py-4 font-semibold">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 font-semibold font-sans text-center">
                     Вторник
-                  </th>
-                  <th className="border-b border-border/70 px-4 py-4 font-semibold">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 font-semibold font-sans text-center">
                     Четверг
-                  </th>
-                  <th className="border-b border-border/70 px-4 py-4 font-semibold">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 font-semibold font-sans text-center">
                     Пятница
-                  </th>
-                  <th className="border-b border-border/70 px-4 py-4 font-semibold">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 font-semibold font-sans text-center">
                     Статус недели
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {report.rows.map((row) => (
-                  <tr key={row.studentName}>
-                    <td className="border-b border-border/60 px-4 py-4 font-medium print:text-black">
+                  <TableRow key={row.studentName}>
+                    <TableCell className="px-4 py-3.5 font-medium print:text-black">
                       {row.studentName}
-                    </td>
-                    <td className="border-b border-border/60 px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 text-center">
                       <span
                         className={`inline-flex size-4 rounded-full ${getStateDotClassName(row.tuesdayState ?? "unmarked")}`}
                       />
-                    </td>
-                    <td className="border-b border-border/60 px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 text-center">
                       <span
                         className={`inline-flex size-4 rounded-full ${getStateDotClassName(row.thursdayState ?? "unmarked")}`}
                       />
-                    </td>
-                    <td className="border-b border-border/60 px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 text-center">
                       <span
                         className={`inline-flex size-4 rounded-full ${getStateDotClassName(row.fridayState ?? "unmarked")}`}
                       />
-                    </td>
-                    <td className="border-b border-border/60 px-4 py-4">
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 text-center">
                       <span className="inline-flex items-center gap-3">
                         <span
                           className={`inline-flex size-4 rounded-full ${getStateDotClassName(row.weeklyStatus)}`}
                         />
-                        <span className="print:text-black">
+                        <span className="print:text-black font-semibold">
                           {row.attendanceRate}%
                         </span>
                       </span>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
 
