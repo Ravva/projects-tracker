@@ -4,7 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export function AttendanceWeeklyReportCard({
   sharePath,
@@ -25,7 +31,14 @@ export function AttendanceWeeklyReportCard({
 
   return (
     <Card className="border-border/70 bg-card/88 shadow-none">
-      <CardHeader className="flex flex-wrap items-center justify-end gap-2">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-sm font-semibold">
+          Отчет для родителей
+        </CardTitle>
+        <CardDescription>
+          Сформируйте интерактивную веб-страницу или PDF с итогами посещаемости
+          за неделю.
+        </CardDescription>
         <CardAction>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <Button

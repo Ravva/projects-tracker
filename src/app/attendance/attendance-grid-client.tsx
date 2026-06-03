@@ -408,10 +408,13 @@ export function AttendanceGridClient({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Неделя: {weekRangeLabel}
+      <div className="flex flex-col gap-4 border-b border-border/60 bg-card/30 px-4 py-4.5 sm:px-6 md:flex-row md:items-center md:justify-between md:gap-3">
+        <div className="space-y-1.5">
+          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+            Журнал посещений
+            <span className="text-xs font-normal text-muted-foreground">
+              • Неделя: {weekRangeLabel}
+            </span>
           </p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
             {ATTENDANCE_LEGEND_ITEMS.map((item) => (
@@ -474,14 +477,16 @@ export function AttendanceGridClient({
         </div>
       </div>
       {error ? (
-        <div className="mt-4 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="mx-4 my-3 sm:mx-6 rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3 text-xs font-medium text-destructive">
           {error}
         </div>
       ) : null}
-      <Table className="mt-4 w-auto min-w-[34rem] font-sans">
+      <Table className="w-full border-collapse font-sans">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[14rem] max-w-[14rem]">Ученик</TableHead>
+            <TableHead className="w-[14rem] max-w-[14rem] pl-4 sm:pl-6">
+              Ученик
+            </TableHead>
             {WEEKDAY_COLUMNS.map((column) => {
               const lesson = lessonsByWeekday.get(column.code);
 
@@ -503,7 +508,9 @@ export function AttendanceGridClient({
                 </TableHead>
               );
             })}
-            <TableHead className="w-24 text-center">Статус</TableHead>
+            <TableHead className="w-24 text-center pr-4 sm:pr-6">
+              Статус
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -511,7 +518,7 @@ export function AttendanceGridClient({
             <TableRow>
               <TableCell
                 colSpan={5}
-                className="py-10 text-center text-muted-foreground"
+                className="py-10 text-center text-muted-foreground pl-4 pr-4 sm:pl-6 sm:pr-6"
               >
                 Appwrite не настроен или данные занятий пока недоступны.
               </TableCell>
@@ -532,7 +539,7 @@ export function AttendanceGridClient({
 
               return (
                 <TableRow key={row.student.id}>
-                  <TableCell className="max-w-[14rem] truncate py-1.5 pr-2 text-xs font-semibold">
+                  <TableCell className="max-w-[14rem] truncate py-2 pr-2 text-xs font-semibold pl-4 sm:pl-6">
                     {row.student.lastName} {row.student.firstName}
                   </TableCell>
                   {WEEKDAY_COLUMNS.map((column) => {
@@ -540,7 +547,7 @@ export function AttendanceGridClient({
 
                     if (!lesson) {
                       return (
-                        <TableCell key={column.code} className="px-0.5 py-1.5">
+                        <TableCell key={column.code} className="px-0.5 py-2">
                           <div className="text-center text-base text-muted-foreground">
                             -
                           </div>
@@ -553,7 +560,7 @@ export function AttendanceGridClient({
                       : (studentStates[lesson.id] ?? "unmarked");
 
                     return (
-                      <TableCell key={column.code} className="px-0.5 py-1.5">
+                      <TableCell key={column.code} className="px-0.5 py-2">
                         <div className="flex justify-center">
                           <button
                             type="button"
@@ -575,7 +582,7 @@ export function AttendanceGridClient({
                       </TableCell>
                     );
                   })}
-                  <TableCell className="px-0.5 py-1.5 text-center">
+                  <TableCell className="px-0.5 py-2 text-center pr-4 sm:pr-6">
                     <span
                       className="inline-flex items-center"
                       title={`Статус недели: ${attendanceRate}%`}

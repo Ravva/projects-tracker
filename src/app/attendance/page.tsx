@@ -33,7 +33,7 @@ export default async function AttendancePage({
     >
       <section className="min-w-0 w-full">
         <Card className="border-border/70 bg-card/88 shadow-none">
-          <CardContent>
+          <CardContent className="p-0">
             <AttendanceGridClient
               lessons={lessons}
               nextWeekStart={nextWeekStart}
