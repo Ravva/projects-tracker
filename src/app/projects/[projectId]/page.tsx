@@ -279,6 +279,7 @@ export default async function ProjectDetailsPage({
           <Button
             asChild
             variant="outline"
+            size="sm"
             className="rounded-xl bg-background/90"
           >
             <Link href="/projects">К списку</Link>
@@ -298,7 +299,7 @@ export default async function ProjectDetailsPage({
               name="status"
               value={isProjectCurrent(project.status) ? "completed" : "active"}
             />
-            <Button variant="outline" className="rounded-xl bg-background/90">
+            <Button variant="outline" size="sm" className="rounded-xl bg-background/90">
               {isProjectCurrent(project.status)
                 ? "Отметить завершенным"
                 : "Вернуть в работу"}
@@ -626,6 +627,7 @@ export default async function ProjectDetailsPage({
                         <Button
                           type="submit"
                           variant="outline"
+                          size="xs"
                           className="rounded-xl bg-background/90"
                         >
                           Удалить из проекта
@@ -670,6 +672,7 @@ export default async function ProjectDetailsPage({
                         <Button
                           type="submit"
                           variant="outline"
+                          size="xs"
                           className="shrink-0 rounded-xl bg-background/90"
                         >
                           Добавить
@@ -850,7 +853,8 @@ export default async function ProjectDetailsPage({
                 <input type="hidden" name="projectId" value={project.id} />
                 <Button
                   variant="outline"
-                  className="rounded-lg bg-background/90"
+                  size="xs"
+                  className="rounded-lg bg-background/90 text-destructive border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
                 >
                   Удалить проект
                 </Button>
