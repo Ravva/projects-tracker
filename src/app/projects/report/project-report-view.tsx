@@ -218,25 +218,25 @@ export function ProjectReportView({
             <Table className="w-full border-collapse font-sans">
               <TableHeader className="bg-muted/10 print:bg-black/5">
                 <TableRow>
-                  <TableHead className="px-4 py-3 font-semibold font-sans">
+                  <TableHead className="px-2 py-3 font-semibold font-sans">
                     Фамилия Имя
                   </TableHead>
-                  <TableHead className="px-4 py-3 font-semibold font-sans">
+                  <TableHead className="px-2 py-3 font-semibold font-sans">
                     Проект
                   </TableHead>
-                  <TableHead className="px-4 py-3 font-semibold font-sans">
-                    Завершено
+                  <TableHead className="px-2 py-3 font-semibold font-sans">
+                    Всего
                   </TableHead>
-                  <TableHead className="px-4 py-3 font-semibold font-sans">
+                  <TableHead className="px-2 py-3 font-semibold font-sans">
                     Прогресс
                   </TableHead>
-                  <TableHead className="px-4 py-3 font-semibold font-sans">
+                  <TableHead className="px-2 py-3 font-semibold font-sans">
                     Динамика
                   </TableHead>
-                  <TableHead className="px-4 py-3 font-semibold font-sans">
-                    Последнее обновление
+                  <TableHead className="px-2 py-3 font-semibold font-sans">
+                    Обновлён
                   </TableHead>
-                  <TableHead className="px-4 py-3 font-semibold font-sans">
+                  <TableHead className="px-2 py-3 font-semibold font-sans">
                     Статус недели
                   </TableHead>
                 </TableRow>
@@ -244,10 +244,10 @@ export function ProjectReportView({
               <TableBody>
                 {report.rows.map((row) => (
                   <TableRow key={row.studentId}>
-                    <TableCell className="px-4 py-3.5 font-medium print:text-black">
+                    <TableCell className="px-2 py-3.5 font-medium print:text-black">
                       {row.studentName}
                     </TableCell>
-                    <TableCell className="px-4 py-3.5 print:text-black">
+                    <TableCell className="px-2 py-3.5 print:text-black">
                       {row.projectName
                         ? renderProjectLink({
                             name: row.projectName,
@@ -257,23 +257,23 @@ export function ProjectReportView({
                           })
                         : "Нет данных"}
                     </TableCell>
-                    <TableCell className="px-4 py-3.5 print:text-black">
+                    <TableCell className="px-2 py-3.5 print:text-black">
                       {row.completedProjectsCount}
                     </TableCell>
-                    <TableCell className="px-4 py-3.5 print:text-black">
+                    <TableCell className="px-2 py-3.5 print:text-black">
                       {row.hasProject
                         ? renderProgress(row.progress)
                         : "Нет данных"}
                     </TableCell>
-                    <TableCell className="px-4 py-3.5 print:text-black">
+                    <TableCell className="px-2 py-3.5 print:text-black">
                       {row.hasProject
                         ? renderDelta(row.progressDelta)
                         : "Нет данных"}
                     </TableCell>
-                    <TableCell className="px-4 py-3.5 print:text-black">
+                    <TableCell className="px-2 py-3.5 print:text-black">
                       {row.updateLabel}
                     </TableCell>
-                    <TableCell className="px-4 py-3.5">
+                    <TableCell className="px-2 py-3.5">
                       <span className="inline-flex items-center gap-3">
                         <span
                           className={`inline-flex size-4 rounded-full shrink-0 self-center ${getStateDotClassName(row.weeklyStatus)}`}
