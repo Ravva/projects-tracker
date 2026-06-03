@@ -42,7 +42,7 @@ export default async function StudentsPage() {
       actions={
         <>
           <ImportStudentsButton />
-          <Button asChild className="rounded-md">
+          <Button asChild size="sm" className="rounded-xl">
             <Link href="#create-student">Добавить ученика</Link>
           </Button>
         </>
@@ -225,7 +225,7 @@ export default async function StudentsPage() {
                   className="min-h-24 w-full rounded-md border border-border bg-background/60 px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground transition-all duration-200 focus:border-primary/50 resize-none font-sans"
                   placeholder="Заметка преподавателя"
                 />
-                <Button type="submit" className="w-full rounded-md font-sans">
+                <Button type="submit" size="sm" className="w-full rounded-xl font-sans">
                   Сохранить карточку
                 </Button>
               </form>
