@@ -4,7 +4,7 @@
 Все критические страницы проекта (Dashboard, Students, Attendance, Projects) реорганизованы под дизайн-систему Untitled UI Classic (Slate). Next.js сборка проходит без ошибок, Biome-линтер чист по измененным файлам.
 
 ## Контроль изменений
-last_checked_commit: cc10c15
+last_checked_commit: 69eed7e
 
 ## Changelog
 - 2026-06-03: Выполнен рефакторинг раздела проектов (/projects, /projects/[projectId], logs, report) в стиле Untitled UI. Скругления переведены на 8px/12px, усечены кастомные размытые тени, кнопки стандартизированы, таблица отчетов переведена на UI-компоненты Table.
