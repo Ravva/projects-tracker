@@ -61,26 +61,26 @@ export function TeacherSidebar({
       collapsible="icon"
       className="border-r border-sidebar-border bg-sidebar"
     >
-      <SidebarHeader className="gap-4 px-3 py-4">
-        <div className="flex items-start justify-between gap-3">
-          {/* Logo tile — gradient-border shell */}
+      <SidebarHeader className="gap-3 px-2 py-3">
+        <div className="flex items-center justify-between gap-2.5">
+          {/* Logo tile — compact gradient border shell */}
           <Link
             href="/"
             onClick={handleMobileNavigation}
-            className="flex flex-1 shrink-0 items-center gap-3 rounded-2xl p-2 md:p-2.5 transition-all duration-200 hover:bg-card/80 border border-border/40 dark:border-border/20 bg-card/30 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:p-0"
+            className="flex flex-1 shrink-0 items-center gap-2 rounded-lg p-1.5 transition-all duration-200 hover:bg-card/85 border border-border/30 dark:border-border/15 bg-card/20 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:p-0"
           >
-            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 shadow-xs">
-              <BrandMark className="size-10 rounded-xl" />
+            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10">
+              <BrandMark className="size-7 rounded-lg" />
             </div>
             <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-              <div className="truncate text-sm font-extrabold text-foreground tracking-tight">
+              <div className="truncate text-xs font-bold text-foreground tracking-tight">
                 Projects Tracker
               </div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase font-mono tracking-wider">
+              <div className="mt-0.5 flex items-center gap-1 text-[9px] font-semibold text-muted-foreground uppercase font-sans tracking-wide">
                 Teacher Room
                 <Badge
                   variant="outline"
-                  className="px-1 py-0 border-primary/20 bg-primary/10 text-primary text-[8px] tracking-[0.16em] uppercase font-bold"
+                  className="px-0.5 py-0 border-primary/10 bg-primary/5 text-primary text-[7px] font-bold"
                 >
                   MVP
                 </Badge>
@@ -104,8 +104,8 @@ export function TeacherSidebar({
 
       <SidebarContent className="px-2">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] uppercase font-bold tracking-[0.2em] text-muted-foreground mb-1.5 font-mono">
-            Навигация
+          <SidebarGroupLabel className="text-[9px] uppercase tracking-wider text-muted-foreground px-2.5 py-1 block mb-0.5">
+            Меню
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -121,17 +121,17 @@ export function TeacherSidebar({
                       asChild
                       isActive={isActive}
                       tooltip={item.title}
-                      className={`h-11 rounded-xl text-sm transition-all duration-200 font-semibold px-3 ${
+                      className={`h-9 rounded-lg text-xs transition-all duration-200 font-semibold px-2.5 ${
                         isActive
-                          ? "bg-primary/10 text-primary border border-primary/20 shadow-xs shadow-primary/5"
-                          : "text-foreground/80 hover:bg-muted/70 hover:text-foreground border border-transparent"
+                          ? "bg-primary/10 text-primary border border-primary/25 shadow-xs"
+                          : "text-foreground/80 hover:bg-muted/65 hover:text-foreground border border-transparent"
                       }`}
                     >
                       <Link href={item.href} onClick={handleMobileNavigation}>
                         <HugeiconsIcon
                           icon={item.icon}
-                          size={18}
-                          strokeWidth={isActive ? 2.2 : 1.8}
+                          size={14}
+                          strokeWidth={isActive ? 2 : 1.6}
                           className={
                             isActive
                               ? "text-primary"
@@ -149,19 +149,19 @@ export function TeacherSidebar({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="px-3 pb-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-1">
+      <SidebarFooter className="px-2 pb-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-1">
         {/* User tile */}
-        <div className="flex shrink-0 items-center gap-3 rounded-2xl p-2 md:p-2.5 border border-border/40 dark:border-border/20 bg-card/30 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0">
-          <Avatar className="size-9 rounded-xl border border-primary/15 shrink-0">
-            <AvatarFallback className="font-extrabold text-xs bg-primary/10 text-primary font-mono rounded-xl">
+        <div className="flex shrink-0 items-center gap-2 rounded-lg p-1.5 border border-border/30 dark:border-border/15 bg-card/20 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0">
+          <Avatar className="size-7 rounded-lg border border-primary/15 shrink-0">
+            <AvatarFallback className="font-extrabold text-[9px] bg-primary/10 text-primary font-mono rounded-lg">
               {initials || "TC"}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <div className="truncate text-xs font-bold text-foreground">
+            <div className="truncate text-[11px] font-bold text-foreground">
               {teacherName}
             </div>
-            <div className="truncate text-[10px] text-muted-foreground font-medium">
+            <div className="truncate text-[9px] text-muted-foreground font-medium">
               {teacherEmail || "GitHub OAuth Teacher"}
             </div>
           </div>
@@ -171,9 +171,9 @@ export function TeacherSidebar({
         <a
           href="/api/auth/signout"
           onClick={handleMobileNavigation}
-          className="mt-3 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground border border-border/50 bg-background/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-200 group-data-[collapsible=icon]:size-12 group-data-[collapsible=icon]:rounded-xl group-data-[collapsible=icon]:p-0"
+          className="mt-2 inline-flex h-8 shrink-0 items-center justify-center gap-2 rounded-lg px-2.5 py-1 text-[10px] font-bold font-sans uppercase tracking-wider text-muted-foreground border border-border/40 bg-background/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-200 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:p-0"
         >
-          <HugeiconsIcon icon={Logout01Icon} size={16} strokeWidth={2} />
+          <HugeiconsIcon icon={Logout01Icon} size={14} strokeWidth={1.8} />
           <span className="group-data-[collapsible=icon]:hidden">Выйти</span>
         </a>
       </SidebarFooter>

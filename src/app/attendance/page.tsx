@@ -31,7 +31,7 @@ export default async function AttendancePage({
       teacherName={teacher.name}
       teacherEmail={teacher.email}
     >
-      <section>
+      <section className="min-w-0 w-full">
         <Card className="border-border/70 bg-card/88 shadow-none">
           <CardContent>
             <AttendanceGridClient
@@ -45,7 +45,7 @@ export default async function AttendancePage({
           </CardContent>
         </Card>
       </section>
-      <section className="mt-6">
+      <section className="min-w-0 w-full mt-6">
         <AttendanceWeeklyReportCard
           sharePath={sharePath}
           weekStart={weekStart}

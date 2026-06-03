@@ -99,7 +99,7 @@ export function TeacherShell({
               className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/30 dark:via-primary/50 to-transparent opacity-60"
             />
 
-            <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:px-8 lg:py-4.5">
+            <div className="mx-auto w-full max-w-[1600px] flex flex-col gap-2 px-4 py-3 sm:px-6 lg:px-8 lg:py-4.5">
               <div className="flex items-center justify-between gap-3 sm:gap-4">
                 <div className="flex min-w-0 items-center gap-3">
                   <SidebarTrigger className="rounded-xl border border-border/80 bg-background/50 hover:bg-muted/70 hover:border-border/100 backdrop-blur-sm self-center shadow-xs transition-all active:scale-95" />

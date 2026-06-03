@@ -367,13 +367,7 @@ html[data-theme="untitled-classic"].dark {
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
   --font-sans: var(--font-inter), "Inter", "Noto Sans", sans-serif;
-  --font-title: var(
-    --font-title-custom,
-    var(--font-unbounded),
-    "Unbounded",
-    display,
-    sans-serif
-  );
+  --font-title: var(--font-sans);
   --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
 
   --color-status-critical: hsl(var(--status-critical));

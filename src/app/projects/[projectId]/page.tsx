@@ -343,8 +343,8 @@ export default async function ProjectDetailsPage({
           {notice}
         </div>
       ) : null}
-      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <div className="grid gap-6">
+      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr] w-full min-w-0">
+        <div className="min-w-0 w-full grid gap-6">
           <Card className="border-border/70 bg-card/88 shadow-none">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-3 text-base">
@@ -501,7 +501,7 @@ export default async function ProjectDetailsPage({
           </Card>
         </div>
 
-        <div className="grid content-start gap-6 self-start">
+        <div className="min-w-0 w-full grid content-start gap-6 self-start">
           <Card className="border-border/70 bg-card/88 shadow-none">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Участники проекта</CardTitle>

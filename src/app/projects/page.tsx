@@ -160,7 +160,7 @@ export default async function ProjectsPage({
         </AlertBanner>
       ) : null}
       {notice ? <AlertBanner tone="warning">{notice}</AlertBanner> : null}
-      <section>
+      <section className="min-w-0 w-full">
         <Card className="border-border/70 bg-card/88 shadow-none">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Список проектов</CardTitle>
@@ -170,7 +170,7 @@ export default async function ProjectsPage({
           </CardContent>
         </Card>
       </section>
-      <section className="mt-6">
+      <section className="min-w-0 w-full mt-6">
         <ProjectWeeklyStatusReportCard sharePath={sharePath} />
       </section>
     </TeacherShell>
