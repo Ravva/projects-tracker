@@ -48,7 +48,7 @@ export default async function StudentsPage() {
         </>
       }
     >
-      <section className="grid gap-4 xl:grid-cols-[1.45fr_0.55fr] w-full min-w-0">
+      <section className="grid gap-4 xl:grid-cols-[1.55fr_0.45fr] 2xl:grid-cols-[1.6fr_0.4fr] w-full min-w-0">
         <div className="min-w-0 w-full">
           <Card className="border-border/70 bg-card/88 shadow-none">
             <CardHeader className="pb-3">
@@ -58,7 +58,7 @@ export default async function StudentsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-14">№</TableHead>
+                    <TableHead className="w-10">№</TableHead>
                     <TableHead>Ученик</TableHead>
                     <TableHead>GitHub</TableHead>
                     <TableHead>Telegram</TableHead>
@@ -82,13 +82,13 @@ export default async function StudentsPage() {
                   ) : (
                     students.map((student, index) => (
                       <TableRow key={student.id}>
-                        <TableCell className="font-medium text-muted-foreground">
+                        <TableCell className="font-medium text-muted-foreground w-10">
                           {index + 1}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar>
-                              <AvatarFallback className="bg-secondary font-medium text-secondary-foreground">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="size-7 shrink-0">
+                              <AvatarFallback className="bg-secondary font-semibold text-[10px] text-secondary-foreground">
                                 {student.lastName[0]}
                                 {student.firstName[0]}
                               </AvatarFallback>
@@ -142,19 +142,20 @@ export default async function StudentsPage() {
                             />
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right w-28">
                           <Button
                             asChild
                             variant="outline"
-                            className="rounded-md"
+                            size="sm"
+                            className="h-7 rounded-lg text-xs gap-1 inline-flex"
                           >
                             <Link href={`/students/${student.id}`}>
                               <HugeiconsIcon
                                 icon={EditUser02Icon}
-                                size={16}
+                                size={14}
                                 strokeWidth={1.8}
                               />
-                              Редактировать
+                              <span>Редактировать</span>
                             </Link>
                           </Button>
                         </TableCell>
