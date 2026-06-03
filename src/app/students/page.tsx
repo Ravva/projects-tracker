@@ -51,21 +51,39 @@ export default async function StudentsPage() {
       <section className="grid gap-4 xl:grid-cols-[1.55fr_0.45fr] 2xl:grid-cols-[1.6fr_0.4fr] w-full min-w-0">
         <div className="min-w-0 w-full">
           <Card className="border-border/70 bg-card/88 shadow-none">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Список учеников</CardTitle>
+            <CardHeader className="pb-4 border-b border-border/60">
+              <CardTitle className="text-base font-semibold">
+                Список учеников
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Table>
+            <CardContent className="p-0">
+              <Table className="w-full border-collapse font-sans">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-10">№</TableHead>
-                    <TableHead>Ученик</TableHead>
-                    <TableHead>GitHub</TableHead>
-                    <TableHead>Telegram</TableHead>
-                    <TableHead>Chat ID</TableHead>
-                    <TableHead>Проекты</TableHead>
-                    <TableHead>Посещаемость</TableHead>
-                    <TableHead className="text-right">Действие</TableHead>
+                    <TableHead className="w-10 pl-4 sm:pl-6 text-muted-foreground animate-none">
+                      №
+                    </TableHead>
+                    <TableHead className="text-muted-foreground">
+                      Ученик
+                    </TableHead>
+                    <TableHead className="text-muted-foreground">
+                      GitHub
+                    </TableHead>
+                    <TableHead className="text-muted-foreground">
+                      Telegram
+                    </TableHead>
+                    <TableHead className="text-muted-foreground">
+                      Chat ID
+                    </TableHead>
+                    <TableHead className="text-muted-foreground">
+                      Проекты
+                    </TableHead>
+                    <TableHead className="text-muted-foreground">
+                      Посещаемость
+                    </TableHead>
+                    <TableHead className="text-right pr-4 sm:pr-6 text-muted-foreground">
+                      Действие
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -73,7 +91,7 @@ export default async function StudentsPage() {
                     <TableRow>
                       <TableCell
                         colSpan={8}
-                        className="py-10 text-center text-muted-foreground"
+                        className="py-10 text-center text-muted-foreground pl-4 pr-4 sm:pl-6 sm:pr-6"
                       >
                         Appwrite не настроен или коллекция `students` пока
                         пуста.
@@ -82,7 +100,7 @@ export default async function StudentsPage() {
                   ) : (
                     students.map((student, index) => (
                       <TableRow key={student.id}>
-                        <TableCell className="font-medium text-muted-foreground w-10">
+                        <TableCell className="font-semibold text-muted-foreground w-10 pl-4 sm:pl-6">
                           {index + 1}
                         </TableCell>
                         <TableCell>
@@ -94,7 +112,7 @@ export default async function StudentsPage() {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">
+                              <div className="font-medium text-foreground">
                                 {student.lastName} {student.firstName}
                               </div>
                             </div>
@@ -106,7 +124,7 @@ export default async function StudentsPage() {
                               <Link
                                 href={`https://github.com/${student.githubUsername}`}
                                 target="_blank"
-                                className="text-primary hover:underline"
+                                className="text-primary hover:underline font-sans"
                               >
                                 {student.githubUsername}
                               </Link>
@@ -116,16 +134,16 @@ export default async function StudentsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm">
+                          <div className="text-sm font-medium">
                             {student.telegramUsername || "-"}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-xs text-muted-foreground font-mono">
                             {student.telegramChatId || "Не заполнен"}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-sm font-medium text-foreground/90">
                           {student.activeProjectsCount}/{student.projectsCount}
                         </TableCell>
                         <TableCell>
@@ -142,7 +160,7 @@ export default async function StudentsPage() {
                             />
                           </div>
                         </TableCell>
-                        <TableCell className="text-right w-28">
+                        <TableCell className="text-right w-28 pr-4 sm:pr-6">
                           <Button asChild variant="outline" size="xs">
                             <Link href={`/students/${student.id}`}>
                               <HugeiconsIcon

@@ -59,16 +59,14 @@ export default async function StudentDetailsPage({
           <Button
             asChild
             variant="outline"
-            className="rounded-md bg-background/90 font-sans"
+            size="sm"
+            className="bg-background/90"
           >
             <Link href="/students">К списку</Link>
           </Button>
           <form action={deleteStudentAction}>
             <input type="hidden" name="studentId" value={student.id} />
-            <Button
-              variant="outline"
-              className="rounded-md bg-background/90 font-sans"
-            >
+            <Button variant="outline" size="sm" className="bg-background/90">
               Удалить
             </Button>
           </form>
@@ -206,13 +204,13 @@ export default async function StudentDetailsPage({
                   <TextareaWithCounter
                     id="notes"
                     name="notes"
-                    className="min-h-32 w-full rounded-md border border-border bg-background/80 px-4 py-3 text-sm outline-none font-sans"
+                    className="min-h-32 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground/60 transition-all duration-200 outline-none focus-visible:border-primary/50 focus-visible:shadow-[0_0_0_3px_rgba(127,86,217,0.12)] font-sans resize-y"
                     defaultValue={student.notes}
                     maxLength={2000}
                   />
                 </div>
 
-                <Button type="submit" className="rounded-md font-sans">
+                <Button type="submit" size="sm">
                   Сохранить изменения
                 </Button>
               </form>

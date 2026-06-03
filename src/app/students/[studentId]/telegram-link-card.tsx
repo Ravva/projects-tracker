@@ -160,12 +160,11 @@ export function TelegramLinkCard({
                   {currentInviteLink}
                 </div>
               </div>
-              <button
+              <Button
                 type="button"
-                aria-label={
-                  copySucceeded ? "Ссылка скопирована" : "Скопировать ссылку"
-                }
-                className="inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background/90 text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 font-sans"
+                variant="outline"
+                size="icon"
+                className="size-10 shrink-0 bg-background/90"
                 disabled={!currentInviteLink}
                 onClick={handleCopyLink}
               >
@@ -174,7 +173,7 @@ export function TelegramLinkCard({
                   size={18}
                   strokeWidth={1.8}
                 />
-              </button>
+              </Button>
             </div>
           </div>
         ) : null}
@@ -182,7 +181,8 @@ export function TelegramLinkCard({
         <div className="grid gap-2">
           <Button
             type="button"
-            className="rounded-md font-sans"
+            size="sm"
+            className="w-full"
             disabled={isPending || status === "linked"}
             onClick={handleIssueInvite}
           >

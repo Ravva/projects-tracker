@@ -77,7 +77,7 @@ export function NotificationCard({
                 value={message}
                 maxLength={maxLength}
                 placeholder="Введите текст сообщения..."
-                className="min-h-24 w-full rounded-md border border-border bg-background/80 px-4 py-3 text-sm outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-primary/50 font-sans resize-none"
+                className="min-h-24 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground/60 transition-all duration-200 outline-none focus-visible:border-primary/50 focus-visible:shadow-[0_0_0_3px_rgba(127,86,217,0.12)] font-sans resize-none"
                 onChange={(event) => setMessage(event.target.value)}
               />
               <div className="flex items-center justify-between gap-3 text-xs font-sans">
@@ -90,8 +90,9 @@ export function NotificationCard({
               </div>
               <Button
                 type="submit"
+                size="sm"
                 disabled={isPending}
-                className="w-full rounded-md font-sans"
+                className="w-full"
               >
                 {isPending ? "Отправка..." : "Отправить через бота"}
               </Button>
