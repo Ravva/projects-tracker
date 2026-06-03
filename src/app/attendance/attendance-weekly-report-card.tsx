@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { FileText, Copy, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +31,7 @@ export function AttendanceWeeklyReportCard({
   };
 
   return (
-    <Card className="border-border/70 bg-card/88 shadow-none">
+    <Card className="border-border/70 bg-card/88 shadow-none font-sans">
       <CardHeader className="pb-4">
         <CardTitle className="text-sm font-semibold">
           Отчет для родителей
@@ -45,9 +46,10 @@ export function AttendanceWeeklyReportCard({
               asChild
               variant="outline"
               size="sm"
-              className="bg-background/90"
+              className="bg-background/90 text-xs font-semibold"
             >
               <Link href={`/attendance/report?weekStart=${weekStart}`}>
+                <FileText className="size-3.5 mr-1" />
                 Открыть отчёт
               </Link>
             </Button>
@@ -55,10 +57,20 @@ export function AttendanceWeeklyReportCard({
               type="button"
               variant="outline"
               size="sm"
-              className="bg-background/90"
+              className="bg-background/90 text-xs font-semibold"
               onClick={handleCopyShareLink}
             >
-              {copied ? "Ссылка скопирована" : "Скопировать ссылку"}
+              {copied ? (
+                <>
+                  <Check className="size-3.5 mr-1 text-emerald-500" />
+                  Ссылка скопирована
+                </>
+              ) : (
+                <>
+                  <Copy className="size-3.5 mr-1" />
+                  Скопировать ссылку
+                </>
+              )}
             </Button>
           </div>
         </CardAction>

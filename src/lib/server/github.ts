@@ -104,14 +104,27 @@ function buildGithubHeaders(accessToken?: string) {
   return headers;
 }
 
+const githubCache = new Map<string, { data: unknown; expiry: number }>();
+const CACHE_TTL_MS = 120000; // 2 mins
+
 async function fetchGithubJson<T>(
   url: string,
   options: {
     accessToken?: string;
     allow404?: boolean;
     revalidate?: number;
+    bypassCache?: boolean;
   } = {},
 ): Promise<T | null> {
+  const cacheKey = `${url}:${options.accessToken ?? ""}`;
+  if (!options.bypassCache) {
+    const cached = githubCache.get(cacheKey);
+    const now = Date.now();
+    if (cached && cached.expiry > now) {
+      return cached.data as T;
+    }
+  }
+
   const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
     headers: buildGithubHeaders(options.accessToken),
   };
@@ -142,7 +155,12 @@ async function fetchGithubJson<T>(
     throw new GithubRequestError(message, response.status);
   }
 
-  return (await response.json()) as T;
+  const result = (await response.json()) as T;
+  githubCache.set(cacheKey, {
+    data: result,
+    expiry: Date.now() + CACHE_TTL_MS,
+  });
+  return result;
 }
 
 export async function listGithubRepositoriesForStudent(
@@ -217,10 +235,11 @@ export async function getGithubRepositoryMetadata(
   owner: string,
   repo: string,
   accessToken = process.env.GITHUB_TOKEN,
+  bypassCache = false,
 ): Promise<GithubRepositoryMetadata> {
   const response = await fetchGithubJson<GithubRepositoryMetadataResponse>(
     `https://api.github.com/repos/${owner}/${repo}`,
-    { accessToken, revalidate: 60 },
+    { accessToken, revalidate: 60, bypassCache },
   );
 
   if (!response) {
@@ -269,6 +288,7 @@ export async function listGithubRepositoryCommits(
     accessToken?: string;
     maxPages?: number;
     perPage?: number;
+    bypassCache?: boolean;
   } = {},
 ): Promise<GithubCommitSnapshot[]> {
   const accessToken = options.accessToken ?? process.env.GITHUB_TOKEN;
@@ -279,7 +299,7 @@ export async function listGithubRepositoryCommits(
   for (let page = 1; page <= maxPages; page += 1) {
     const response = await fetchGithubJson<GithubCommitResponse[]>(
       `https://api.github.com/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(ref)}&per_page=${perPage}&page=${page}`,
-      { accessToken, revalidate: 60 },
+      { accessToken, revalidate: 60, bypassCache: options.bypassCache },
     );
 
     if (!response || response.length === 0) {

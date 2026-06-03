@@ -8,7 +8,7 @@ import { runProjectSyncBatch } from "@/lib/server/project-sync-batch";
 import {
   addProjectMember,
   deleteProject,
-  getProject,
+  getProjectLocal,
   removeProjectMember,
   runProjectAiAnalysis,
   setProjectGroupMode,
@@ -87,7 +87,7 @@ function buildProjectsListRedirect(searchParams: Record<string, string>) {
 }
 
 async function revalidateProjectRelatedPaths(projectId: string) {
-  const project = await getProject(projectId);
+  const project = await getProjectLocal(projectId);
 
   revalidatePath("/projects");
   revalidatePath(`/projects/${projectId}`);
@@ -107,7 +107,7 @@ export async function deleteProjectAction(formData: FormData) {
   await requireTeacherSession();
 
   const projectId = readString(formData, "projectId");
-  const project = await getProject(projectId);
+  const project = await getProjectLocal(projectId);
 
   await deleteProject(projectId);
 
@@ -352,4 +352,6 @@ export async function setProjectGroupModeAction(formData: FormData) {
   }
 
   await revalidateProjectRelatedPaths(projectId);
+
+  redirect(buildProjectDetailsRedirect(projectId, {}));
 }

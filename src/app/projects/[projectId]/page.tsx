@@ -557,16 +557,16 @@ export default async function ProjectDetailsPage({
                             aria-label="Переключить режим группового проекта"
                             className={`group/switch relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full border transition-all duration-200 outline-none ${
                               project.isGroupProject
-                                ? "bg-primary/25 border-primary/40"
-                                : "bg-white/8 border-white/10"
+                                ? "bg-primary border-primary focus:ring-2 focus:ring-primary/45 focus:ring-offset-2 dark:focus:ring-offset-neutral-900"
+                                : "bg-neutral-200 border-neutral-300 dark:bg-white/8 dark:border-white/10"
                             }`}
                           >
                             {/* Thumb */}
                             <span
                               className={`pointer-events-none block size-4 rounded-full shadow-sm transition-all duration-200 ${
                                 project.isGroupProject
-                                  ? "translate-x-5 bg-primary"
-                                  : "translate-x-1 bg-white/40"
+                                  ? "translate-x-5 bg-white"
+                                  : "translate-x-1 bg-white dark:bg-white/40"
                               }`}
                             />
                           </button>

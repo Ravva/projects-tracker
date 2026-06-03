@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -8,6 +9,7 @@ import {
   clearAttendanceAction,
   saveAttendanceAction,
 } from "@/app/attendance/actions";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { FeedbackModal } from "@/components/ui/feedback-modal";
 import {
@@ -408,14 +410,11 @@ export function AttendanceGridClient({
 
   return (
     <>
-      <div className="flex flex-col gap-4 border-b border-border/60 bg-card/30 px-4 py-4.5 sm:px-6 md:flex-row md:items-center md:justify-between md:gap-3">
-        <div className="space-y-1.5">
-          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+      <div className="flex flex-col gap-4 border-b border-border/60 bg-muted/20 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1.5 animate-none">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             Журнал посещений
-            <span className="text-xs font-normal text-muted-foreground">
-              • Неделя: {weekRangeLabel}
-            </span>
-          </p>
+          </h3>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
             {ATTENDANCE_LEGEND_ITEMS.map((item) => (
               <span key={item.label} className="inline-flex items-center gap-2">
@@ -433,47 +432,60 @@ export function AttendanceGridClient({
             ))}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <form action={clearAttendanceAction}>
-            <input type="hidden" name="weekStart" value={weekStart} />
+
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Week Selector Group */}
+          <div className="flex items-center gap-1 rounded-md border border-border bg-background p-1 shadow-[0_1px_2px_rgba(16,24,40,0.05)]">
             <Button
-              variant="outline"
-              size="sm"
-              className="bg-background/90"
-              disabled={isPending}
+              asChild
+              variant="ghost"
+              size="icon"
+              className="size-7 rounded-[6px]"
+              title="Предыдущая неделя"
             >
-              Очистить отметки
+              <Link href={`/attendance?weekStart=${previousWeekStart}`}>
+                <ChevronLeft className="size-4 text-muted-foreground hover:text-foreground" />
+              </Link>
             </Button>
-          </form>
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            disabled={!isDirty || isPending || !hasRows}
-            onClick={handleSave}
-          >
-            {isPending ? "Сохраняем..." : "Сохранить изменения"}
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="bg-background/90"
-          >
-            <Link href={`/attendance?weekStart=${previousWeekStart}`}>
-              Предыдущая неделя
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="bg-background/90"
-          >
-            <Link href={`/attendance?weekStart=${nextWeekStart}`}>
-              Следующая неделя
-            </Link>
-          </Button>
+            <span className="px-2.5 text-xs font-semibold text-foreground select-none">
+              Неделя: {weekRangeLabel}
+            </span>
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="size-7 rounded-[6px]"
+              title="Следующая неделя"
+            >
+              <Link href={`/attendance?weekStart=${nextWeekStart}`}>
+                <ChevronRight className="size-4 text-muted-foreground hover:text-foreground" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <form action={clearAttendanceAction}>
+              <input type="hidden" name="weekStart" value={weekStart} />
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-background/90 text-xs"
+                disabled={isPending}
+              >
+                Очистить
+              </Button>
+            </form>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              className="text-xs"
+              disabled={!isDirty || isPending || !hasRows}
+              onClick={handleSave}
+            >
+              {isPending ? "Сохранение..." : "Сохранить"}
+            </Button>
+          </div>
         </div>
       </div>
       {error ? (
@@ -484,32 +496,45 @@ export function AttendanceGridClient({
       <Table className="w-full border-collapse font-sans">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[14rem] max-w-[14rem] pl-4 sm:pl-6">
+            <TableHead className="w-[14rem] max-w-[14rem] pl-4 sm:pl-6 text-muted-foreground font-sans font-semibold">
               Ученик
             </TableHead>
             {WEEKDAY_COLUMNS.map((column) => {
               const lesson = lessonsByWeekday.get(column.code);
 
               return (
-                <TableHead key={column.code} className="w-20 text-center">
+                <TableHead key={column.code} className="w-20 text-center px-1">
                   {lesson ? (
                     <button
                       type="button"
-                      className="inline-flex cursor-pointer items-center justify-center rounded-md px-2 py-1 text-center text-xs font-medium font-sans uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:text-muted-foreground"
+                      className="inline-flex flex-col cursor-pointer items-center justify-center rounded-md px-2.5 py-1 text-center transition-colors hover:bg-muted dark:hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
                       disabled={isPending || !hasRows}
                       onClick={() => handleColumnToggle(lesson.id)}
                       title="Массово переключить весь столбец"
                     >
-                      {column.label}
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-[0.08em] ${lessonClosedStates[lesson.id] ? "text-fuchsia-500/80 dark:text-fuchsia-400/80 line-through" : "text-muted-foreground"}`}
+                      >
+                        {column.label}
+                      </span>
+                      <span
+                        className={`text-[11px] font-medium lowercase mt-0.5 ${lessonClosedStates[lesson.id] ? "text-fuchsia-500/70 dark:text-fuchsia-400/70 font-semibold" : "text-muted-foreground/70"}`}
+                      >
+                        {lessonClosedStates[lesson.id]
+                          ? "отменено"
+                          : lesson.dateLabel}
+                      </span>
                     </button>
                   ) : (
-                    column.label
+                    <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+                      {column.label}
+                    </span>
                   )}
                 </TableHead>
               );
             })}
-            <TableHead className="w-24 text-center pr-4 sm:pr-6">
-              Статус
+            <TableHead className="w-28 text-center pr-4 sm:pr-6 whitespace-nowrap text-muted-foreground font-sans font-semibold">
+              Посещаемость
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -539,16 +564,29 @@ export function AttendanceGridClient({
 
               return (
                 <TableRow key={row.student.id}>
-                  <TableCell className="max-w-[14rem] truncate py-2 pr-2 text-xs font-semibold pl-4 sm:pl-6">
-                    {row.student.lastName} {row.student.firstName}
+                  <TableCell className="max-w-[14rem] py-2.5 pr-2 pl-4 sm:pl-6">
+                    <div className="flex items-center gap-2.5 truncate">
+                      <Avatar className="size-6 shrink-0">
+                        <AvatarFallback className="bg-secondary font-bold text-[9px] text-secondary-foreground">
+                          {row.student.lastName[0] || ""}
+                          {row.student.firstName[0] || ""}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="font-semibold text-xs text-foreground truncate">
+                        {row.student.lastName} {row.student.firstName}
+                      </div>
+                    </div>
                   </TableCell>
                   {WEEKDAY_COLUMNS.map((column) => {
                     const lesson = lessonsByWeekday.get(column.code);
 
                     if (!lesson) {
                       return (
-                        <TableCell key={column.code} className="px-0.5 py-2">
-                          <div className="text-center text-base text-muted-foreground">
+                        <TableCell
+                          key={column.code}
+                          className="w-20 px-0.5 py-2"
+                        >
+                          <div className="text-center text-xs text-muted-foreground">
                             -
                           </div>
                         </TableCell>
@@ -560,7 +598,7 @@ export function AttendanceGridClient({
                       : (studentStates[lesson.id] ?? "unmarked");
 
                     return (
-                      <TableCell key={column.code} className="px-0.5 py-2">
+                      <TableCell key={column.code} className="w-20 px-0.5 py-2">
                         <div className="flex justify-center">
                           <button
                             type="button"
@@ -568,14 +606,14 @@ export function AttendanceGridClient({
                               isPending || lessonClosedStates[lesson.id]
                             }
                             aria-label={STATE_LABELS[currentState]}
-                            className="inline-flex size-7 items-center justify-center rounded-full transition-colors hover:bg-muted/40 dark:hover:bg-muted/20 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex size-7 items-center justify-center rounded-full transition-all duration-150 hover:bg-muted/70 dark:hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-primary/40 outline-none disabled:cursor-not-allowed disabled:opacity-50"
                             title={STATE_LABELS[currentState]}
                             onClick={() =>
                               handleCellToggle(row.student.id, lesson.id)
                             }
                           >
                             <span
-                              className={`inline-flex size-4 rounded-full ${getAttendanceDotClassName(currentState)}`}
+                              className={`inline-flex size-[14px] rounded-full transition-transform active:scale-90 ${getAttendanceDotClassName(currentState)}`}
                             />
                           </button>
                         </div>
@@ -583,17 +621,14 @@ export function AttendanceGridClient({
                     );
                   })}
                   <TableCell className="px-0.5 py-2 text-center pr-4 sm:pr-6">
-                    <span
-                      className="inline-flex items-center"
-                      title={`Статус недели: ${attendanceRate}%`}
-                    >
+                    <div className="flex items-center justify-center gap-2">
                       <span
-                        className={`inline-flex size-4 rounded-full ${getWeeklyStatusDotClassName(weeklyState)}`}
+                        className={`inline-flex size-3 rounded-full ${getWeeklyStatusDotClassName(weeklyState)}`}
                       />
-                      <span className="sr-only">
-                        Статус недели {attendanceRate}%
+                      <span className="text-xs font-semibold text-foreground">
+                        {attendanceRate}%
                       </span>
-                    </span>
+                    </div>
                   </TableCell>
                 </TableRow>
               );

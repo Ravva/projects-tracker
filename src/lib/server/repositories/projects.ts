@@ -979,6 +979,41 @@ export async function listProjectsByStudentId(
   }
 }
 
+export async function getProjectLocal(
+  projectId: string,
+): Promise<ProjectRecord | null> {
+  const appwrite = getAppwriteDatabases();
+  const config = getAppwriteConfig();
+
+  if (!appwrite || !config) {
+    return null;
+  }
+
+  try {
+    const [document, studentNameMap] = await Promise.all([
+      appwrite.databases.getDocument(
+        appwrite.databaseId,
+        config.collections.projects,
+        projectId,
+      ),
+      listStudentNameMap(),
+    ]);
+    const membershipsByProjectId = buildMembershipsByProjectId(
+      await listProjectMembershipDocumentsByProjectIds([projectId]),
+      studentNameMap,
+    );
+
+    const project = buildProjectRecordWithMembers(
+      document,
+      studentNameMap,
+      membershipsByProjectId,
+    );
+    return getProjectBaseRecord(project);
+  } catch {
+    return null;
+  }
+}
+
 export async function getProject(
   projectId: string,
 ): Promise<ProjectRecord | null> {
@@ -1413,6 +1448,8 @@ export async function syncProjectGithub(projectId: string) {
     const metadata = await getGithubRepositoryMetadata(
       parsed.owner,
       parsed.repo,
+      undefined,
+      true,
     );
     const commitData = await listGithubRepositoryCommits(
       parsed.owner,
@@ -1421,6 +1458,7 @@ export async function syncProjectGithub(projectId: string) {
       {
         maxPages: 1,
         perPage: 1,
+        bypassCache: true,
       },
     );
     const lastCommit = commitData[0];
