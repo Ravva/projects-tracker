@@ -67,8 +67,8 @@ function RowLink({
       href={href}
       className={
         padded
-          ? "block -mx-4 -my-4 px-4 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          : "block px-4 py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          ? "block -mx-2.5 -my-2 px-2.5 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          : "block px-2.5 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       }
     >
       {children}
@@ -100,7 +100,7 @@ function ProjectKindIcon({ membersCount }: { membersCount: number }) {
 export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
   if (rows.length === 0) {
     return (
-      <Table className="w-full text-sm md:text-base">
+      <Table className="w-full">
         <TableHeader>
           <TableRow>
             <TableHead>Участники</TableHead>
@@ -130,7 +130,7 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
   }
 
   return (
-    <Table className="w-full text-sm md:text-base">
+    <Table className="w-full">
       <TableHeader>
         <TableRow>
           <TableHead>Участники</TableHead>
@@ -155,29 +155,29 @@ export function ProjectsTable({ rows }: { rows: ProjectsTableRowData[] }) {
                 key={row.studentId}
                 className="transition-colors hover:bg-muted/40"
               >
-                <TableCell className="font-medium text-left">
-                  <div className="px-4 py-4">{row.studentName}</div>
+                <TableCell className="font-medium text-left p-0">
+                  <div className="px-2.5 py-2">{row.studentName}</div>
                 </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                <TableCell className="p-0">
+                  <div className="px-2.5 py-2 text-muted-foreground">-</div>
                 </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                <TableCell className="p-0">
+                  <div className="px-2.5 py-2 text-muted-foreground">-</div>
                 </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                <TableCell className="p-0">
+                  <div className="px-2.5 py-2 text-muted-foreground">-</div>
                 </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                <TableCell className="p-0">
+                  <div className="px-2.5 py-2 text-muted-foreground">-</div>
                 </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                <TableCell className="p-0">
+                  <div className="px-2.5 py-2 text-muted-foreground">-</div>
                 </TableCell>
-                <TableCell>
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                <TableCell className="p-0">
+                  <div className="px-2.5 py-2 text-muted-foreground">-</div>
                 </TableCell>
-                <TableCell className="text-right font-medium">
-                  <div className="px-4 py-4 text-muted-foreground">-</div>
+                <TableCell className="text-right font-medium p-0">
+                  <div className="px-2.5 py-2 text-muted-foreground">-</div>
                 </TableCell>
               </TableRow>
             );
