@@ -355,3 +355,20 @@ export async function setProjectGroupModeAction(formData: FormData) {
 
   redirect(buildProjectDetailsRedirect(projectId, {}));
 }
+
+export async function setProjectGroupModeQuickAction(formData: FormData) {
+  await requireTeacherSession();
+
+  const projectId = readString(formData, "projectId");
+  const isGroupProject = readString(formData, "isGroupProject") === "true";
+
+  try {
+    await setProjectGroupMode(projectId, isGroupProject);
+  } catch (error) {
+    throw new Error(
+      getErrorMessage(error, "Не удалось обновить режим группового проекта."),
+    );
+  }
+
+  await revalidateProjectRelatedPaths(projectId);
+}
